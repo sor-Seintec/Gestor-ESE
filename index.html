@@ -919,6 +919,7 @@ html>body{padding:0}</style>
     <nav class="ure-nav">
       <button type="button" class="ure-nav-item is-active" data-url="home"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Visão geral</span></button>
       <span class="ure-nav-label">Cadastros</span>
+      <button type="button" class="ure-nav-item" id="openAdministratorRegistry"><i data-lucide="shield-user" aria-hidden="true"></i><span>Administradores</span></button>
       <button type="button" class="ure-nav-item" id="openSupervisorRegistry"><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
       <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
@@ -1054,6 +1055,54 @@ html>body{padding:0}</style>
         <thead><tr><th>Data</th><th>Origem</th><th>Supervisor</th><th>Escola</th><th>Status</th><th>Ações/Justificativa</th><th>Autor</th></tr></thead>
         <tbody id="globalSearchBody"><tr><td colspan="7" class="ure-search-empty">Abra a busca para consultar os registros.</td></tr></tbody>
       </table>
+    </div>
+  </section>
+</div>
+
+<div class="ure-admin-modal" id="administratorRegistryModal" role="dialog" aria-modal="true" aria-labelledby="administratorRegistryTitle" hidden>
+  <div class="ure-admin-backdrop" data-admin-close="administratorRegistryModal"></div>
+  <section class="ure-admin-panel">
+    <header class="ure-admin-head">
+      <div><span>CADASTRO</span><h2 id="administratorRegistryTitle">Administradores</h2><p>Prepare a conta e aplique o perfil administrativo pelo UID.</p></div>
+      <button type="button" class="ure-admin-close" data-admin-close="administratorRegistryModal" aria-label="Fechar">×</button>
+    </header>
+    <div class="ure-admin-grid">
+      <aside class="ure-admin-form-card">
+        <h3>Novo administrador</h3>
+        <p>Este perfil terá acesso integral ao Gestor-ESE. Confira todos os dados antes da ativação.</p>
+        <label for="newAdministratorName">Nome completo</label>
+        <input id="newAdministratorName" type="text" autocomplete="off" placeholder="Nome do administrador">
+        <label for="newAdministratorEmailVariable">E-mail de acesso</label>
+        <div class="ure-email-builder">
+          <span>desornit+</span>
+          <input id="newAdministratorEmailVariable" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="variável" aria-describedby="newAdministratorEmailPreview">
+          <span>@prof.educacao.sp.gov.br</span>
+        </div>
+        <small class="ure-email-preview" id="newAdministratorEmailPreview">Preencha somente a parte variável do e-mail.</small>
+        <button type="button" class="ure-admin-primary" id="prepareAdministratorButton">Preparar cadastro</button>
+        <p class="ure-admin-message" id="administratorRegistryMessage" role="status"></p>
+        <div class="ure-password-result" id="newAdministratorCredentialResult" hidden>
+          <span>Etapa 1 — adicione o usuário no Authentication</span>
+          <div><output id="newAdministratorCredentialEmail"></output><button type="button" id="copyAdministratorEmail">Copiar e-mail</button></div>
+          <div><output id="newAdministratorPassword"></output><button type="button" id="copyAdministratorPassword">Copiar senha</button></div>
+          <a href="https://console.firebase.google.com/project/supervisor-ese/authentication/users" target="_blank" rel="noopener">Abrir usuários do Firebase ↗</a>
+          <small>Use exatamente estes dados em “Adicionar usuário”. A senha não será armazenada no Firestore.</small>
+        </div>
+        <div class="ure-access-activation ure-access-activation-danger" id="administratorAccessActivation" hidden>
+          <span>Etapa 2 — ativar perfil Administrador</span>
+          <p id="administratorAccessTarget"></p>
+          <label for="administratorAuthUid">UID copiado do Authentication</label>
+          <input id="administratorAuthUid" type="text" autocomplete="off" spellcheck="false" placeholder="Cole aqui o UID completo">
+          <button type="button" class="ure-admin-primary" id="activateAdministratorAccessButton">Ativar administrador</button>
+          <small>Esta ação concede acesso integral aos dados e cadastros do Gestor-ESE.</small>
+        </div>
+        <div class="ure-admin-security"><i data-lucide="shield-alert" aria-hidden="true"></i><span>Nunca vincule um UID recebido por mensagem sem conferir o e-mail diretamente no Firebase.</span></div>
+      </aside>
+      <div class="ure-admin-workspace">
+        <div class="ure-admin-toolbar ure-admin-toolbar-single"><label><span>Pesquisar administrador</span><input id="administratorRegistrySearch" type="search" placeholder="Nome, e-mail ou UID"></label></div>
+        <div class="ure-school-registry-summary" id="administratorRegistrySummary">Carregando administradores…</div>
+        <div class="ure-administrator-list" id="administratorRegistryList"></div>
+      </div>
     </div>
   </section>
 </div>
@@ -1481,11 +1530,22 @@ html>body{padding:0}</style>
   .ure-access-activation .ure-admin-primary { margin-top:9px; }
   .ure-access-activation small { display:block; margin-top:8px; color:#637b89; font-size:10.5px; line-height:1.4; }
   .ure-access-activation.is-active { border-color:#b9d9c9; background:#edf8f2; color:#234d3a; }
+  .ure-access-activation-danger { border-color:#e3c8c8; background:#fff7f7; }
+  .ure-access-activation-danger > span { color:#a04444; }
+  .ure-access-activation-danger .ure-admin-primary { background:#9b4444; }
   .ure-admin-workspace { min-width:0; min-height:0; display:flex; flex-direction:column; }
   .ure-admin-toolbar { display:grid; grid-template-columns:minmax(220px,.75fr) minmax(260px,1.25fr); gap:12px; padding:16px 20px; border-bottom:1px solid #dfe7ec; background:#f1f6f8; }
   .ure-admin-toolbar-single { grid-template-columns:1fr; }
   .ure-assignment-summary,.ure-school-registry-summary { padding:12px 20px; border-bottom:1px solid #e2e9ed; background:#fff; color:#526b7a; font-size:12.5px; font-weight:650; }
   .ure-assignment-list,.ure-school-registry-list { flex:1; min-height:0; overflow:auto; padding:8px 20px 16px; background:#fff; }
+  .ure-administrator-list { flex:1; min-height:0; overflow:auto; padding:8px 20px 16px; background:#fff; }
+  .ure-administrator-row { display:grid; grid-template-columns:minmax(180px,1fr) minmax(230px,1fr) minmax(190px,.75fr) auto; gap:14px; align-items:center; min-height:64px; border-bottom:1px solid #edf1f3; }
+  .ure-administrator-row strong,.ure-administrator-row span,.ure-administrator-row code { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ure-administrator-row strong { color:#203d50; font-size:13px; }
+  .ure-administrator-row span { color:#5f7685; font-size:11.5px; }
+  .ure-administrator-row code { color:#45667a; font-size:10.5px; }
+  .ure-administrator-badge { padding:5px 8px; border-radius:999px; background:#e8f5ee; color:#24734d; font-size:10px; font-weight:800; white-space:nowrap; }
+  .ure-administrator-badge.is-inactive { background:#f7e8e8; color:#a04747; }
   .ure-assignment-row { display:grid; grid-template-columns:24px minmax(0,1fr) minmax(150px,.55fr); gap:10px; align-items:center; min-height:54px; border-bottom:1px solid #edf1f3; cursor:pointer; }
   .ure-assignment-row input { width:17px; height:17px; accent-color:#477c9e; }
   .ure-assignment-row strong,.ure-assignment-row span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1522,6 +1582,8 @@ html>body{padding:0}</style>
     .ure-admin-toolbar { grid-template-columns:1fr; }
     .ure-school-registry-row { grid-template-columns:1fr auto; padding:10px 0; }
     .ure-school-registry-row select { grid-column:1/-1; grid-row:2; }
+    .ure-administrator-row { grid-template-columns:1fr auto; padding:11px 0; }
+    .ure-administrator-row span,.ure-administrator-row code { grid-column:1/-1; }
   }
 
   #loginScreen {
@@ -1908,7 +1970,7 @@ html>body{padding:0}</style>
 
 <script type="module">
   import {
-    activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage,
+    activateAdministratorAccess, activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage,
     loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive,
     updateSchoolAssignment
   } from './firebase-gestor.js';
@@ -1979,7 +2041,8 @@ html>body{padding:0}</style>
     data: null,
     assignmentSupervisorId: '',
     assignmentDraft: new Map(),
-    pendingCredential: null
+    pendingCredential: null,
+    pendingAdministrator: null
   };
   const byId = (id) => document.getElementById(id);
   const foldRegistry = (value) => (value || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -1987,6 +2050,7 @@ html>body{padding:0}</style>
   const supervisorEmailDomain = '@prof.educacao.sp.gov.br';
   const cleanEmailVariable = (value) => foldRegistry(value).replace(/\s+/g,'-').replace(/[^a-z0-9._-]/g,'');
   const supervisorItems = () => registry.data ? [...registry.data.supervisors.values()].filter((item) => item.active !== false).sort((a,b) => (a.displayName || a.id).localeCompare(b.displayName || b.id,'pt-BR')) : [];
+  const administratorItems = () => registry.data ? [...registry.data.users.values()].filter((item) => item.role === 'admin').sort((a,b) => (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id,'pt-BR')) : [];
   const supervisorName = (id) => registry.data?.supervisors.get(id)?.displayName || (id ? 'Supervisor não localizado' : 'Sem supervisor');
 
   function generateStrongPassword(length = 12) {
@@ -2015,6 +2079,7 @@ html>body{padding:0}</style>
 
   async function refreshRegistryData() {
     registry.data = await loadGestorData({refresh:true});
+    renderAdministratorRegistry();
     renderSupervisorOptions();
     renderAssignmentSchools();
     renderSchoolRegistry();
@@ -2027,6 +2092,28 @@ html>body{padding:0}</style>
     if (emptyLabel) select.add(new Option(emptyLabel,''));
     supervisorItems().forEach((item) => select.add(new Option(item.displayName || item.id,item.id)));
     if ([...select.options].some((item) => item.value === current)) select.value = current;
+  }
+
+  function renderAdministratorRegistry() {
+    if (!registry.data) return;
+    const list=byId('administratorRegistryList'),term=foldRegistry(byId('administratorRegistrySearch').value);
+    const administrators=administratorItems().filter((item)=>!term||foldRegistry(`${item.displayName} ${item.email} ${item.id}`).includes(term));
+    list.replaceChildren();
+    administrators.forEach((administrator)=>{
+      const row=document.createElement('div');
+      row.className='ure-administrator-row';
+      const name=document.createElement('strong'),email=document.createElement('span'),uid=document.createElement('code'),badge=document.createElement('b');
+      name.textContent=administrator.displayName||'Administrador';
+      email.textContent=administrator.email||'E-mail não informado';
+      uid.textContent=administrator.id;
+      badge.className=`ure-administrator-badge${administrator.active===true?'':' is-inactive'}`;
+      badge.textContent=administrator.active===true?'Ativo':'Inativo';
+      row.append(name,email,uid,badge);
+      list.appendChild(row);
+    });
+    const active=administratorItems().filter((item)=>item.active===true).length;
+    byId('administratorRegistrySummary').textContent=`${active} administrador(es) ativo(s) · ${administrators.length} exibido(s)`;
+    if(!administrators.length)list.innerHTML='<div class="ure-admin-empty">Nenhum administrador encontrado.</div>';
   }
 
   function renderSupervisorOptions() {
@@ -2147,7 +2234,18 @@ html>body{padding:0}</style>
 
   async function openRegistry(id) {
     const modal = byId(id);
-    const source = id === 'supervisorRegistryModal' ? byId('openSupervisorRegistry') : byId('openSchoolRegistry');
+    const sourceByModal={administratorRegistryModal:'openAdministratorRegistry',supervisorRegistryModal:'openSupervisorRegistry',schoolRegistryModal:'openSchoolRegistry'};
+    const source = byId(sourceByModal[id]);
+    if (id === 'administratorRegistryModal') {
+      registry.pendingAdministrator=null;
+      byId('newAdministratorCredentialResult').hidden=true;
+      byId('administratorAccessActivation').hidden=true;
+      byId('newAdministratorCredentialEmail').textContent='';
+      byId('newAdministratorPassword').textContent='';
+      byId('administratorAuthUid').value='';
+      byId('activateAdministratorAccessButton').disabled=false;
+      setRegistryMessage('administratorRegistryMessage','');
+    }
     if (id === 'supervisorRegistryModal') {
       registry.assignmentSupervisorId = '';
       registry.assignmentDraft.clear();
@@ -2162,7 +2260,7 @@ html>body{padding:0}</style>
     document.body.style.overflow = 'hidden';
     try { await refreshRegistryData(); }
     catch (error) {
-      const messageId = id === 'supervisorRegistryModal' ? 'supervisorRegistryMessage' : 'schoolRegistryMessage';
+      const messageId = id === 'administratorRegistryModal' ? 'administratorRegistryMessage' : id === 'supervisorRegistryModal' ? 'supervisorRegistryMessage' : 'schoolRegistryMessage';
       setRegistryMessage(messageId,dataErrorMessage(error),true);
     }
   }
@@ -2172,6 +2270,7 @@ html>body{padding:0}</style>
     if (![...document.querySelectorAll('.ure-admin-modal')].some((item) => !item.hidden)) document.body.style.overflow = '';
   }
 
+  byId('openAdministratorRegistry').addEventListener('click',()=>openRegistry('administratorRegistryModal'));
   byId('openSupervisorRegistry').addEventListener('click',()=>openRegistry('supervisorRegistryModal'));
   byId('openSchoolRegistry').addEventListener('click',()=>openRegistry('schoolRegistryModal'));
   document.querySelectorAll('[data-admin-close]').forEach((button)=>button.addEventListener('click',()=>closeRegistry(button.dataset.adminClose)));
@@ -2179,6 +2278,54 @@ html>body{padding:0}</style>
   byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderSupervisorAccess();renderAssignmentSchools()});
   byId('assignmentSchoolSearch').addEventListener('input',renderAssignmentSchools);
   byId('schoolRegistrySearch').addEventListener('input',renderSchoolRegistry);
+  byId('administratorRegistrySearch').addEventListener('input',renderAdministratorRegistry);
+  byId('newAdministratorEmailVariable').addEventListener('input',(event)=>{
+    const cleaned=cleanEmailVariable(event.target.value);
+    event.target.value=cleaned;
+    byId('newAdministratorEmailPreview').textContent=cleaned?`${supervisorEmailPrefix}${cleaned}${supervisorEmailDomain}`:'Preencha somente a parte variável do e-mail.';
+  });
+  byId('copyAdministratorEmail').addEventListener('click',async()=>{
+    const email=byId('newAdministratorCredentialEmail').textContent;
+    if(!email)return;
+    try{await navigator.clipboard.writeText(email);byId('copyAdministratorEmail').textContent='Copiado';setTimeout(()=>{byId('copyAdministratorEmail').textContent='Copiar e-mail'},1600)}
+    catch{setRegistryMessage('administratorRegistryMessage','Não foi possível copiar automaticamente. Selecione o e-mail exibido.',true)}
+  });
+  byId('copyAdministratorPassword').addEventListener('click',async()=>{
+    const password=byId('newAdministratorPassword').textContent;
+    if(!password)return;
+    try{await navigator.clipboard.writeText(password);byId('copyAdministratorPassword').textContent='Copiado';setTimeout(()=>{byId('copyAdministratorPassword').textContent='Copiar senha'},1600)}
+    catch{setRegistryMessage('administratorRegistryMessage','Não foi possível copiar automaticamente. Selecione a senha exibida.',true)}
+  });
+  byId('prepareAdministratorButton').addEventListener('click',()=>{
+    const name=byId('newAdministratorName').value.trim(),variable=cleanEmailVariable(byId('newAdministratorEmailVariable').value);
+    const email=variable?`${supervisorEmailPrefix}${variable}${supervisorEmailDomain}`:'';
+    if(!name){setRegistryMessage('administratorRegistryMessage','Informe o nome do administrador.',true);return}
+    if(!variable){setRegistryMessage('administratorRegistryMessage','Informe a variável do e-mail de acesso.',true);return}
+    if(administratorItems().some((item)=>(item.email||'').toLowerCase()===email)){setRegistryMessage('administratorRegistryMessage','Este e-mail já pertence a um administrador.',true);return}
+    const password=generateStrongPassword(12);
+    registry.pendingAdministrator={displayName:name,loginEmail:email,password};
+    byId('newAdministratorCredentialEmail').textContent=email;
+    byId('newAdministratorPassword').textContent=password;
+    byId('newAdministratorCredentialResult').hidden=false;
+    byId('administratorAccessTarget').textContent=`${name} · ${email}`;
+    byId('administratorAuthUid').value='';
+    byId('activateAdministratorAccessButton').disabled=false;
+    byId('administratorAccessActivation').hidden=false;
+    setRegistryMessage('administratorRegistryMessage','Cadastro preparado. Adicione o usuário no Firebase e depois cole o UID abaixo.');
+  });
+  byId('activateAdministratorAccessButton').addEventListener('click',async()=>{
+    const pending=registry.pendingAdministrator,button=byId('activateAdministratorAccessButton'),authUid=byId('administratorAuthUid').value.trim();
+    if(!pending){setRegistryMessage('administratorRegistryMessage','Prepare primeiro o nome, o e-mail e a senha.',true);return}
+    if(authUid&&!confirm(`ATENÇÃO: este perfil terá acesso integral.\n\n${pending.displayName}\n${pending.loginEmail}\nUID: ${authUid}\n\nConfirma a ativação como Administrador?`))return;
+    button.disabled=true;setRegistryMessage('administratorRegistryMessage','Aplicando perfil administrativo…');
+    try{
+      await activateAdministratorAccess({displayName:pending.displayName,loginEmail:pending.loginEmail,authUid});
+      registry.pendingAdministrator=null;
+      byId('administratorAccessActivation').hidden=true;
+      await refreshRegistryData();
+      setRegistryMessage('administratorRegistryMessage','Administrador ativado. A conta já pode entrar no Gestor-ESE com a senha temporária.');
+    }catch(error){setRegistryMessage('administratorRegistryMessage',dataErrorMessage(error),true);button.disabled=false}
+  });
   byId('newSupervisorEmailVariable').addEventListener('input',(event)=>{
     const cleaned = cleanEmailVariable(event.target.value);
     event.target.value = cleaned;

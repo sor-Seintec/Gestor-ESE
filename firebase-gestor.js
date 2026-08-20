@@ -171,6 +171,43 @@ export async function activateSupervisorAccess({ supervisorId, authUid }) {
   return { uid, supervisorId, email };
 }
 
+export async function activateAdministratorAccess({ displayName, loginEmail, authUid }) {
+  const session = await requireAdmin();
+  const name = (displayName || '').toString().trim();
+  const email = (loginEmail || '').toString().trim().toLowerCase();
+  const uid = (authUid || '').toString().trim();
+  if (!name) throw Object.assign(new Error('NAME_REQUIRED'), { code: 'data/name-required' });
+  if (!/^desornit\+[a-z0-9._-]+@prof\.educacao\.sp\.gov\.br$/.test(email)) throw Object.assign(new Error('INVALID_EMAIL'), { code: 'data/invalid-email' });
+  if (!/^[A-Za-z0-9_-]{20,128}$/.test(uid)) throw Object.assign(new Error('INVALID_UID'), { code: 'data/invalid-uid' });
+
+  const [userSnapshot, usersSnapshot, supervisorsSnapshot] = await Promise.all([
+    getDoc(doc(db, 'users', uid)),
+    getDocs(collection(db, 'users')),
+    getDocs(collection(db, 'supervisors'))
+  ]);
+  if (userSnapshot.exists()) throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
+  if (usersSnapshot.docs.some((item) => (item.data().email || '').toString().trim().toLowerCase() === email)) {
+    throw Object.assign(new Error('EMAIL_IN_USE'), { code: 'data/email-in-use' });
+  }
+  if (supervisorsSnapshot.docs.some((item) => item.data().authUid === uid)) {
+    throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
+  }
+
+  await setDoc(doc(db, 'users', uid), {
+    displayName: name,
+    email,
+    role: 'admin',
+    active: true,
+    mustChangePassword: true,
+    schemaVersion: 1,
+    createdByUid: session.user.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+  dataPromise = null;
+  return { uid, displayName: name, email, role: 'admin', active: true };
+}
+
 export async function createSchoolRecord({ name, supervisorId = null }) {
   await requireAdmin();
   const schoolName = (name || '').trim();
@@ -281,7 +318,8 @@ export async function loadGestorData({ refresh = false } = {}) {
   if (refresh) dataPromise = null;
   if (!dataPromise) {
     dataPromise = (async () => {
-      const [supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot] = await Promise.all([
+      const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot] = await Promise.all([
+        getDocs(collection(db, 'users')),
         getDocs(collection(db, 'supervisors')),
         getDocs(collection(db, 'schools')),
         getDocs(collection(db, 'agenda')),
@@ -289,6 +327,7 @@ export async function loadGestorData({ refresh = false } = {}) {
         optionalCollection('goalJustifications')
       ]);
 
+      const users = new Map(userSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
       const supervisors = new Map(supervisorSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
       const schools = schoolSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const schoolMap = new Map(schools.map((item) => [item.id, item]));
@@ -333,6 +372,7 @@ export async function loadGestorData({ refresh = false } = {}) {
       });
 
       return {
+        users,
         supervisors,
         schools,
         agenda,
