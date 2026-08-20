@@ -96,11 +96,16 @@ export async function createSupervisorProfile({ displayName, loginEmail = '' }) 
   const name = (displayName || '').trim();
   const email = (loginEmail || '').trim().toLowerCase();
   if (!name) throw Object.assign(new Error('NAME_REQUIRED'), { code: 'data/name-required' });
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw Object.assign(new Error('INVALID_EMAIL'), { code: 'data/invalid-email' });
+  if (!email) throw Object.assign(new Error('EMAIL_REQUIRED'), { code: 'data/email-required' });
+  if (!/^desornit\+[a-z0-9._-]+@prof\.educacao\.sp\.gov\.br$/.test(email)) throw Object.assign(new Error('INVALID_EMAIL'), { code: 'data/invalid-email' });
   const id = documentId(name);
   if (!id) throw Object.assign(new Error('INVALID_NAME'), { code: 'data/invalid-name' });
   const reference = doc(db, 'supervisors', id);
   if ((await getDoc(reference)).exists()) throw Object.assign(new Error('ALREADY_EXISTS'), { code: 'data/already-exists' });
+  const supervisorsSnapshot = await getDocs(collection(db, 'supervisors'));
+  if (supervisorsSnapshot.docs.some((item) => (item.data().loginEmail || '').toString().trim().toLowerCase() === email)) {
+    throw Object.assign(new Error('EMAIL_IN_USE'), { code: 'data/email-in-use' });
+  }
   await setDoc(reference, {
     displayName: name,
     legacyName: name.toLocaleUpperCase('pt-BR'),
@@ -160,7 +165,9 @@ export function dataErrorMessage(error) {
   const messages = {
     'data/name-required': 'Informe o nome.',
     'data/invalid-name': 'O nome informado não pode ser usado.',
-    'data/invalid-email': 'Informe um e-mail válido ou deixe o campo vazio.',
+    'data/email-required': 'Informe a variável do e-mail de acesso.',
+    'data/invalid-email': 'Use somente letras, números, ponto, hífen ou sublinhado na variável do e-mail.',
+    'data/email-in-use': 'Este e-mail de acesso já está vinculado a outro supervisor.',
     'data/already-exists': 'Já existe um cadastro com esse nome.',
     'permission-denied': 'O Firebase não autorizou esta alteração.'
   };

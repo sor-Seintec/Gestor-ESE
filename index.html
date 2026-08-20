@@ -1071,11 +1071,21 @@ html>body{padding:0}</style>
         <p>O perfil será criado no Firestore. A conta de login é liberada separadamente.</p>
         <label for="newSupervisorName">Nome completo</label>
         <input id="newSupervisorName" type="text" autocomplete="off" placeholder="Nome do supervisor">
-        <label for="newSupervisorEmail">E-mail de acesso</label>
-        <input id="newSupervisorEmail" type="email" autocomplete="off" placeholder="nome@prof.educacao.sp.gov.br">
+        <label for="newSupervisorEmailVariable">E-mail de acesso</label>
+        <div class="ure-email-builder">
+          <span>desornit+</span>
+          <input id="newSupervisorEmailVariable" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="variável" aria-describedby="newSupervisorEmailPreview">
+          <span>@prof.educacao.sp.gov.br</span>
+        </div>
+        <small class="ure-email-preview" id="newSupervisorEmailPreview">Preencha somente a parte variável do e-mail.</small>
         <button type="button" class="ure-admin-primary" id="createSupervisorButton">Cadastrar supervisor</button>
         <p class="ure-admin-message" id="supervisorRegistryMessage" role="status"></p>
-        <div class="ure-admin-security"><i data-lucide="shield-check" aria-hidden="true"></i><span>A senha não é criada nem exibida neste portal.</span></div>
+        <div class="ure-password-result" id="newSupervisorPasswordResult" hidden>
+          <span>Senha inicial gerada — copie agora</span>
+          <div><output id="newSupervisorPassword"></output><button type="button" id="copySupervisorPassword">Copiar</button></div>
+          <small>Ela não é armazenada no Firestore. Use-a ao liberar a conta no Firebase Authentication.</small>
+        </div>
+        <div class="ure-admin-security"><i data-lucide="shield-check" aria-hidden="true"></i><span>A conta de login continua sendo liberada pelo administrador. O supervisor poderá solicitar a troca futuramente.</span></div>
       </aside>
       <div class="ure-admin-workspace">
         <div class="ure-admin-toolbar">
@@ -1433,6 +1443,11 @@ html>body{padding:0}</style>
   .ure-admin-form-card input,.ure-admin-form-card select,.ure-admin-toolbar input,.ure-admin-toolbar select { width:100%; min-height:44px; margin-top:6px; padding:0 12px; border:1px solid #cbdbe4; border-radius:11px; outline:0; background:#f9fbfc; color:#1c3a4e; font:600 13px/1 inherit; }
   .ure-admin-form-card input:focus,.ure-admin-form-card select:focus,.ure-admin-toolbar input:focus,.ure-admin-toolbar select:focus { border-color:#6396b5; background:#fff; box-shadow:0 0 0 3px rgba(74,132,167,.13); }
   .ure-admin-form-card label + label { margin-top:14px; }
+  .ure-email-builder { display:grid; grid-template-columns:auto minmax(64px,1fr) auto; align-items:center; margin-top:6px; border:1px solid #cbdbe4; border-radius:11px; overflow:hidden; background:#f9fbfc; }
+  .ure-email-builder:focus-within { border-color:#6396b5; background:#fff; box-shadow:0 0 0 3px rgba(74,132,167,.13); }
+  .ure-email-builder span { padding:0 8px; color:#516c7c; font-size:11px; font-weight:700; white-space:nowrap; }
+  .ure-email-builder input { min-width:0; min-height:42px; margin:0; padding:0 4px; border:0; border-radius:0; background:transparent; box-shadow:none !important; }
+  .ure-email-preview { display:block; min-height:18px; margin-top:5px; color:#718692; font-size:10.5px; line-height:1.4; overflow-wrap:anywhere; }
   .ure-admin-primary { min-height:43px; padding:0 15px; border:0; border-radius:11px; background:#477c9e; color:#fff; cursor:pointer; font:750 13px/1 inherit; box-shadow:0 8px 18px rgba(57,111,145,.16); }
   .ure-admin-form-card .ure-admin-primary { width:100%; margin-top:18px; }
   .ure-admin-primary:disabled { cursor:wait; opacity:.58; }
@@ -1440,6 +1455,12 @@ html>body{padding:0}</style>
   .ure-admin-message.is-error { color:#ad4343 !important; }
   .ure-admin-security { display:flex; align-items:flex-start; gap:8px; margin-top:13px; padding:11px; border-radius:11px; background:#eef5f8; color:#55707f; font-size:11.5px; line-height:1.45; }
   .ure-admin-security svg { flex:0 0 auto; width:17px; height:17px; color:#477c9e; }
+  .ure-password-result { margin-top:13px; padding:12px; border:1px solid #b9d9c9; border-radius:11px; background:#edf8f2; color:#234d3a; }
+  .ure-password-result > span { display:block; margin-bottom:7px; font-size:11px; font-weight:800; }
+  .ure-password-result > div { display:grid; grid-template-columns:1fr auto; gap:7px; }
+  .ure-password-result output { min-width:0; padding:9px 10px; border:1px solid #bdd9ca; border-radius:8px; background:#fff; color:#173c2b; font:800 13px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.04em; overflow-wrap:anywhere; }
+  .ure-password-result button { padding:0 11px; border:0; border-radius:8px; background:#287353; color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+  .ure-password-result small { display:block; margin-top:7px; font-size:10.5px; line-height:1.4; }
   .ure-admin-workspace { min-width:0; min-height:0; display:flex; flex-direction:column; }
   .ure-admin-toolbar { display:grid; grid-template-columns:minmax(220px,.75fr) minmax(260px,1.25fr); gap:12px; padding:16px 20px; border-bottom:1px solid #dfe7ec; background:#f1f6f8; }
   .ure-admin-toolbar-single { grid-template-columns:1fr; }
@@ -1475,6 +1496,8 @@ html>body{padding:0}</style>
     .ure-admin-panel { width:100%; height:96vh; border-radius:18px; }
     .ure-admin-grid { grid-template-columns:1fr; overflow:auto; }
     .ure-admin-form-card { border-right:0; border-bottom:1px solid #dce6eb; }
+    .ure-email-builder { grid-template-columns:auto minmax(72px,1fr); }
+    .ure-email-builder span:last-child { grid-column:1/-1; padding:0 9px 9px; }
     .ure-admin-workspace { min-height:560px; }
     .ure-admin-toolbar { grid-template-columns:1fr; }
     .ure-school-registry-row { grid-template-columns:1fr auto; padding:10px 0; }
@@ -1939,8 +1962,29 @@ html>body{padding:0}</style>
   };
   const byId = (id) => document.getElementById(id);
   const foldRegistry = (value) => (value || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const supervisorEmailPrefix = 'desornit+';
+  const supervisorEmailDomain = '@prof.educacao.sp.gov.br';
+  const cleanEmailVariable = (value) => foldRegistry(value).replace(/\s+/g,'-').replace(/[^a-z0-9._-]/g,'');
   const supervisorItems = () => registry.data ? [...registry.data.supervisors.values()].filter((item) => item.active !== false).sort((a,b) => (a.displayName || a.id).localeCompare(b.displayName || b.id,'pt-BR')) : [];
   const supervisorName = (id) => registry.data?.supervisors.get(id)?.displayName || (id ? 'Supervisor não localizado' : 'Sem supervisor');
+
+  function generateStrongPassword(length = 12) {
+    const groups = ['ABCDEFGHJKLMNPQRSTUVWXYZ','abcdefghijkmnopqrstuvwxyz','23456789','!@#$%&*?'];
+    const all = groups.join('');
+    const randomIndex = (maximum) => {
+      const limit = 256 - (256 % maximum);
+      const bytes = new Uint8Array(1);
+      do crypto.getRandomValues(bytes); while (bytes[0] >= limit);
+      return bytes[0] % maximum;
+    };
+    const password = groups.map((group) => group[randomIndex(group.length)]);
+    while (password.length < length) password.push(all[randomIndex(all.length)]);
+    for (let index = password.length - 1; index > 0; index -= 1) {
+      const target = randomIndex(index + 1);
+      [password[index],password[target]] = [password[target],password[index]];
+    }
+    return password.join('');
+  }
 
   function setRegistryMessage(id, text, error = false) {
     const element = byId(id);
@@ -1956,29 +2000,27 @@ html>body{padding:0}</style>
     window.loadPortalData?.();
   }
 
-  function addSupervisorOptions(select, includeEmpty = false) {
+  function addSupervisorOptions(select, emptyLabel = '') {
     const current = select.value;
     select.replaceChildren();
-    if (includeEmpty) select.add(new Option('Sem supervisor por enquanto',''));
+    if (emptyLabel) select.add(new Option(emptyLabel,''));
     supervisorItems().forEach((item) => select.add(new Option(item.displayName || item.id,item.id)));
     if ([...select.options].some((item) => item.value === current)) select.value = current;
   }
 
   function renderSupervisorOptions() {
     const assignment = byId('assignmentSupervisor');
-    addSupervisorOptions(assignment);
-    addSupervisorOptions(byId('newSchoolSupervisor'),true);
-    if (!registry.assignmentSupervisorId || !registry.data?.supervisors.has(registry.assignmentSupervisorId)) {
-      registry.assignmentSupervisorId = assignment.options[0]?.value || '';
-    }
+    addSupervisorOptions(assignment,'Selecione um supervisor');
+    addSupervisorOptions(byId('newSchoolSupervisor'),'Sem supervisor por enquanto');
+    if (!registry.assignmentSupervisorId || !supervisorItems().some((item) => item.id === registry.assignmentSupervisorId)) registry.assignmentSupervisorId = '';
     assignment.value = registry.assignmentSupervisorId;
   }
 
   function renderAssignmentSchools() {
     const list = byId('assignmentSchoolList');
     if (!registry.data || !registry.assignmentSupervisorId) {
-      list.innerHTML = '<div class="ure-admin-empty">Cadastre ou selecione um supervisor.</div>';
-      byId('assignmentSummary').textContent = 'Nenhum supervisor disponível.';
+      list.innerHTML = '<div class="ure-admin-empty">Selecione um supervisor para visualizar e alterar suas escolas.</div>';
+      byId('assignmentSummary').textContent = supervisorItems().length ? 'Nenhum supervisor selecionado.' : 'Nenhum supervisor disponível.';
       byId('saveAssignmentsButton').disabled = true;
       return;
     }
@@ -2056,6 +2098,13 @@ html>body{padding:0}</style>
   async function openRegistry(id) {
     const modal = byId(id);
     const source = id === 'supervisorRegistryModal' ? byId('openSupervisorRegistry') : byId('openSchoolRegistry');
+    if (id === 'supervisorRegistryModal') {
+      registry.assignmentSupervisorId = '';
+      registry.assignmentDraft.clear();
+      byId('assignmentSchoolSearch').value = '';
+      byId('newSupervisorPasswordResult').hidden = true;
+      byId('newSupervisorPassword').textContent = '';
+    }
     document.querySelectorAll('#ure-concept .ure-nav-item').forEach((item)=>item.classList.toggle('is-active',item===source));
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
@@ -2078,11 +2127,41 @@ html>body{padding:0}</style>
   byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderAssignmentSchools()});
   byId('assignmentSchoolSearch').addEventListener('input',renderAssignmentSchools);
   byId('schoolRegistrySearch').addEventListener('input',renderSchoolRegistry);
+  byId('newSupervisorEmailVariable').addEventListener('input',(event)=>{
+    const cleaned = cleanEmailVariable(event.target.value);
+    event.target.value = cleaned;
+    byId('newSupervisorEmailPreview').textContent = cleaned
+      ? `${supervisorEmailPrefix}${cleaned}${supervisorEmailDomain}`
+      : 'Preencha somente a parte variável do e-mail.';
+  });
+  byId('copySupervisorPassword').addEventListener('click',async()=>{
+    const password = byId('newSupervisorPassword').textContent;
+    if (!password) return;
+    try {
+      await navigator.clipboard.writeText(password);
+      byId('copySupervisorPassword').textContent = 'Copiado';
+      setTimeout(()=>{byId('copySupervisorPassword').textContent='Copiar'},1600);
+    } catch {
+      setRegistryMessage('supervisorRegistryMessage','Não foi possível copiar automaticamente. Selecione a senha exibida.',true);
+    }
+  });
 
   byId('createSupervisorButton').addEventListener('click',async()=>{
-    const button=byId('createSupervisorButton'),name=byId('newSupervisorName').value,email=byId('newSupervisorEmail').value;
-    button.disabled=true;setRegistryMessage('supervisorRegistryMessage','Salvando…');
-    try { registry.assignmentSupervisorId=await createSupervisorProfile({displayName:name,loginEmail:email}); registry.assignmentDraft.clear(); byId('newSupervisorName').value='';byId('newSupervisorEmail').value='';await refreshRegistryData();setRegistryMessage('supervisorRegistryMessage','Supervisor cadastrado. Falta apenas liberar a conta de login quando necessário.'); }
+    const button=byId('createSupervisorButton'),name=byId('newSupervisorName').value,variable=cleanEmailVariable(byId('newSupervisorEmailVariable').value);
+    const email=variable?`${supervisorEmailPrefix}${variable}${supervisorEmailDomain}`:'';
+    button.disabled=true;byId('newSupervisorPasswordResult').hidden=true;setRegistryMessage('supervisorRegistryMessage','Salvando…');
+    try {
+      registry.assignmentSupervisorId=await createSupervisorProfile({displayName:name,loginEmail:email});
+      const initialPassword=generateStrongPassword(12);
+      registry.assignmentDraft.clear();
+      byId('newSupervisorName').value='';
+      byId('newSupervisorEmailVariable').value='';
+      byId('newSupervisorEmailPreview').textContent='Preencha somente a parte variável do e-mail.';
+      byId('newSupervisorPassword').textContent=initialPassword;
+      byId('newSupervisorPasswordResult').hidden=false;
+      await refreshRegistryData();
+      setRegistryMessage('supervisorRegistryMessage','Supervisor cadastrado e selecionado. Copie a senha inicial para liberar a conta de acesso.');
+    }
     catch(error){setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true)}
     finally{button.disabled=false}
   });
