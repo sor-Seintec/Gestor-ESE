@@ -10,7 +10,10 @@ import {
   doc,
   getDoc,
   getDocs,
-  getFirestore
+  getFirestore,
+  serverTimestamp,
+  setDoc,
+  updateDoc
 } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -78,6 +81,90 @@ export function authErrorMessage(error) {
     'access/profile-not-found': 'O perfil administrativo não foi encontrado.'
   };
   return messages[error?.code] || 'Não foi possível validar o acesso administrativo.';
+}
+
+function searchable(value) {
+  return (value || '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function documentId(value) {
+  return searchable(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 72);
+}
+
+export async function createSupervisorProfile({ displayName, loginEmail = '' }) {
+  await requireAdmin();
+  const name = (displayName || '').trim();
+  const email = (loginEmail || '').trim().toLowerCase();
+  if (!name) throw Object.assign(new Error('NAME_REQUIRED'), { code: 'data/name-required' });
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw Object.assign(new Error('INVALID_EMAIL'), { code: 'data/invalid-email' });
+  const id = documentId(name);
+  if (!id) throw Object.assign(new Error('INVALID_NAME'), { code: 'data/invalid-name' });
+  const reference = doc(db, 'supervisors', id);
+  if ((await getDoc(reference)).exists()) throw Object.assign(new Error('ALREADY_EXISTS'), { code: 'data/already-exists' });
+  await setDoc(reference, {
+    displayName: name,
+    legacyName: name.toLocaleUpperCase('pt-BR'),
+    loginEmail: email || null,
+    authUid: null,
+    active: true,
+    schemaVersion: 1,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+  dataPromise = null;
+  return id;
+}
+
+export async function createSchoolRecord({ name, supervisorId = null }) {
+  await requireAdmin();
+  const schoolName = (name || '').trim();
+  if (!schoolName) throw Object.assign(new Error('NAME_REQUIRED'), { code: 'data/name-required' });
+  const snapshot = await getDocs(collection(db, 'schools'));
+  if (snapshot.docs.some((item) => searchable(item.data().name) === searchable(schoolName))) {
+    throw Object.assign(new Error('ALREADY_EXISTS'), { code: 'data/already-exists' });
+  }
+  const suffix = crypto.randomUUID().replaceAll('-', '').slice(0, 8);
+  const id = `${documentId(schoolName) || 'escola'}-${suffix}`;
+  await setDoc(doc(db, 'schools', id), {
+    name: schoolName,
+    searchName: searchable(schoolName),
+    supervisorId: supervisorId || null,
+    active: true,
+    schemaVersion: 1,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+  dataPromise = null;
+  return id;
+}
+
+export async function updateSchoolAssignment(schoolId, supervisorId = null) {
+  await requireAdmin();
+  await updateDoc(doc(db, 'schools', schoolId), {
+    supervisorId: supervisorId || null,
+    updatedAt: serverTimestamp()
+  });
+  dataPromise = null;
+}
+
+export async function setSchoolActive(schoolId, active) {
+  await requireAdmin();
+  await updateDoc(doc(db, 'schools', schoolId), {
+    active: active === true,
+    updatedAt: serverTimestamp()
+  });
+  dataPromise = null;
+}
+
+export function dataErrorMessage(error) {
+  const messages = {
+    'data/name-required': 'Informe o nome.',
+    'data/invalid-name': 'O nome informado não pode ser usado.',
+    'data/invalid-email': 'Informe um e-mail válido ou deixe o campo vazio.',
+    'data/already-exists': 'Já existe um cadastro com esse nome.',
+    'permission-denied': 'O Firebase não autorizou esta alteração.'
+  };
+  return messages[error?.code] || 'Não foi possível salvar a alteração.';
 }
 
 function asDate(value) {

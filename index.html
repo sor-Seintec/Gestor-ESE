@@ -919,10 +919,11 @@ html>body{padding:0}</style>
     <nav class="ure-nav">
       <button type="button" class="ure-nav-item is-active" data-url="home"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Visão geral</span></button>
       <span class="ure-nav-label">Cadastros</span>
-      <button type="button" class="ure-nav-item" data-url="https://sor-seintec.github.io/Supervisor-ESE/" data-external="true"><i data-lucide="route" aria-hidden="true"></i><span>Supervisores</span></button>
+      <button type="button" class="ure-nav-item" id="openSupervisorRegistry"><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
+      <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
       <span class="ure-nav-label">Gestão</span>
-      <button type="button" class="ure-nav-item" data-url="locescola.html"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
+      <button type="button" class="ure-nav-item" data-url="locescola.html"><i data-lucide="map-pinned" aria-hidden="true"></i><span>Localização escolar</span></button>
       <button type="button" class="ure-nav-item" data-url="equipeESE.html"><i data-lucide="users" aria-hidden="true"></i><span>Equipe ESE</span></button>
     </nav>
 
@@ -1053,6 +1054,65 @@ html>body{padding:0}</style>
         <thead><tr><th>Data</th><th>Origem</th><th>Supervisor</th><th>Escola</th><th>Status</th><th>Ações/Justificativa</th><th>Autor</th></tr></thead>
         <tbody id="globalSearchBody"><tr><td colspan="7" class="ure-search-empty">Abra a busca para consultar os registros.</td></tr></tbody>
       </table>
+    </div>
+  </section>
+</div>
+
+<div class="ure-admin-modal" id="supervisorRegistryModal" role="dialog" aria-modal="true" aria-labelledby="supervisorRegistryTitle" hidden>
+  <div class="ure-admin-backdrop" data-admin-close="supervisorRegistryModal"></div>
+  <section class="ure-admin-panel">
+    <header class="ure-admin-head">
+      <div><span>CADASTRO</span><h2 id="supervisorRegistryTitle">Supervisores</h2><p>Cadastre o perfil e organize as escolas vinculadas.</p></div>
+      <button type="button" class="ure-admin-close" data-admin-close="supervisorRegistryModal" aria-label="Fechar">×</button>
+    </header>
+    <div class="ure-admin-grid">
+      <aside class="ure-admin-form-card">
+        <h3>Novo supervisor</h3>
+        <p>O perfil será criado no Firestore. A conta de login é liberada separadamente.</p>
+        <label for="newSupervisorName">Nome completo</label>
+        <input id="newSupervisorName" type="text" autocomplete="off" placeholder="Nome do supervisor">
+        <label for="newSupervisorEmail">E-mail de acesso</label>
+        <input id="newSupervisorEmail" type="email" autocomplete="off" placeholder="nome@prof.educacao.sp.gov.br">
+        <button type="button" class="ure-admin-primary" id="createSupervisorButton">Cadastrar supervisor</button>
+        <p class="ure-admin-message" id="supervisorRegistryMessage" role="status"></p>
+        <div class="ure-admin-security"><i data-lucide="shield-check" aria-hidden="true"></i><span>A senha não é criada nem exibida neste portal.</span></div>
+      </aside>
+      <div class="ure-admin-workspace">
+        <div class="ure-admin-toolbar">
+          <label><span>Supervisor selecionado</span><select id="assignmentSupervisor"></select></label>
+          <label><span>Pesquisar escola</span><input id="assignmentSchoolSearch" type="search" placeholder="Digite o nome da escola"></label>
+        </div>
+        <div class="ure-assignment-summary" id="assignmentSummary">Selecione um supervisor.</div>
+        <div class="ure-assignment-list" id="assignmentSchoolList"></div>
+        <footer class="ure-admin-actions"><span>Marcar transfere a escola; desmarcar deixa sem responsável.</span><button type="button" class="ure-admin-primary" id="saveAssignmentsButton">Salvar vínculos</button></footer>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="ure-admin-modal" id="schoolRegistryModal" role="dialog" aria-modal="true" aria-labelledby="schoolRegistryTitle" hidden>
+  <div class="ure-admin-backdrop" data-admin-close="schoolRegistryModal"></div>
+  <section class="ure-admin-panel ure-admin-panel-schools">
+    <header class="ure-admin-head">
+      <div><span>CADASTRO</span><h2 id="schoolRegistryTitle">Escolas</h2><p>Inclua uma escola, escolha o responsável ou desative cadastros.</p></div>
+      <button type="button" class="ure-admin-close" data-admin-close="schoolRegistryModal" aria-label="Fechar">×</button>
+    </header>
+    <div class="ure-admin-grid">
+      <aside class="ure-admin-form-card">
+        <h3>Nova escola</h3>
+        <label for="newSchoolName">Nome oficial</label>
+        <input id="newSchoolName" type="text" autocomplete="off" placeholder="Nome completo da escola">
+        <label for="newSchoolSupervisor">Supervisor responsável</label>
+        <select id="newSchoolSupervisor"><option value="">Sem supervisor por enquanto</option></select>
+        <button type="button" class="ure-admin-primary" id="createSchoolButton">Cadastrar escola</button>
+        <p class="ure-admin-message" id="schoolRegistryMessage" role="status"></p>
+        <div class="ure-admin-security"><i data-lucide="history" aria-hidden="true"></i><span>Remover desativa o cadastro e preserva o histórico das visitas.</span></div>
+      </aside>
+      <div class="ure-admin-workspace">
+        <div class="ure-admin-toolbar ure-admin-toolbar-single"><label><span>Pesquisar na base</span><input id="schoolRegistrySearch" type="search" placeholder="Escola ou supervisor"></label></div>
+        <div class="ure-school-registry-summary" id="schoolRegistrySummary">Carregando escolas…</div>
+        <div class="ure-school-registry-list" id="schoolRegistryList"></div>
+      </div>
     </div>
   </section>
 </div>
@@ -1356,6 +1416,53 @@ html>body{padding:0}</style>
   .ure-search-badge.is-postponed { background:#f8eadc; color:#9a5b24; }
   .ure-search-badge.is-justified { background:#f4efcf; color:#78631c; }
 
+  .ure-admin-modal { position:fixed; inset:0; z-index:6000; display:grid; place-items:center; padding:24px; font-family:"Inter",ui-sans-serif,system-ui,sans-serif; }
+  .ure-admin-modal[hidden] { display:none; }
+  .ure-admin-backdrop { position:absolute; inset:0; background:rgba(17,32,43,.58); backdrop-filter:blur(7px); }
+  .ure-admin-panel { position:relative; width:min(1180px,96vw); height:min(790px,91vh); display:flex; flex-direction:column; overflow:hidden; border:1px solid rgba(255,255,255,.72); border-radius:23px; background:#f7fafb; color:#1d3447; box-shadow:0 32px 95px rgba(13,29,40,.3); }
+  .ure-admin-head { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:23px 26px 18px; border-bottom:1px solid #dce6eb; background:#fff; }
+  .ure-admin-head span { color:#527d98; font-size:10px; font-weight:850; letter-spacing:.14em; }
+  .ure-admin-head h2 { margin:4px 0 3px; font-size:25px; font-weight:820; }
+  .ure-admin-head p { margin:0; color:#617583; font-size:13px; font-weight:520; }
+  .ure-admin-close { width:36px; height:36px; display:grid; place-items:center; padding:0; border:0; border-radius:11px; background:#edf2f5; color:#456073; cursor:pointer; font-size:25px; line-height:1; }
+  .ure-admin-grid { flex:1; min-height:0; display:grid; grid-template-columns:320px minmax(0,1fr); }
+  .ure-admin-form-card { padding:23px; border-right:1px solid #dce6eb; background:#fff; overflow:auto; }
+  .ure-admin-form-card h3 { margin:0 0 5px; font-size:18px; }
+  .ure-admin-form-card > p { margin:0 0 18px; color:#667b89; font-size:12.5px; line-height:1.55; }
+  .ure-admin-form-card label,.ure-admin-toolbar label { display:block; color:#3d596b; font-size:12px; font-weight:760; }
+  .ure-admin-form-card input,.ure-admin-form-card select,.ure-admin-toolbar input,.ure-admin-toolbar select { width:100%; min-height:44px; margin-top:6px; padding:0 12px; border:1px solid #cbdbe4; border-radius:11px; outline:0; background:#f9fbfc; color:#1c3a4e; font:600 13px/1 inherit; }
+  .ure-admin-form-card input:focus,.ure-admin-form-card select:focus,.ure-admin-toolbar input:focus,.ure-admin-toolbar select:focus { border-color:#6396b5; background:#fff; box-shadow:0 0 0 3px rgba(74,132,167,.13); }
+  .ure-admin-form-card label + label { margin-top:14px; }
+  .ure-admin-primary { min-height:43px; padding:0 15px; border:0; border-radius:11px; background:#477c9e; color:#fff; cursor:pointer; font:750 13px/1 inherit; box-shadow:0 8px 18px rgba(57,111,145,.16); }
+  .ure-admin-form-card .ure-admin-primary { width:100%; margin-top:18px; }
+  .ure-admin-primary:disabled { cursor:wait; opacity:.58; }
+  .ure-admin-message { min-height:34px; margin:10px 0 0 !important; color:#326a88 !important; font-size:12px !important; font-weight:650; }
+  .ure-admin-message.is-error { color:#ad4343 !important; }
+  .ure-admin-security { display:flex; align-items:flex-start; gap:8px; margin-top:13px; padding:11px; border-radius:11px; background:#eef5f8; color:#55707f; font-size:11.5px; line-height:1.45; }
+  .ure-admin-security svg { flex:0 0 auto; width:17px; height:17px; color:#477c9e; }
+  .ure-admin-workspace { min-width:0; min-height:0; display:flex; flex-direction:column; }
+  .ure-admin-toolbar { display:grid; grid-template-columns:minmax(220px,.75fr) minmax(260px,1.25fr); gap:12px; padding:16px 20px; border-bottom:1px solid #dfe7ec; background:#f1f6f8; }
+  .ure-admin-toolbar-single { grid-template-columns:1fr; }
+  .ure-assignment-summary,.ure-school-registry-summary { padding:12px 20px; border-bottom:1px solid #e2e9ed; background:#fff; color:#526b7a; font-size:12.5px; font-weight:650; }
+  .ure-assignment-list,.ure-school-registry-list { flex:1; min-height:0; overflow:auto; padding:8px 20px 16px; background:#fff; }
+  .ure-assignment-row { display:grid; grid-template-columns:24px minmax(0,1fr) minmax(150px,.55fr); gap:10px; align-items:center; min-height:54px; border-bottom:1px solid #edf1f3; cursor:pointer; }
+  .ure-assignment-row input { width:17px; height:17px; accent-color:#477c9e; }
+  .ure-assignment-row strong,.ure-assignment-row span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ure-assignment-row strong { color:#203d50; font-size:13px; }
+  .ure-assignment-row span { color:#6a7f8c; font-size:11.5px; text-align:right; }
+  .ure-assignment-row.is-inactive { opacity:.52; }
+  .ure-admin-actions { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:13px 20px; border-top:1px solid #dfe7ec; background:#f7fafb; }
+  .ure-admin-actions span { color:#627886; font-size:11.5px; }
+  .ure-school-registry-row { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(150px,.65fr) auto; gap:13px; align-items:center; min-height:62px; border-bottom:1px solid #edf1f3; }
+  .ure-school-registry-row strong,.ure-school-registry-row small { display:block; }
+  .ure-school-registry-row strong { color:#203d50; font-size:13px; }
+  .ure-school-registry-row small { margin-top:3px; color:#768894; font-size:10.5px; }
+  .ure-school-registry-row select { min-height:36px; width:100%; padding:0 9px; border:1px solid #d3e0e7; border-radius:9px; background:#fff; color:#36566b; font:600 11.5px/1 inherit; }
+  .ure-school-state { min-width:86px; min-height:34px; padding:0 10px; border:1px solid #e0baba; border-radius:9px; background:#fff4f4; color:#a44242; cursor:pointer; font:720 11px/1 inherit; }
+  .ure-school-state.is-restore { border-color:#b9d9c5; background:#eef8f1; color:#277149; }
+  .ure-school-registry-row.is-inactive { opacity:.58; }
+  .ure-admin-empty { padding:48px 18px; color:#738692; text-align:center; font-size:13px; }
+
   @media (max-width:760px) {
     .ure-search-modal { padding:10px; }
     .ure-search-panel { width:100%; height:94vh; border-radius:18px; }
@@ -1364,6 +1471,14 @@ html>body{padding:0}</style>
     .ure-search-field { grid-column:1/-1; }
     .ure-search-summary { padding-inline:18px; }
     .ure-search-results table { min-width:920px; }
+    .ure-admin-modal { padding:9px; }
+    .ure-admin-panel { width:100%; height:96vh; border-radius:18px; }
+    .ure-admin-grid { grid-template-columns:1fr; overflow:auto; }
+    .ure-admin-form-card { border-right:0; border-bottom:1px solid #dce6eb; }
+    .ure-admin-workspace { min-height:560px; }
+    .ure-admin-toolbar { grid-template-columns:1fr; }
+    .ure-school-registry-row { grid-template-columns:1fr auto; padding:10px 0; }
+    .ure-school-registry-row select { grid-column:1/-1; grid-row:2; }
   }
 
   #loginScreen {
@@ -1750,7 +1865,9 @@ html>body{padding:0}</style>
 
 <script type="module">
   import {
-    auth, authErrorMessage, loadGestorData, loginAdmin, logoutAdmin, requireAdmin
+    auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage,
+    loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive,
+    updateSchoolAssignment
   } from './firebase-gestor.js';
   const loginScreen = document.getElementById('loginScreen');
   const loginMessage = document.getElementById('loginMessage');
@@ -1814,6 +1931,184 @@ html>body{padding:0}</style>
     loginScreen.style.display = 'flex';
     if (auth.currentUser) loginMessage.textContent = authErrorMessage(error);
   }
+
+  const registry = {
+    data: null,
+    assignmentSupervisorId: '',
+    assignmentDraft: new Map()
+  };
+  const byId = (id) => document.getElementById(id);
+  const foldRegistry = (value) => (value || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const supervisorItems = () => registry.data ? [...registry.data.supervisors.values()].filter((item) => item.active !== false).sort((a,b) => (a.displayName || a.id).localeCompare(b.displayName || b.id,'pt-BR')) : [];
+  const supervisorName = (id) => registry.data?.supervisors.get(id)?.displayName || (id ? 'Supervisor não localizado' : 'Sem supervisor');
+
+  function setRegistryMessage(id, text, error = false) {
+    const element = byId(id);
+    element.textContent = text;
+    element.classList.toggle('is-error', error);
+  }
+
+  async function refreshRegistryData() {
+    registry.data = await loadGestorData({refresh:true});
+    renderSupervisorOptions();
+    renderAssignmentSchools();
+    renderSchoolRegistry();
+    window.loadPortalData?.();
+  }
+
+  function addSupervisorOptions(select, includeEmpty = false) {
+    const current = select.value;
+    select.replaceChildren();
+    if (includeEmpty) select.add(new Option('Sem supervisor por enquanto',''));
+    supervisorItems().forEach((item) => select.add(new Option(item.displayName || item.id,item.id)));
+    if ([...select.options].some((item) => item.value === current)) select.value = current;
+  }
+
+  function renderSupervisorOptions() {
+    const assignment = byId('assignmentSupervisor');
+    addSupervisorOptions(assignment);
+    addSupervisorOptions(byId('newSchoolSupervisor'),true);
+    if (!registry.assignmentSupervisorId || !registry.data?.supervisors.has(registry.assignmentSupervisorId)) {
+      registry.assignmentSupervisorId = assignment.options[0]?.value || '';
+    }
+    assignment.value = registry.assignmentSupervisorId;
+  }
+
+  function renderAssignmentSchools() {
+    const list = byId('assignmentSchoolList');
+    if (!registry.data || !registry.assignmentSupervisorId) {
+      list.innerHTML = '<div class="ure-admin-empty">Cadastre ou selecione um supervisor.</div>';
+      byId('assignmentSummary').textContent = 'Nenhum supervisor disponível.';
+      byId('saveAssignmentsButton').disabled = true;
+      return;
+    }
+    byId('saveAssignmentsButton').disabled = false;
+    const term = foldRegistry(byId('assignmentSchoolSearch').value);
+    const schools = [...registry.data.schools]
+      .filter((item) => !term || foldRegistry(`${item.name} ${supervisorName(item.supervisorId)}`).includes(term))
+      .sort((a,b) => Number(b.active !== false) - Number(a.active !== false) || a.name.localeCompare(b.name,'pt-BR'));
+    list.replaceChildren();
+    schools.forEach((school) => {
+      const row = document.createElement('label');
+      row.className = `ure-assignment-row${school.active === false ? ' is-inactive' : ''}`;
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.disabled = school.active === false;
+      checkbox.checked = registry.assignmentDraft.has(school.id)
+        ? registry.assignmentDraft.get(school.id)
+        : school.supervisorId === registry.assignmentSupervisorId;
+      checkbox.addEventListener('change', () => registry.assignmentDraft.set(school.id,checkbox.checked));
+      const name = document.createElement('strong');
+      name.textContent = school.name;
+      const owner = document.createElement('span');
+      owner.textContent = school.active === false ? 'Cadastro inativo' : supervisorName(school.supervisorId);
+      row.append(checkbox,name,owner);
+      list.appendChild(row);
+    });
+    const linked = registry.data.schools.filter((school) => school.active !== false && (registry.assignmentDraft.has(school.id) ? registry.assignmentDraft.get(school.id) : school.supervisorId === registry.assignmentSupervisorId)).length;
+    byId('assignmentSummary').textContent = `${supervisorName(registry.assignmentSupervisorId)} · ${linked} ${linked === 1 ? 'escola vinculada' : 'escolas vinculadas'}`;
+    if (!schools.length) list.innerHTML = '<div class="ure-admin-empty">Nenhuma escola encontrada.</div>';
+  }
+
+  function renderSchoolRegistry() {
+    if (!registry.data) return;
+    const list = byId('schoolRegistryList'), term = foldRegistry(byId('schoolRegistrySearch').value);
+    const schools = [...registry.data.schools]
+      .filter((item) => !term || foldRegistry(`${item.name} ${supervisorName(item.supervisorId)}`).includes(term))
+      .sort((a,b) => Number(b.active !== false) - Number(a.active !== false) || a.name.localeCompare(b.name,'pt-BR'));
+    list.replaceChildren();
+    schools.forEach((school) => {
+      const row = document.createElement('div');
+      row.className = `ure-school-registry-row${school.active === false ? ' is-inactive' : ''}`;
+      const copy = document.createElement('div'), name = document.createElement('strong'), status = document.createElement('small');
+      name.textContent = school.name;
+      status.textContent = school.active === false ? 'Cadastro desativado' : `Responsável: ${supervisorName(school.supervisorId)}`;
+      copy.append(name,status);
+      const select = document.createElement('select');
+      select.add(new Option('Sem supervisor',''));
+      supervisorItems().forEach((item) => select.add(new Option(item.displayName || item.id,item.id)));
+      select.value = school.supervisorId || '';
+      select.disabled = school.active === false;
+      select.addEventListener('change',async()=>{
+        select.disabled = true;
+        try { await updateSchoolAssignment(school.id,select.value); await refreshRegistryData(); setRegistryMessage('schoolRegistryMessage','Responsável atualizado.'); }
+        catch(error) { setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true); select.disabled=false; }
+      });
+      const state = document.createElement('button');
+      state.type = 'button';
+      state.className = `ure-school-state${school.active === false ? ' is-restore' : ''}`;
+      state.textContent = school.active === false ? 'Reativar' : 'Remover';
+      state.addEventListener('click',async()=>{
+        const next = school.active === false;
+        if (!next && !confirm(`Deseja desativar ${school.name}? O histórico será preservado.`)) return;
+        state.disabled = true;
+        try { await setSchoolActive(school.id,next); await refreshRegistryData(); setRegistryMessage('schoolRegistryMessage',next?'Escola reativada.':'Escola desativada.'); }
+        catch(error) { setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true); state.disabled=false; }
+      });
+      row.append(copy,select,state);
+      list.appendChild(row);
+    });
+    const active = registry.data.schools.filter((item) => item.active !== false).length;
+    byId('schoolRegistrySummary').textContent = `${active} escolas ativas · ${registry.data.schools.length - active} desativadas · ${schools.length} exibidas`;
+    if (!schools.length) list.innerHTML = '<div class="ure-admin-empty">Nenhuma escola encontrada.</div>';
+  }
+
+  async function openRegistry(id) {
+    const modal = byId(id);
+    const source = id === 'supervisorRegistryModal' ? byId('openSupervisorRegistry') : byId('openSchoolRegistry');
+    document.querySelectorAll('#ure-concept .ure-nav-item').forEach((item)=>item.classList.toggle('is-active',item===source));
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    try { await refreshRegistryData(); }
+    catch (error) {
+      const messageId = id === 'supervisorRegistryModal' ? 'supervisorRegistryMessage' : 'schoolRegistryMessage';
+      setRegistryMessage(messageId,dataErrorMessage(error),true);
+    }
+  }
+
+  function closeRegistry(id) {
+    byId(id).hidden = true;
+    if (![...document.querySelectorAll('.ure-admin-modal')].some((item) => !item.hidden)) document.body.style.overflow = '';
+  }
+
+  byId('openSupervisorRegistry').addEventListener('click',()=>openRegistry('supervisorRegistryModal'));
+  byId('openSchoolRegistry').addEventListener('click',()=>openRegistry('schoolRegistryModal'));
+  document.querySelectorAll('[data-admin-close]').forEach((button)=>button.addEventListener('click',()=>closeRegistry(button.dataset.adminClose)));
+  document.addEventListener('keydown',(event)=>{if(event.key==='Escape')document.querySelectorAll('.ure-admin-modal:not([hidden])').forEach((item)=>closeRegistry(item.id))});
+  byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderAssignmentSchools()});
+  byId('assignmentSchoolSearch').addEventListener('input',renderAssignmentSchools);
+  byId('schoolRegistrySearch').addEventListener('input',renderSchoolRegistry);
+
+  byId('createSupervisorButton').addEventListener('click',async()=>{
+    const button=byId('createSupervisorButton'),name=byId('newSupervisorName').value,email=byId('newSupervisorEmail').value;
+    button.disabled=true;setRegistryMessage('supervisorRegistryMessage','Salvando…');
+    try { registry.assignmentSupervisorId=await createSupervisorProfile({displayName:name,loginEmail:email}); registry.assignmentDraft.clear(); byId('newSupervisorName').value='';byId('newSupervisorEmail').value='';await refreshRegistryData();setRegistryMessage('supervisorRegistryMessage','Supervisor cadastrado. Falta apenas liberar a conta de login quando necessário.'); }
+    catch(error){setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true)}
+    finally{button.disabled=false}
+  });
+
+  byId('saveAssignmentsButton').addEventListener('click',async()=>{
+    const button=byId('saveAssignmentsButton');button.disabled=true;setRegistryMessage('supervisorRegistryMessage','Atualizando vínculos…');
+    try {
+      const changes=[];
+      registry.assignmentDraft.forEach((checked,schoolId)=>{
+        const school=registry.data.schools.find((item)=>item.id===schoolId);
+        if(!school)return;
+        const target=checked?registry.assignmentSupervisorId:(school.supervisorId===registry.assignmentSupervisorId?null:school.supervisorId);
+        if((school.supervisorId||null)!==target)changes.push(updateSchoolAssignment(schoolId,target));
+      });
+      await Promise.all(changes);registry.assignmentDraft.clear();await refreshRegistryData();setRegistryMessage('supervisorRegistryMessage',changes.length?`${changes.length} vínculo(s) atualizado(s).`:'Nenhuma alteração pendente.');
+    } catch(error){setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true)}
+    finally{button.disabled=false}
+  });
+
+  byId('createSchoolButton').addEventListener('click',async()=>{
+    const button=byId('createSchoolButton'),name=byId('newSchoolName').value,supervisorId=byId('newSchoolSupervisor').value;
+    button.disabled=true;setRegistryMessage('schoolRegistryMessage','Salvando…');
+    try { await createSchoolRecord({name,supervisorId});byId('newSchoolName').value='';await refreshRegistryData();setRegistryMessage('schoolRegistryMessage','Escola cadastrada com sucesso.'); }
+    catch(error){setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true)}
+    finally{button.disabled=false}
+  });
 
   window.portalFirebase = { auth, loadGestorData };
 </script>
