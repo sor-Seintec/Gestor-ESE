@@ -185,15 +185,44 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
     getDocs(collection(db, 'users')),
     getDocs(collection(db, 'supervisors'))
   ]);
-  if (userSnapshot.exists()) throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
-  if (usersSnapshot.docs.some((item) => (item.data().email || '').toString().trim().toLowerCase() === email)) {
-    throw Object.assign(new Error('EMAIL_IN_USE'), { code: 'data/email-in-use' });
+  const existingUser = userSnapshot.exists() ? userSnapshot.data() : null;
+  const emailProfiles = usersSnapshot.docs.filter((item) =>
+    (item.data().email || '').toString().trim().toLowerCase() === email
+  );
+
+  // O Firebase Authentication e o Firestore são cadastros separados. Se uma
+  // conta for apagada e recriada no Authentication, o novo usuário recebe
+  // outro UID, mas o perfil users/{UID antigo} continua existindo. Neste caso,
+  // migramos o perfil antigo em vez de bloquear o e-mail para sempre.
+  if (emailProfiles.some((item) => item.id === session.user.uid && item.id !== uid)) {
+    throw Object.assign(new Error('CURRENT_ADMIN_REPLACEMENT'), { code: 'data/current-admin-replacement' });
   }
-  if (supervisorsSnapshot.docs.some((item) => item.data().authUid === uid)) {
+  if (existingUser && (existingUser.email || '').toString().trim().toLowerCase() !== email) {
     throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
   }
 
-  await setDoc(doc(db, 'users', uid), {
+  const replacedProfiles = emailProfiles.filter((item) => item.id !== uid);
+  const replacedUids = new Set(replacedProfiles.map((item) => item.id));
+  const supervisorLinks = supervisorsSnapshot.docs.filter((item) => {
+    const linkedUid = (item.data().authUid || '').toString().trim();
+    return linkedUid === uid || replacedUids.has(linkedUid);
+  });
+  const conflictingSupervisor = supervisorLinks.find((item) => {
+    const supervisorEmail = (item.data().loginEmail || '').toString().trim().toLowerCase();
+    return supervisorEmail && supervisorEmail !== email;
+  });
+  if (conflictingSupervisor) {
+    throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
+  }
+
+  const batch = writeBatch(db);
+  replacedProfiles.forEach((item) => batch.delete(item.ref));
+  supervisorLinks.forEach((item) => batch.set(item.ref, {
+    authUid: null,
+    accessEnabled: false,
+    updatedAt: serverTimestamp()
+  }, { merge: true }));
+  batch.set(doc(db, 'users', uid), {
     displayName: name,
     email,
     role: 'admin',
@@ -201,11 +230,20 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
     mustChangePassword: true,
     schemaVersion: 1,
     createdByUid: session.user.uid,
-    createdAt: serverTimestamp(),
+    createdAt: existingUser?.createdAt || replacedProfiles[0]?.data().createdAt || serverTimestamp(),
     updatedAt: serverTimestamp()
   });
+  await batch.commit();
   dataPromise = null;
-  return { uid, displayName: name, email, role: 'admin', active: true };
+  return {
+    uid,
+    displayName: name,
+    email,
+    role: 'admin',
+    active: true,
+    replacedUids: [...replacedUids],
+    supervisorLinksRemoved: supervisorLinks.map((item) => item.id)
+  };
 }
 
 export async function createSchoolRecord({ name, supervisorId = null }) {
@@ -255,7 +293,7 @@ export function dataErrorMessage(error) {
     'data/invalid-name': 'O nome informado não pode ser usado.',
     'data/email-required': 'Informe a variável do e-mail de acesso.',
     'data/invalid-email': 'Use somente letras, números, ponto, hífen ou sublinhado na variável do e-mail.',
-    'data/email-in-use': 'Este e-mail de acesso já está vinculado a outro supervisor.',
+    'data/email-in-use': 'Este e-mail de acesso já está vinculado a outro cadastro.',
     'data/already-exists': 'Já existe um cadastro com esse nome.',
     'data/supervisor-required': 'Selecione o supervisor que receberá o acesso.',
     'data/supervisor-not-found': 'O cadastro do supervisor não foi encontrado.',
@@ -263,6 +301,7 @@ export function dataErrorMessage(error) {
     'data/access-already-linked': 'Este supervisor já está vinculado a outro UID.',
     'data/uid-admin': 'Este UID pertence a uma conta administrativa e não pode ser alterado.',
     'data/uid-in-use': 'Este UID já está vinculado a outro usuário ou supervisor.',
+    'data/current-admin-replacement': 'A conta administrativa usada nesta sessão não pode ser substituída. Entre com outro administrador para realizar essa troca.',
     'permission-denied': 'O Firebase não autorizou esta alteração.'
   };
   return messages[error?.code] || 'Não foi possível salvar a alteração.';

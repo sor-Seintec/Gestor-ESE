@@ -2301,29 +2301,39 @@ html>body{padding:0}</style>
     const email=variable?`${supervisorEmailPrefix}${variable}${supervisorEmailDomain}`:'';
     if(!name){setRegistryMessage('administratorRegistryMessage','Informe o nome do administrador.',true);return}
     if(!variable){setRegistryMessage('administratorRegistryMessage','Informe a variável do e-mail de acesso.',true);return}
-    if(administratorItems().some((item)=>(item.email||'').toLowerCase()===email)){setRegistryMessage('administratorRegistryMessage','Este e-mail já pertence a um administrador.',true);return}
+    const existingAccess=registry.data?[...registry.data.users.values()].find((item)=>(item.email||'').toLowerCase()===email):null;
+    if(existingAccess?.id===auth.currentUser?.uid){setRegistryMessage('administratorRegistryMessage','Este é o administrador usado na sessão atual. Para substituir essa conta, entre com outro administrador.',true);return}
     const password=generateStrongPassword(12);
-    registry.pendingAdministrator={displayName:name,loginEmail:email,password};
+    registry.pendingAdministrator={displayName:name,loginEmail:email,password,existingAccess};
     byId('newAdministratorCredentialEmail').textContent=email;
     byId('newAdministratorPassword').textContent=password;
     byId('newAdministratorCredentialResult').hidden=false;
-    byId('administratorAccessTarget').textContent=`${name} · ${email}`;
+    byId('administratorAccessTarget').textContent=existingAccess
+      ? `${name} · ${email} · substituirá o vínculo antigo (${existingAccess.role||'perfil'}, UID ${existingAccess.id})`
+      : `${name} · ${email}`;
     byId('administratorAuthUid').value='';
     byId('activateAdministratorAccessButton').disabled=false;
     byId('administratorAccessActivation').hidden=false;
-    setRegistryMessage('administratorRegistryMessage','Cadastro preparado. Adicione o usuário no Firebase e depois cole o UID abaixo.');
+    setRegistryMessage('administratorRegistryMessage',existingAccess
+      ? 'Cadastro antigo localizado. Cole o UID da conta recriada para substituir o vínculo antigo com segurança.'
+      : 'Cadastro preparado. Adicione o usuário no Firebase e depois cole o UID abaixo.');
   });
   byId('activateAdministratorAccessButton').addEventListener('click',async()=>{
     const pending=registry.pendingAdministrator,button=byId('activateAdministratorAccessButton'),authUid=byId('administratorAuthUid').value.trim();
     if(!pending){setRegistryMessage('administratorRegistryMessage','Prepare primeiro o nome, o e-mail e a senha.',true);return}
-    if(authUid&&!confirm(`ATENÇÃO: este perfil terá acesso integral.\n\n${pending.displayName}\n${pending.loginEmail}\nUID: ${authUid}\n\nConfirma a ativação como Administrador?`))return;
+    const replacementNotice=pending.existingAccess
+      ? `\n\nO vínculo antigo (${pending.existingAccess.role||'perfil'}, UID ${pending.existingAccess.id}) será removido. Os dados e o histórico do supervisor serão preservados.`
+      : '';
+    if(authUid&&!confirm(`ATENÇÃO: este perfil terá acesso integral.\n\n${pending.displayName}\n${pending.loginEmail}\nUID: ${authUid}${replacementNotice}\n\nConfirma a ativação como Administrador?`))return;
     button.disabled=true;setRegistryMessage('administratorRegistryMessage','Aplicando perfil administrativo…');
     try{
-      await activateAdministratorAccess({displayName:pending.displayName,loginEmail:pending.loginEmail,authUid});
+      const result=await activateAdministratorAccess({displayName:pending.displayName,loginEmail:pending.loginEmail,authUid});
       registry.pendingAdministrator=null;
       byId('administratorAccessActivation').hidden=true;
       await refreshRegistryData();
-      setRegistryMessage('administratorRegistryMessage','Administrador ativado. A conta já pode entrar no Gestor-ESE com a senha temporária.');
+      setRegistryMessage('administratorRegistryMessage',result.replacedUids.length
+        ? 'Cadastro antigo substituído e Administrador ativado. A conta recriada já pode entrar no Gestor-ESE.'
+        : 'Administrador ativado. A conta já pode entrar no Gestor-ESE com a senha temporária.');
     }catch(error){setRegistryMessage('administratorRegistryMessage',dataErrorMessage(error),true);button.disabled=false}
   });
   byId('newSupervisorEmailVariable').addEventListener('input',(event)=>{
