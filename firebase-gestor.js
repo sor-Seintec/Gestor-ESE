@@ -29,6 +29,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const MASTER_ADMIN_EMAIL = 'desornit@prof.educacao.sp.gov.br';
 
 let adminSessionPromise;
 let dataPromise;
@@ -59,6 +60,14 @@ export async function requireAdmin() {
   return adminSessionPromise;
 }
 
+export async function requireMasterAdmin() {
+  const session = await requireAdmin();
+  if ((session.user.email || '').trim().toLowerCase() !== MASTER_ADMIN_EMAIL) {
+    throw Object.assign(new Error('MASTER_REQUIRED'), { code: 'access/master-required' });
+  }
+  return session;
+}
+
 export async function loginAdmin(email, password) {
   adminSessionPromise = null;
   dataPromise = null;
@@ -79,6 +88,7 @@ export function authErrorMessage(error) {
     'auth/network-request-failed': 'Não foi possível conectar ao Firebase.',
     'auth/required': 'Faça login para acessar o Gestor-ESE.',
     'access/admin-required': 'Esta conta não possui perfil de gestor.',
+    'access/master-required': 'Somente o Administrador Master pode realizar este cadastro.',
     'access/profile-not-found': 'O perfil administrativo não foi encontrado.'
   };
   return messages[error?.code] || 'Não foi possível validar o acesso administrativo.';
@@ -93,7 +103,7 @@ function documentId(value) {
 }
 
 export async function createSupervisorProfile({ displayName, loginEmail = '' }) {
-  await requireAdmin();
+  await requireMasterAdmin();
   const name = (displayName || '').trim();
   const email = (loginEmail || '').trim().toLowerCase();
   if (!name) throw Object.assign(new Error('NAME_REQUIRED'), { code: 'data/name-required' });
@@ -122,7 +132,7 @@ export async function createSupervisorProfile({ displayName, loginEmail = '' }) 
 }
 
 export async function activateSupervisorAccess({ supervisorId, authUid }) {
-  await requireAdmin();
+  await requireMasterAdmin();
   const uid = (authUid || '').toString().trim();
   if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
   if (!/^[A-Za-z0-9_-]{20,128}$/.test(uid)) throw Object.assign(new Error('INVALID_UID'), { code: 'data/invalid-uid' });
@@ -172,7 +182,7 @@ export async function activateSupervisorAccess({ supervisorId, authUid }) {
 }
 
 export async function activateAdministratorAccess({ displayName, loginEmail, authUid }) {
-  const session = await requireAdmin();
+  const session = await requireMasterAdmin();
   const name = (displayName || '').toString().trim();
   const email = (loginEmail || '').toString().trim().toLowerCase();
   const uid = (authUid || '').toString().trim();
@@ -302,6 +312,7 @@ export function dataErrorMessage(error) {
     'data/uid-admin': 'Este UID pertence a uma conta administrativa e não pode ser alterado.',
     'data/uid-in-use': 'Este UID já está vinculado a outro usuário ou supervisor.',
     'data/current-admin-replacement': 'A conta administrativa usada nesta sessão não pode ser substituída. Entre com outro administrador para realizar essa troca.',
+    'access/master-required': 'Somente desornit@prof.educacao.sp.gov.br pode cadastrar administradores e supervisores.',
     'permission-denied': 'O Firebase não autorizou esta alteração.'
   };
   return messages[error?.code] || 'Não foi possível salvar a alteração.';

@@ -919,8 +919,8 @@ html>body{padding:0}</style>
     <nav class="ure-nav">
       <button type="button" class="ure-nav-item is-active" data-url="home"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Visão geral</span></button>
       <span class="ure-nav-label">Cadastros</span>
-      <button type="button" class="ure-nav-item" id="openAdministratorRegistry"><i data-lucide="shield-user" aria-hidden="true"></i><span>Administradores</span></button>
-      <button type="button" class="ure-nav-item" id="openSupervisorRegistry"><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
+      <button type="button" class="ure-nav-item ure-master-only" id="openAdministratorRegistry" hidden><i data-lucide="shield-user" aria-hidden="true"></i><span>Administradores</span></button>
+      <button type="button" class="ure-nav-item ure-master-only" id="openSupervisorRegistry" hidden><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
       <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
       <span class="ure-nav-label">Gestão</span>
@@ -1221,6 +1221,7 @@ html>body{padding:0}</style>
   #ure-concept .ure-nav-item { width:100%; border:0; background:transparent; color:rgba(239,249,243,.68); display:grid; grid-template-columns:20px 1fr auto; gap:10px; align-items:center; text-align:left; padding:11px 12px; border-radius:11px; cursor:pointer; }
   #ure-concept .ure-nav-item:hover { color:#eff9f3; background:rgba(255,255,255,.06); }
   #ure-concept .ure-nav-item.is-active { color:#173b2b; background:var(--ure-lime); }
+  #ure-concept .ure-master-only[hidden] { display:none !important; }
   #ure-concept .ure-nav-item b { min-width:22px; text-align:center; padding:2px 5px; border-radius:12px; background:rgba(255,255,255,.12); }
   #ure-concept .ure-nav-item.is-active b { background:rgba(23,59,43,.12); }
   #ure-concept .ure-user { border-top:1px solid rgba(255,255,255,.12); padding:18px 4px 0; display:grid; grid-template-columns:36px 1fr 28px; align-items:center; gap:10px; }
@@ -1970,7 +1971,7 @@ html>body{padding:0}</style>
 
 <script type="module">
   import {
-    activateAdministratorAccess, activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage,
+    activateAdministratorAccess, activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
     loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive,
     updateSchoolAssignment
   } from './firebase-gestor.js';
@@ -2019,7 +2020,9 @@ html>body{padding:0}</style>
       : label.slice(0,2).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('userName').textContent = label;
-    document.getElementById('userRole').textContent = 'Administrador';
+    const isMaster=(user.email||'').trim().toLowerCase()===MASTER_ADMIN_EMAIL;
+    document.querySelectorAll('.ure-master-only').forEach((item)=>{item.hidden=!isMaster});
+    document.getElementById('userRole').textContent = isMaster ? 'Administrador Master' : 'Administrador';
     document.getElementById('welcomeTitle').textContent = `Bem-vindo, ${parts[0]}.`;
     if (!dataLoaded) {
       dataLoaded = true;
