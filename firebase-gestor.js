@@ -206,6 +206,57 @@ export async function activateSupervisorAccess({ supervisorId, authUid }) {
   return { uid, supervisorId, email };
 }
 
+export async function setSupervisorActive(supervisorId, active) {
+  const session = await requireMasterAdmin();
+  if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
+  const supervisorRef = doc(db, 'supervisors', supervisorId);
+  const supervisorSnapshot = await getDoc(supervisorRef);
+  if (!supervisorSnapshot.exists()) throw Object.assign(new Error('SUPERVISOR_NOT_FOUND'), { code: 'data/supervisor-not-found' });
+
+  const supervisor = supervisorSnapshot.data();
+  const nextActive = active === true;
+  const [schoolsSnapshot, usersSnapshot] = await Promise.all([
+    getDocs(collection(db, 'schools')),
+    getDocs(collection(db, 'users'))
+  ]);
+  const linkedSchools = schoolsSnapshot.docs.filter((item) => item.data().supervisorId === supervisorId);
+  const linkedUsers = usersSnapshot.docs.filter((item) =>
+    item.data().supervisorId === supervisorId || (supervisor.authUid && item.id === supervisor.authUid)
+  );
+  const batch = writeBatch(db);
+
+  batch.set(supervisorRef, {
+    active: nextActive,
+    accessEnabled: nextActive && Boolean(supervisor.authUid),
+    statusChangedAt: serverTimestamp(),
+    statusChangedByUid: session.user.uid,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+
+  linkedUsers.forEach((item) => {
+    batch.set(item.ref, {
+      active: nextActive && item.id === supervisor.authUid,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  });
+
+  if (!nextActive) {
+    linkedSchools.forEach((item) => batch.set(item.ref, {
+      supervisorId: null,
+      updatedAt: serverTimestamp()
+    }, { merge: true }));
+  }
+
+  await batch.commit();
+  dataPromise = null;
+  return {
+    supervisorId,
+    active: nextActive,
+    unassignedSchools: nextActive ? 0 : linkedSchools.length,
+    loginBlocked: !nextActive
+  };
+}
+
 export async function activateAdministratorAccess({ displayName, loginEmail, authUid }) {
   const session = await requireMasterAdmin();
   const name = (displayName || '').toString().trim();

@@ -1147,6 +1147,7 @@ html>body{padding:0}</style>
           <input id="supervisorAuthUid" type="text" autocomplete="off" spellcheck="false" placeholder="Cole aqui o UID completo">
           <button type="button" class="ure-admin-primary" id="activateSupervisorAccessButton">Ativar acesso</button>
           <small id="supervisorAccessStatus">O Gestor criará o perfil, aplicará a função Supervisor e vinculará o acesso.</small>
+          <button type="button" class="ure-supervisor-state" id="toggleSupervisorActiveButton">Desativar supervisor</button>
         </div>
         <div class="ure-admin-security"><i data-lucide="shield-check" aria-hidden="true"></i><span>A conta de login continua sendo liberada pelo administrador. O supervisor poderá solicitar a troca futuramente.</span></div>
       </aside>
@@ -1566,6 +1567,9 @@ html>body{padding:0}</style>
   .ure-school-registry-row select { min-height:36px; width:100%; padding:0 9px; border:1px solid #d3e0e7; border-radius:9px; background:#fff; color:#36566b; font:600 11.5px/1 inherit; }
   .ure-school-state { min-width:86px; min-height:34px; padding:0 10px; border:1px solid #e0baba; border-radius:9px; background:#fff4f4; color:#a44242; cursor:pointer; font:720 11px/1 inherit; }
   .ure-school-state.is-restore { border-color:#b9d9c5; background:#eef8f1; color:#277149; }
+  .ure-supervisor-state { width:100%; min-height:38px; margin-top:12px; padding:0 12px; border:1px solid #e0baba; border-radius:9px; background:#fff4f4; color:#a44242; cursor:pointer; font:760 11px/1 inherit; }
+  .ure-supervisor-state.is-restore { border-color:#b9d9c5; background:#eef8f1; color:#277149; }
+  .ure-supervisor-state:disabled { cursor:wait; opacity:.58; }
   .ure-school-registry-row.is-inactive { opacity:.58; }
   .ure-admin-empty { padding:48px 18px; color:#738692; text-align:center; font-size:13px; }
 
@@ -1976,7 +1980,7 @@ html>body{padding:0}</style>
 <script type="module">
   import {
     activateAdministratorAccess, activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
-    loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive,
+    loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive, setSupervisorActive,
     updateSchoolAssignment
   } from './firebase-gestor.js';
   const loginScreen = document.getElementById('loginScreen');
@@ -2065,7 +2069,8 @@ html>body{padding:0}</style>
       : '';
     return variable?accessLoginAlias(variable,role):'';
   };
-  const supervisorItems = () => registry.data ? [...registry.data.supervisors.values()].filter((item) => item.active !== false).sort((a,b) => (a.displayName || a.id).localeCompare(b.displayName || b.id,'pt-BR')) : [];
+  const allSupervisorItems = () => registry.data ? [...registry.data.supervisors.values()].sort((a,b) => Number(b.active !== false)-Number(a.active !== false)||(a.displayName || a.id).localeCompare(b.displayName || b.id,'pt-BR')) : [];
+  const supervisorItems = () => allSupervisorItems().filter((item) => item.active !== false);
   const administratorItems = () => registry.data ? [...registry.data.users.values()].filter((item) => item.role === 'admin').sort((a,b) => (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id,'pt-BR')) : [];
   const supervisorName = (id) => registry.data?.supervisors.get(id)?.displayName || (id ? 'Supervisor não localizado' : 'Sem supervisor');
 
@@ -2102,11 +2107,11 @@ html>body{padding:0}</style>
     window.loadPortalData?.();
   }
 
-  function addSupervisorOptions(select, emptyLabel = '') {
+  function addSupervisorOptions(select, emptyLabel = '', items = supervisorItems()) {
     const current = select.value;
     select.replaceChildren();
     if (emptyLabel) select.add(new Option(emptyLabel,''));
-    supervisorItems().forEach((item) => select.add(new Option(item.displayName || item.id,item.id)));
+    items.forEach((item) => select.add(new Option(`${item.displayName || item.id}${item.active === false ? ' — inativo' : ''}`,item.id)));
     if ([...select.options].some((item) => item.value === current)) select.value = current;
   }
 
@@ -2134,9 +2139,9 @@ html>body{padding:0}</style>
 
   function renderSupervisorOptions() {
     const assignment = byId('assignmentSupervisor');
-    addSupervisorOptions(assignment,'Selecione um supervisor');
+    addSupervisorOptions(assignment,'Selecione um supervisor',allSupervisorItems());
     addSupervisorOptions(byId('newSchoolSupervisor'),'Sem supervisor por enquanto');
-    if (!registry.assignmentSupervisorId || !supervisorItems().some((item) => item.id === registry.assignmentSupervisorId)) registry.assignmentSupervisorId = '';
+    if (!registry.assignmentSupervisorId || !allSupervisorItems().some((item) => item.id === registry.assignmentSupervisorId)) registry.assignmentSupervisorId = '';
     assignment.value = registry.assignmentSupervisorId;
     renderSupervisorAccess();
   }
@@ -2152,7 +2157,18 @@ html>body{padding:0}</style>
     byId('supervisorAccessTarget').textContent = `${supervisor.displayName || supervisor.id} · usuário ${supervisor.loginAlias || accessAliasFromEmail(supervisor.loginEmail,'supervisor') || 'não definido'} · ${supervisor.loginEmail || 'e-mail técnico não cadastrado'}`;
     const uidInput = byId('supervisorAuthUid');
     const button = byId('activateSupervisorAccessButton');
-    if (supervisor.authUid) {
+    const stateButton=byId('toggleSupervisorActiveButton');
+    stateButton.disabled=false;
+    stateButton.classList.toggle('is-restore',supervisor.active===false);
+    stateButton.textContent=supervisor.active===false?'Reativar supervisor':'Desativar supervisor';
+    if (supervisor.active === false) {
+      panel.classList.remove('is-active');
+      uidInput.value=supervisor.authUid||'';
+      uidInput.disabled=true;
+      button.disabled=true;
+      button.textContent='Supervisor inativo';
+      byId('supervisorAccessStatus').textContent='Login bloqueado. O histórico foi preservado e as escolas ficaram disponíveis para redistribuição.';
+    } else if (supervisor.authUid) {
       panel.classList.add('is-active');
       uidInput.value = supervisor.authUid;
       uidInput.disabled = true;
@@ -2175,6 +2191,13 @@ html>body{padding:0}</style>
       list.innerHTML = '<div class="ure-admin-empty">Selecione um supervisor para visualizar e alterar suas escolas.</div>';
       byId('assignmentSummary').textContent = supervisorItems().length ? 'Nenhum supervisor selecionado.' : 'Nenhum supervisor disponível.';
       byId('saveAssignmentsButton').disabled = true;
+      return;
+    }
+    const selectedSupervisor=registry.data.supervisors.get(registry.assignmentSupervisorId);
+    if(selectedSupervisor?.active===false){
+      list.innerHTML='<div class="ure-admin-empty">Este supervisor está inativo. Reative o cadastro antes de vincular escolas.</div>';
+      byId('assignmentSummary').textContent=`${selectedSupervisor.displayName||selectedSupervisor.id} · cadastro inativo`;
+      byId('saveAssignmentsButton').disabled=true;
       return;
     }
     byId('saveAssignmentsButton').disabled = false;
@@ -2435,6 +2458,30 @@ html>body{padding:0}</style>
       await refreshRegistryData();
       setRegistryMessage('supervisorRegistryMessage','Acesso ativado. O supervisor já pode entrar com o e-mail e a senha temporária.');
     } catch(error) {
+      setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true);
+      button.disabled=false;
+    }
+  });
+
+  byId('toggleSupervisorActiveButton').addEventListener('click',async()=>{
+    const supervisor=registry.data?.supervisors.get(registry.assignmentSupervisorId);
+    const button=byId('toggleSupervisorActiveButton');
+    if(!supervisor){setRegistryMessage('supervisorRegistryMessage','Selecione um supervisor.',true);return}
+    const nextActive=supervisor.active===false;
+    const linkedSchools=registry.data.schools.filter((school)=>school.supervisorId===supervisor.id).length;
+    const question=nextActive
+      ? `Reativar ${supervisor.displayName||supervisor.id}?\n\nO login será liberado novamente se o UID ainda estiver vinculado. As escolas anteriores não serão restauradas automaticamente.`
+      : `Desativar ${supervisor.displayName||supervisor.id}?\n\n• O login será bloqueado imediatamente.\n• ${linkedSchools} ${linkedSchools===1?'escola ficará':'escolas ficarão'} sem responsável para redistribuição.\n• Visitas, planejamentos e histórico serão preservados.\n\nA conta não será apagada do Firebase Authentication.`;
+    if(!confirm(question))return;
+    button.disabled=true;
+    setRegistryMessage('supervisorRegistryMessage',nextActive?'Reativando supervisor…':'Desativando supervisor e liberando escolas…');
+    try{
+      const result=await setSupervisorActive(supervisor.id,nextActive);
+      await refreshRegistryData();
+      setRegistryMessage('supervisorRegistryMessage',nextActive
+        ? 'Supervisor reativado. As escolas podem ser vinculadas novamente.'
+        : `Supervisor desativado. Login bloqueado e ${result.unassignedSchools} ${result.unassignedSchools===1?'escola liberada':'escolas liberadas'} para redistribuição.`);
+    }catch(error){
       setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true);
       button.disabled=false;
     }
