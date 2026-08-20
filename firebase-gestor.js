@@ -13,7 +13,8 @@ import {
   getFirestore,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -120,6 +121,56 @@ export async function createSupervisorProfile({ displayName, loginEmail = '' }) 
   return id;
 }
 
+export async function activateSupervisorAccess({ supervisorId, authUid }) {
+  await requireAdmin();
+  const uid = (authUid || '').toString().trim();
+  if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
+  if (!/^[A-Za-z0-9_-]{20,128}$/.test(uid)) throw Object.assign(new Error('INVALID_UID'), { code: 'data/invalid-uid' });
+
+  const supervisorRef = doc(db, 'supervisors', supervisorId);
+  const supervisorSnapshot = await getDoc(supervisorRef);
+  if (!supervisorSnapshot.exists()) throw Object.assign(new Error('SUPERVISOR_NOT_FOUND'), { code: 'data/supervisor-not-found' });
+  const supervisor = supervisorSnapshot.data();
+  const email = (supervisor.loginEmail || '').toString().trim().toLowerCase();
+  if (!email) throw Object.assign(new Error('EMAIL_REQUIRED'), { code: 'data/email-required' });
+  if (supervisor.authUid && supervisor.authUid !== uid) throw Object.assign(new Error('ACCESS_ALREADY_LINKED'), { code: 'data/access-already-linked' });
+
+  const [userSnapshot, supervisorsSnapshot] = await Promise.all([
+    getDoc(doc(db, 'users', uid)),
+    getDocs(collection(db, 'supervisors'))
+  ]);
+  const existingUser = userSnapshot.exists() ? userSnapshot.data() : null;
+  if (existingUser?.role === 'admin') throw Object.assign(new Error('UID_ADMIN'), { code: 'data/uid-admin' });
+  if (existingUser && ((existingUser.email || '').toLowerCase() !== email || existingUser.supervisorId !== supervisorId)) {
+    throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
+  }
+  if (supervisorsSnapshot.docs.some((item) => item.id !== supervisorId && item.data().authUid === uid)) {
+    throw Object.assign(new Error('UID_IN_USE'), { code: 'data/uid-in-use' });
+  }
+
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'users', uid), {
+    displayName: supervisor.displayName || supervisorId,
+    email,
+    role: 'supervisor',
+    supervisorId,
+    active: true,
+    mustChangePassword: true,
+    schemaVersion: 1,
+    createdAt: existingUser?.createdAt || serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+  batch.set(supervisorRef, {
+    authUid: uid,
+    active: true,
+    accessEnabled: true,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
+  await batch.commit();
+  dataPromise = null;
+  return { uid, supervisorId, email };
+}
+
 export async function createSchoolRecord({ name, supervisorId = null }) {
   await requireAdmin();
   const schoolName = (name || '').trim();
@@ -169,6 +220,12 @@ export function dataErrorMessage(error) {
     'data/invalid-email': 'Use somente letras, números, ponto, hífen ou sublinhado na variável do e-mail.',
     'data/email-in-use': 'Este e-mail de acesso já está vinculado a outro supervisor.',
     'data/already-exists': 'Já existe um cadastro com esse nome.',
+    'data/supervisor-required': 'Selecione o supervisor que receberá o acesso.',
+    'data/supervisor-not-found': 'O cadastro do supervisor não foi encontrado.',
+    'data/invalid-uid': 'Cole o UID completo gerado pelo Firebase Authentication.',
+    'data/access-already-linked': 'Este supervisor já está vinculado a outro UID.',
+    'data/uid-admin': 'Este UID pertence a uma conta administrativa e não pode ser alterado.',
+    'data/uid-in-use': 'Este UID já está vinculado a outro usuário ou supervisor.',
     'permission-denied': 'O Firebase não autorizou esta alteração.'
   };
   return messages[error?.code] || 'Não foi possível salvar a alteração.';

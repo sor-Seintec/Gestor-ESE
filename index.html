@@ -1078,12 +1078,22 @@ html>body{padding:0}</style>
           <span>@prof.educacao.sp.gov.br</span>
         </div>
         <small class="ure-email-preview" id="newSupervisorEmailPreview">Preencha somente a parte variável do e-mail.</small>
-        <button type="button" class="ure-admin-primary" id="createSupervisorButton">Cadastrar supervisor</button>
+        <button type="button" class="ure-admin-primary" id="createSupervisorButton">Preparar cadastro</button>
         <p class="ure-admin-message" id="supervisorRegistryMessage" role="status"></p>
         <div class="ure-password-result" id="newSupervisorPasswordResult" hidden>
-          <span>Senha inicial gerada — copie agora</span>
-          <div><output id="newSupervisorPassword"></output><button type="button" id="copySupervisorPassword">Copiar</button></div>
-          <small>Ela não é armazenada no Firestore. Use-a ao liberar a conta no Firebase Authentication.</small>
+          <span>Etapa 1 — adicione o usuário no Authentication</span>
+          <div><output id="newSupervisorCredentialEmail"></output><button type="button" id="copySupervisorEmail">Copiar e-mail</button></div>
+          <div><output id="newSupervisorPassword"></output><button type="button" id="copySupervisorPassword">Copiar senha</button></div>
+          <a href="https://console.firebase.google.com/project/supervisor-ese/authentication/users" target="_blank" rel="noopener">Abrir usuários do Firebase ↗</a>
+          <small>A senha não é armazenada no Firestore. Use exatamente estes dados em “Adicionar usuário”.</small>
+        </div>
+        <div class="ure-access-activation" id="supervisorAccessActivation" hidden>
+          <span>Etapa 2 — ativar perfil Supervisor</span>
+          <p id="supervisorAccessTarget"></p>
+          <label for="supervisorAuthUid">UID copiado do Authentication</label>
+          <input id="supervisorAuthUid" type="text" autocomplete="off" spellcheck="false" placeholder="Cole aqui o UID completo">
+          <button type="button" class="ure-admin-primary" id="activateSupervisorAccessButton">Ativar acesso</button>
+          <small id="supervisorAccessStatus">O Gestor criará o perfil, aplicará a função Supervisor e vinculará o acesso.</small>
         </div>
         <div class="ure-admin-security"><i data-lucide="shield-check" aria-hidden="true"></i><span>A conta de login continua sendo liberada pelo administrador. O supervisor poderá solicitar a troca futuramente.</span></div>
       </aside>
@@ -1458,9 +1468,19 @@ html>body{padding:0}</style>
   .ure-password-result { margin-top:13px; padding:12px; border:1px solid #b9d9c9; border-radius:11px; background:#edf8f2; color:#234d3a; }
   .ure-password-result > span { display:block; margin-bottom:7px; font-size:11px; font-weight:800; }
   .ure-password-result > div { display:grid; grid-template-columns:1fr auto; gap:7px; }
+  .ure-password-result > div + div { margin-top:7px; }
   .ure-password-result output { min-width:0; padding:9px 10px; border:1px solid #bdd9ca; border-radius:8px; background:#fff; color:#173c2b; font:800 13px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.04em; overflow-wrap:anywhere; }
   .ure-password-result button { padding:0 11px; border:0; border-radius:8px; background:#287353; color:#fff; font-size:11px; font-weight:800; cursor:pointer; }
+  .ure-password-result a { display:inline-block; margin-top:9px; color:#25694d; font-size:11px; font-weight:800; text-decoration:none; }
   .ure-password-result small { display:block; margin-top:7px; font-size:10.5px; line-height:1.4; }
+  .ure-access-activation { margin-top:13px; padding:12px; border:1px solid #c9d9e3; border-radius:11px; background:#f4f8fa; color:#294b60; }
+  .ure-access-activation > span { display:block; margin-bottom:5px; color:#396b88; font-size:11px; font-weight:850; }
+  .ure-access-activation p { margin:0 0 10px; color:#587180; font-size:10.5px; line-height:1.4; overflow-wrap:anywhere; }
+  .ure-access-activation label { margin-top:0; }
+  .ure-access-activation input { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:11px; }
+  .ure-access-activation .ure-admin-primary { margin-top:9px; }
+  .ure-access-activation small { display:block; margin-top:8px; color:#637b89; font-size:10.5px; line-height:1.4; }
+  .ure-access-activation.is-active { border-color:#b9d9c9; background:#edf8f2; color:#234d3a; }
   .ure-admin-workspace { min-width:0; min-height:0; display:flex; flex-direction:column; }
   .ure-admin-toolbar { display:grid; grid-template-columns:minmax(220px,.75fr) minmax(260px,1.25fr); gap:12px; padding:16px 20px; border-bottom:1px solid #dfe7ec; background:#f1f6f8; }
   .ure-admin-toolbar-single { grid-template-columns:1fr; }
@@ -1888,7 +1908,7 @@ html>body{padding:0}</style>
 
 <script type="module">
   import {
-    auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage,
+    activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage,
     loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive,
     updateSchoolAssignment
   } from './firebase-gestor.js';
@@ -1958,7 +1978,8 @@ html>body{padding:0}</style>
   const registry = {
     data: null,
     assignmentSupervisorId: '',
-    assignmentDraft: new Map()
+    assignmentDraft: new Map(),
+    pendingCredential: null
   };
   const byId = (id) => document.getElementById(id);
   const foldRegistry = (value) => (value || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -2014,6 +2035,35 @@ html>body{padding:0}</style>
     addSupervisorOptions(byId('newSchoolSupervisor'),'Sem supervisor por enquanto');
     if (!registry.assignmentSupervisorId || !supervisorItems().some((item) => item.id === registry.assignmentSupervisorId)) registry.assignmentSupervisorId = '';
     assignment.value = registry.assignmentSupervisorId;
+    renderSupervisorAccess();
+  }
+
+  function renderSupervisorAccess() {
+    const panel = byId('supervisorAccessActivation');
+    const supervisor = registry.assignmentSupervisorId ? registry.data?.supervisors.get(registry.assignmentSupervisorId) : null;
+    if (!supervisor) {
+      panel.hidden = true;
+      return;
+    }
+    panel.hidden = false;
+    byId('supervisorAccessTarget').textContent = `${supervisor.displayName || supervisor.id} · ${supervisor.loginEmail || 'e-mail não cadastrado'}`;
+    const uidInput = byId('supervisorAuthUid');
+    const button = byId('activateSupervisorAccessButton');
+    if (supervisor.authUid) {
+      panel.classList.add('is-active');
+      uidInput.value = supervisor.authUid;
+      uidInput.disabled = true;
+      button.disabled = true;
+      button.textContent = 'Acesso já ativo';
+      byId('supervisorAccessStatus').textContent = 'O UID já está vinculado ao perfil Supervisor.';
+    } else {
+      panel.classList.remove('is-active');
+      uidInput.value = '';
+      uidInput.disabled = false;
+      button.disabled = false;
+      button.textContent = 'Ativar acesso';
+      byId('supervisorAccessStatus').textContent = 'Depois de adicionar o usuário no Firebase, cole o UID aqui. O Gestor fará as demais configurações.';
+    }
   }
 
   function renderAssignmentSchools() {
@@ -2103,7 +2153,9 @@ html>body{padding:0}</style>
       registry.assignmentDraft.clear();
       byId('assignmentSchoolSearch').value = '';
       byId('newSupervisorPasswordResult').hidden = true;
+      byId('newSupervisorCredentialEmail').textContent = '';
       byId('newSupervisorPassword').textContent = '';
+      registry.pendingCredential = null;
     }
     document.querySelectorAll('#ure-concept .ure-nav-item').forEach((item)=>item.classList.toggle('is-active',item===source));
     modal.hidden = false;
@@ -2124,7 +2176,7 @@ html>body{padding:0}</style>
   byId('openSchoolRegistry').addEventListener('click',()=>openRegistry('schoolRegistryModal'));
   document.querySelectorAll('[data-admin-close]').forEach((button)=>button.addEventListener('click',()=>closeRegistry(button.dataset.adminClose)));
   document.addEventListener('keydown',(event)=>{if(event.key==='Escape')document.querySelectorAll('.ure-admin-modal:not([hidden])').forEach((item)=>closeRegistry(item.id))});
-  byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderAssignmentSchools()});
+  byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderSupervisorAccess();renderAssignmentSchools()});
   byId('assignmentSchoolSearch').addEventListener('input',renderAssignmentSchools);
   byId('schoolRegistrySearch').addEventListener('input',renderSchoolRegistry);
   byId('newSupervisorEmailVariable').addEventListener('input',(event)=>{
@@ -2145,25 +2197,56 @@ html>body{padding:0}</style>
       setRegistryMessage('supervisorRegistryMessage','Não foi possível copiar automaticamente. Selecione a senha exibida.',true);
     }
   });
+  byId('copySupervisorEmail').addEventListener('click',async()=>{
+    const email = byId('newSupervisorCredentialEmail').textContent;
+    if (!email) return;
+    try {
+      await navigator.clipboard.writeText(email);
+      byId('copySupervisorEmail').textContent = 'Copiado';
+      setTimeout(()=>{byId('copySupervisorEmail').textContent='Copiar e-mail'},1600);
+    } catch {
+      setRegistryMessage('supervisorRegistryMessage','Não foi possível copiar automaticamente. Selecione o e-mail exibido.',true);
+    }
+  });
 
   byId('createSupervisorButton').addEventListener('click',async()=>{
     const button=byId('createSupervisorButton'),name=byId('newSupervisorName').value,variable=cleanEmailVariable(byId('newSupervisorEmailVariable').value);
     const email=variable?`${supervisorEmailPrefix}${variable}${supervisorEmailDomain}`:'';
     button.disabled=true;byId('newSupervisorPasswordResult').hidden=true;setRegistryMessage('supervisorRegistryMessage','Salvando…');
     try {
-      registry.assignmentSupervisorId=await createSupervisorProfile({displayName:name,loginEmail:email});
       const initialPassword=generateStrongPassword(12);
+      registry.assignmentSupervisorId=await createSupervisorProfile({displayName:name,loginEmail:email});
+      registry.pendingCredential={supervisorId:registry.assignmentSupervisorId,email,password:initialPassword};
       registry.assignmentDraft.clear();
       byId('newSupervisorName').value='';
       byId('newSupervisorEmailVariable').value='';
       byId('newSupervisorEmailPreview').textContent='Preencha somente a parte variável do e-mail.';
+      byId('newSupervisorCredentialEmail').textContent=email;
       byId('newSupervisorPassword').textContent=initialPassword;
       byId('newSupervisorPasswordResult').hidden=false;
       await refreshRegistryData();
-      setRegistryMessage('supervisorRegistryMessage','Supervisor cadastrado e selecionado. Copie a senha inicial para liberar a conta de acesso.');
+      setRegistryMessage('supervisorRegistryMessage','Cadastro preparado. Copie o e-mail e a senha para adicionar o usuário no Firebase.');
     }
     catch(error){setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true)}
     finally{button.disabled=false}
+  });
+
+  byId('activateSupervisorAccessButton').addEventListener('click',async()=>{
+    const button=byId('activateSupervisorAccessButton');
+    const authUid=byId('supervisorAuthUid').value.trim();
+    const supervisor=registry.data?.supervisors.get(registry.assignmentSupervisorId);
+    if (authUid && !confirm(`Confirme o vínculo:\n\n${supervisor?.displayName || registry.assignmentSupervisorId}\n${supervisor?.loginEmail || ''}\nUID: ${authUid}\n\nOs dados estão corretos?`)) return;
+    button.disabled=true;
+    setRegistryMessage('supervisorRegistryMessage','Aplicando perfil e vínculo de acesso…');
+    try {
+      await activateSupervisorAccess({supervisorId:registry.assignmentSupervisorId,authUid});
+      registry.pendingCredential=null;
+      await refreshRegistryData();
+      setRegistryMessage('supervisorRegistryMessage','Acesso ativado. O supervisor já pode entrar com o e-mail e a senha temporária.');
+    } catch(error) {
+      setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true);
+      button.disabled=false;
+    }
   });
 
   byId('saveAssignmentsButton').addEventListener('click',async()=>{
