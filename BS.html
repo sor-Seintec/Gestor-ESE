@@ -32,7 +32,7 @@
   </style>
 </head>
 <body>
-  <div class="login" id="loginScreen" hidden><div class="login-card"><div class="login-mark">URE</div><h2>Acesso aos supervisores</h2><p>Entre com a conta administrativa do Gestor-ESE.</p><label for="loginEmail">E-mail</label><input id="loginEmail" type="email" autocomplete="email" placeholder="nome@educacao.sp.gov.br"><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha"><button class="button button-primary" id="emailLogin" type="button">Entrar</button><p class="login-message" id="loginMessage" role="alert"></p></div></div>
+  <div class="login" id="loginScreen" hidden><div class="login-card"><div class="login-mark">URE</div><h2>Acesso aos supervisores</h2><p>Entre com o usuário administrativo do Gestor-ESE.</p><label for="loginEmail">Usuário</label><input id="loginEmail" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Ex.: admruivo"><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha"><button class="button button-primary" id="emailLogin" type="button">Entrar</button><p class="login-message" id="loginMessage" role="alert"></p></div></div>
   <div class="loading" id="loading"><div class="loading-card"><div class="spinner"></div><strong>Comparando agenda e visitas…</strong></div></div>
   <main class="page">
     <header class="topbar"><div class="title-group"><div><span class="eyebrow">GESTÃO 360°</span><h1>Supervisores × planejamento</h1><p class="top-note">Planejamento, execução e cobertura das escolas por supervisor.</p></div></div><div class="top-actions"><button class="button button-secondary" id="exportButton" type="button">↓ Exportar análise</button></div></header>
@@ -94,7 +94,7 @@
     import{auth,authErrorMessage,loadGestorData,loginAdmin,requireAdmin}from'./firebase-gestor.js';
     const login=document.getElementById('loginScreen'),message=document.getElementById('loginMessage');window.getGestorFirebaseData=loadGestorData;
     async function activate(){await requireAdmin();login.hidden=true;await window.loadBEData()}
-    async function submitLogin(){const email=document.getElementById('loginEmail').value.trim(),password=document.getElementById('loginPassword').value;message.textContent='';if(!email||!password){message.textContent='Informe o e-mail e a senha.';return}try{await loginAdmin(email,password);await activate()}catch(error){message.textContent=authErrorMessage(error);login.hidden=false}}
+    async function submitLogin(){const email=document.getElementById('loginEmail').value.trim(),password=document.getElementById('loginPassword').value;message.textContent='';if(!email||!password){message.textContent='Informe o usuário e a senha.';return}try{await loginAdmin(email,password);await activate()}catch(error){message.textContent=authErrorMessage(error);login.hidden=false}}
     document.getElementById('emailLogin').addEventListener('click',submitLogin);document.getElementById('loginPassword').addEventListener('keydown',event=>{if(event.key==='Enter')submitLogin()});
     try{await activate()}catch(error){login.hidden=false;if(auth.currentUser)message.textContent=authErrorMessage(error);document.getElementById('loading').hidden=true}
   </script>

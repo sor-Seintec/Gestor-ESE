@@ -899,8 +899,8 @@ html>body{padding:0}</style>
     <span class="ure-login-eyebrow">URE SOROCABA</span>
     <h1 id="loginTitle">Acesse o Portal URE</h1>
     <p>Entre com a conta administrativa criada para o novo ambiente seguro.</p>
-    <label for="loginEmail">E-mail</label>
-    <input id="loginEmail" type="email" autocomplete="email" placeholder="nome@educacao.sp.gov.br">
+    <label for="loginEmail">Usuário</label>
+    <input id="loginEmail" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Ex.: admruivo ou admmaster">
     <label for="loginPassword">Senha</label>
     <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha">
     <button id="btnEmailLogin" class="ure-login-button" type="button">Entrar</button>
@@ -1072,16 +1072,18 @@ html>body{padding:0}</style>
         <p>Este perfil terá acesso integral ao Gestor-ESE. Confira todos os dados antes da ativação.</p>
         <label for="newAdministratorName">Nome completo</label>
         <input id="newAdministratorName" type="text" autocomplete="off" placeholder="Nome do administrador">
-        <label for="newAdministratorEmailVariable">E-mail de acesso</label>
+        <label for="newAdministratorEmailVariable">Variável de acesso <small>(somente Master)</small></label>
         <div class="ure-email-builder">
           <span>desornit+</span>
-          <input id="newAdministratorEmailVariable" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="variável" aria-describedby="newAdministratorEmailPreview">
+          <input id="newAdministratorEmailVariable" type="text" autocomplete="off" spellcheck="false" placeholder="Ex.: ruivo" aria-describedby="newAdministratorEmailPreview">
           <span>@prof.educacao.sp.gov.br</span>
         </div>
-        <small class="ure-email-preview" id="newAdministratorEmailPreview">Preencha somente a parte variável do e-mail.</small>
+        <small class="ure-email-preview" id="newAdministratorEmailPreview">Preencha somente a parte variável do acesso.</small>
         <button type="button" class="ure-admin-primary" id="prepareAdministratorButton">Preparar cadastro</button>
         <p class="ure-admin-message" id="administratorRegistryMessage" role="status"></p>
         <div class="ure-password-result" id="newAdministratorCredentialResult" hidden>
+          <span>Usuário para entregar</span>
+          <div><output id="newAdministratorLoginAlias"></output><button type="button" id="copyAdministratorLoginAlias">Copiar usuário</button></div>
           <span>Etapa 1 — adicione o usuário no Authentication</span>
           <div><output id="newAdministratorCredentialEmail"></output><button type="button" id="copyAdministratorEmail">Copiar e-mail</button></div>
           <div><output id="newAdministratorPassword"></output><button type="button" id="copyAdministratorPassword">Copiar senha</button></div>
@@ -1120,16 +1122,18 @@ html>body{padding:0}</style>
         <p>O perfil será criado no Firestore. A conta de login é liberada separadamente.</p>
         <label for="newSupervisorName">Nome completo</label>
         <input id="newSupervisorName" type="text" autocomplete="off" placeholder="Nome do supervisor">
-        <label for="newSupervisorEmailVariable">E-mail de acesso</label>
+        <label for="newSupervisorEmailVariable">Variável de acesso <small>(somente Master)</small></label>
         <div class="ure-email-builder">
           <span>desornit+</span>
-          <input id="newSupervisorEmailVariable" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="variável" aria-describedby="newSupervisorEmailPreview">
+          <input id="newSupervisorEmailVariable" type="text" autocomplete="off" spellcheck="false" placeholder="Ex.: chanes" aria-describedby="newSupervisorEmailPreview">
           <span>@prof.educacao.sp.gov.br</span>
         </div>
-        <small class="ure-email-preview" id="newSupervisorEmailPreview">Preencha somente a parte variável do e-mail.</small>
+        <small class="ure-email-preview" id="newSupervisorEmailPreview">Preencha somente a parte variável do acesso.</small>
         <button type="button" class="ure-admin-primary" id="createSupervisorButton">Preparar cadastro</button>
         <p class="ure-admin-message" id="supervisorRegistryMessage" role="status"></p>
         <div class="ure-password-result" id="newSupervisorPasswordResult" hidden>
+          <span>Usuário para entregar ao supervisor</span>
+          <div><output id="newSupervisorLoginAlias"></output><button type="button" id="copySupervisorLoginAlias">Copiar usuário</button></div>
           <span>Etapa 1 — adicione o usuário no Authentication</span>
           <div><output id="newSupervisorCredentialEmail"></output><button type="button" id="copySupervisorEmail">Copiar e-mail</button></div>
           <div><output id="newSupervisorPassword"></output><button type="button" id="copySupervisorPassword">Copiar senha</button></div>
@@ -1984,7 +1988,7 @@ html>body{padding:0}</style>
     const password = document.getElementById('loginPassword').value;
     loginMessage.textContent = '';
     if (!email || !password) {
-      loginMessage.textContent = 'Informe o e-mail e a senha.';
+      loginMessage.textContent = 'Informe o usuário e a senha.';
       return;
     }
     try {
@@ -2052,6 +2056,15 @@ html>body{padding:0}</style>
   const supervisorEmailPrefix = 'desornit+';
   const supervisorEmailDomain = '@prof.educacao.sp.gov.br';
   const cleanEmailVariable = (value) => foldRegistry(value).replace(/\s+/g,'-').replace(/[^a-z0-9._-]/g,'');
+  const accessLoginAlias = (variable, role) => `${role === 'admin' ? 'adm' : 'sup'}${cleanEmailVariable(variable)}`;
+  const accessAliasFromEmail = (email, role) => {
+    const normalized=(email||'').toString().trim().toLowerCase();
+    if(normalized==='desornit@prof.educacao.sp.gov.br')return 'admmaster';
+    const variable=normalized.startsWith(supervisorEmailPrefix)&&normalized.endsWith(supervisorEmailDomain)
+      ? normalized.slice(supervisorEmailPrefix.length,-supervisorEmailDomain.length)
+      : '';
+    return variable?accessLoginAlias(variable,role):'';
+  };
   const supervisorItems = () => registry.data ? [...registry.data.supervisors.values()].filter((item) => item.active !== false).sort((a,b) => (a.displayName || a.id).localeCompare(b.displayName || b.id,'pt-BR')) : [];
   const administratorItems = () => registry.data ? [...registry.data.users.values()].filter((item) => item.role === 'admin').sort((a,b) => (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id,'pt-BR')) : [];
   const supervisorName = (id) => registry.data?.supervisors.get(id)?.displayName || (id ? 'Supervisor não localizado' : 'Sem supervisor');
@@ -2107,7 +2120,7 @@ html>body{padding:0}</style>
       row.className='ure-administrator-row';
       const name=document.createElement('strong'),email=document.createElement('span'),uid=document.createElement('code'),badge=document.createElement('b');
       name.textContent=administrator.displayName||'Administrador';
-      email.textContent=administrator.email||'E-mail não informado';
+      email.textContent=`${administrator.loginAlias||accessAliasFromEmail(administrator.email,'admin')||'usuário não definido'} · ${administrator.email||'e-mail técnico não informado'}`;
       uid.textContent=administrator.id;
       badge.className=`ure-administrator-badge${administrator.active===true?'':' is-inactive'}`;
       badge.textContent=administrator.active===true?'Ativo':'Inativo';
@@ -2136,7 +2149,7 @@ html>body{padding:0}</style>
       return;
     }
     panel.hidden = false;
-    byId('supervisorAccessTarget').textContent = `${supervisor.displayName || supervisor.id} · ${supervisor.loginEmail || 'e-mail não cadastrado'}`;
+    byId('supervisorAccessTarget').textContent = `${supervisor.displayName || supervisor.id} · usuário ${supervisor.loginAlias || accessAliasFromEmail(supervisor.loginEmail,'supervisor') || 'não definido'} · ${supervisor.loginEmail || 'e-mail técnico não cadastrado'}`;
     const uidInput = byId('supervisorAuthUid');
     const button = byId('activateSupervisorAccessButton');
     if (supervisor.authUid) {
@@ -2244,6 +2257,7 @@ html>body{padding:0}</style>
       byId('newAdministratorCredentialResult').hidden=true;
       byId('administratorAccessActivation').hidden=true;
       byId('newAdministratorCredentialEmail').textContent='';
+      byId('newAdministratorLoginAlias').textContent='';
       byId('newAdministratorPassword').textContent='';
       byId('administratorAuthUid').value='';
       byId('activateAdministratorAccessButton').disabled=false;
@@ -2255,6 +2269,7 @@ html>body{padding:0}</style>
       byId('assignmentSchoolSearch').value = '';
       byId('newSupervisorPasswordResult').hidden = true;
       byId('newSupervisorCredentialEmail').textContent = '';
+      byId('newSupervisorLoginAlias').textContent = '';
       byId('newSupervisorPassword').textContent = '';
       registry.pendingCredential = null;
     }
@@ -2285,13 +2300,19 @@ html>body{padding:0}</style>
   byId('newAdministratorEmailVariable').addEventListener('input',(event)=>{
     const cleaned=cleanEmailVariable(event.target.value);
     event.target.value=cleaned;
-    byId('newAdministratorEmailPreview').textContent=cleaned?`${supervisorEmailPrefix}${cleaned}${supervisorEmailDomain}`:'Preencha somente a parte variável do e-mail.';
+    byId('newAdministratorEmailPreview').textContent=cleaned?`Usuário: ${accessLoginAlias(cleaned,'admin')} · Firebase: ${supervisorEmailPrefix}${cleaned}${supervisorEmailDomain}`:'Preencha somente a parte variável do acesso.';
   });
   byId('copyAdministratorEmail').addEventListener('click',async()=>{
     const email=byId('newAdministratorCredentialEmail').textContent;
     if(!email)return;
     try{await navigator.clipboard.writeText(email);byId('copyAdministratorEmail').textContent='Copiado';setTimeout(()=>{byId('copyAdministratorEmail').textContent='Copiar e-mail'},1600)}
     catch{setRegistryMessage('administratorRegistryMessage','Não foi possível copiar automaticamente. Selecione o e-mail exibido.',true)}
+  });
+  byId('copyAdministratorLoginAlias').addEventListener('click',async()=>{
+    const alias=byId('newAdministratorLoginAlias').textContent;
+    if(!alias)return;
+    try{await navigator.clipboard.writeText(alias);byId('copyAdministratorLoginAlias').textContent='Copiado';setTimeout(()=>{byId('copyAdministratorLoginAlias').textContent='Copiar usuário'},1600)}
+    catch{setRegistryMessage('administratorRegistryMessage','Não foi possível copiar automaticamente. Selecione o usuário exibido.',true)}
   });
   byId('copyAdministratorPassword').addEventListener('click',async()=>{
     const password=byId('newAdministratorPassword').textContent;
@@ -2307,7 +2328,9 @@ html>body{padding:0}</style>
     const existingAccess=registry.data?[...registry.data.users.values()].find((item)=>(item.email||'').toLowerCase()===email):null;
     if(existingAccess?.id===auth.currentUser?.uid){setRegistryMessage('administratorRegistryMessage','Este é o administrador usado na sessão atual. Para substituir essa conta, entre com outro administrador.',true);return}
     const password=generateStrongPassword(12);
-    registry.pendingAdministrator={displayName:name,loginEmail:email,password,existingAccess};
+    const loginAlias=accessLoginAlias(variable,'admin');
+    registry.pendingAdministrator={displayName:name,loginEmail:email,loginAlias,password,existingAccess};
+    byId('newAdministratorLoginAlias').textContent=loginAlias;
     byId('newAdministratorCredentialEmail').textContent=email;
     byId('newAdministratorPassword').textContent=password;
     byId('newAdministratorCredentialResult').hidden=false;
@@ -2343,8 +2366,8 @@ html>body{padding:0}</style>
     const cleaned = cleanEmailVariable(event.target.value);
     event.target.value = cleaned;
     byId('newSupervisorEmailPreview').textContent = cleaned
-      ? `${supervisorEmailPrefix}${cleaned}${supervisorEmailDomain}`
-      : 'Preencha somente a parte variável do e-mail.';
+      ? `Usuário: ${accessLoginAlias(cleaned,'supervisor')} · Firebase: ${supervisorEmailPrefix}${cleaned}${supervisorEmailDomain}`
+      : 'Preencha somente a parte variável do acesso.';
   });
   byId('copySupervisorPassword').addEventListener('click',async()=>{
     const password = byId('newSupervisorPassword').textContent;
@@ -2356,6 +2379,12 @@ html>body{padding:0}</style>
     } catch {
       setRegistryMessage('supervisorRegistryMessage','Não foi possível copiar automaticamente. Selecione a senha exibida.',true);
     }
+  });
+  byId('copySupervisorLoginAlias').addEventListener('click',async()=>{
+    const alias=byId('newSupervisorLoginAlias').textContent;
+    if(!alias)return;
+    try{await navigator.clipboard.writeText(alias);byId('copySupervisorLoginAlias').textContent='Copiado';setTimeout(()=>{byId('copySupervisorLoginAlias').textContent='Copiar usuário'},1600)}
+    catch{setRegistryMessage('supervisorRegistryMessage','Não foi possível copiar automaticamente. Selecione o usuário exibido.',true)}
   });
   byId('copySupervisorEmail').addEventListener('click',async()=>{
     const email = byId('newSupervisorCredentialEmail').textContent;
@@ -2376,11 +2405,13 @@ html>body{padding:0}</style>
     try {
       const initialPassword=generateStrongPassword(12);
       registry.assignmentSupervisorId=await createSupervisorProfile({displayName:name,loginEmail:email});
-      registry.pendingCredential={supervisorId:registry.assignmentSupervisorId,email,password:initialPassword};
+      const loginAlias=accessLoginAlias(variable,'supervisor');
+      registry.pendingCredential={supervisorId:registry.assignmentSupervisorId,email,loginAlias,password:initialPassword};
       registry.assignmentDraft.clear();
       byId('newSupervisorName').value='';
       byId('newSupervisorEmailVariable').value='';
-      byId('newSupervisorEmailPreview').textContent='Preencha somente a parte variável do e-mail.';
+      byId('newSupervisorEmailPreview').textContent='Preencha somente a parte variável do acesso.';
+      byId('newSupervisorLoginAlias').textContent=loginAlias;
       byId('newSupervisorCredentialEmail').textContent=email;
       byId('newSupervisorPassword').textContent=initialPassword;
       byId('newSupervisorPasswordResult').hidden=false;

@@ -30,6 +30,8 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const MASTER_ADMIN_EMAIL = 'desornit@prof.educacao.sp.gov.br';
+const ACCESS_EMAIL_PREFIX = 'desornit+';
+const ACCESS_EMAIL_DOMAIN = '@prof.educacao.sp.gov.br';
 
 let adminSessionPromise;
 let dataPromise;
@@ -68,9 +70,29 @@ export async function requireMasterAdmin() {
   return session;
 }
 
-export async function loginAdmin(email, password) {
+export function administratorLoginAlias(email) {
+  const normalized = (email || '').toString().trim().toLowerCase();
+  if (normalized === MASTER_ADMIN_EMAIL) return 'admmaster';
+  if (normalized.startsWith(ACCESS_EMAIL_PREFIX) && normalized.endsWith(ACCESS_EMAIL_DOMAIN)) {
+    return `adm${normalized.slice(ACCESS_EMAIL_PREFIX.length, -ACCESS_EMAIL_DOMAIN.length)}`;
+  }
+  return normalized;
+}
+
+function administratorEmailFromLogin(identifier) {
+  const normalized = (identifier || '').toString().trim().toLowerCase();
+  if (normalized.includes('@')) return normalized;
+  if (normalized === 'admmaster') return MASTER_ADMIN_EMAIL;
+  if (!/^adm[a-z0-9._-]+$/.test(normalized)) {
+    throw Object.assign(new Error('INVALID_LOGIN'), { code: 'auth/invalid-login' });
+  }
+  return `${ACCESS_EMAIL_PREFIX}${normalized.slice(3)}${ACCESS_EMAIL_DOMAIN}`;
+}
+
+export async function loginAdmin(identifier, password) {
   adminSessionPromise = null;
   dataPromise = null;
+  const email = administratorEmailFromLogin(identifier);
   await signInWithEmailAndPassword(auth, email, password);
   return requireAdmin();
 }
@@ -83,7 +105,8 @@ export async function logoutAdmin() {
 
 export function authErrorMessage(error) {
   const messages = {
-    'auth/invalid-credential': 'E-mail ou senha inválidos.',
+    'auth/invalid-credential': 'Usuário ou senha inválidos.',
+    'auth/invalid-login': 'Informe um usuário iniciado por adm, como admruivo.',
     'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
     'auth/network-request-failed': 'Não foi possível conectar ao Firebase.',
     'auth/required': 'Faça login para acessar o Gestor-ESE.',
@@ -121,6 +144,7 @@ export async function createSupervisorProfile({ displayName, loginEmail = '' }) 
     displayName: name,
     legacyName: name.toLocaleUpperCase('pt-BR'),
     loginEmail: email || null,
+    loginAlias: `sup${email.slice(ACCESS_EMAIL_PREFIX.length, -ACCESS_EMAIL_DOMAIN.length)}`,
     authUid: null,
     active: true,
     schemaVersion: 1,
@@ -162,6 +186,7 @@ export async function activateSupervisorAccess({ supervisorId, authUid }) {
   batch.set(doc(db, 'users', uid), {
     displayName: supervisor.displayName || supervisorId,
     email,
+    loginAlias: supervisor.loginAlias || `sup${email.slice(ACCESS_EMAIL_PREFIX.length, -ACCESS_EMAIL_DOMAIN.length)}`,
     role: 'supervisor',
     supervisorId,
     active: true,
@@ -235,6 +260,7 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
   batch.set(doc(db, 'users', uid), {
     displayName: name,
     email,
+    loginAlias: administratorLoginAlias(email),
     role: 'admin',
     active: true,
     mustChangePassword: true,
