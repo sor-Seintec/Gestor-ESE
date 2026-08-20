@@ -1769,6 +1769,7 @@ html>body{padding:0}</style>
       await activateSession(session);
     } catch (error) {
       loginMessage.textContent = authErrorMessage(error);
+      loginScreen.hidden = false;
       loginScreen.style.display = 'flex';
     }
   }
@@ -1781,11 +1782,13 @@ html>body{padding:0}</style>
     if (window.confirm('Deseja sair do Portal URE?')) {
       await logoutAdmin();
       dataLoaded = false;
+      loginScreen.hidden = false;
       loginScreen.style.display = 'flex';
     }
   });
 
   async function activateSession({user, profile}) {
+    loginScreen.hidden = true;
     loginScreen.style.display = 'none';
     const label = profile.displayName || user.displayName || user.email?.split('@')[0] || 'Gestor';
     const parts = label.trim().split(/\s+/);
@@ -1807,6 +1810,7 @@ html>body{padding:0}</style>
     await activateSession(await requireAdmin());
   } catch (error) {
     dataLoaded = false;
+    loginScreen.hidden = false;
     loginScreen.style.display = 'flex';
     if (auth.currentUser) loginMessage.textContent = authErrorMessage(error);
   }
