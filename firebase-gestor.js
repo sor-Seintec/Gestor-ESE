@@ -673,3 +673,126 @@ export async function loadGestorData({ refresh = false } = {}) {
   }
   return dataPromise;
 }
+
+const correctionStatusLabels = {
+  completed: 'Realizada',
+  justified: 'Justificada',
+  postponed: 'Adiada',
+  cancelled: 'Cancelada'
+};
+
+export async function loadVisitCorrectionRequests() {
+  await requireAdmin();
+  const snapshot = await getDocs(collection(db, 'visitCorrectionRequests'));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+export async function reviewVisitCorrectionRequest(requestId, decision, reviewerNote = '') {
+  const session = await requireAdmin();
+  if (!['approved', 'rejected'].includes(decision)) {
+    throw Object.assign(new Error('INVALID_CORRECTION_DECISION'), { code: 'data/invalid-correction-decision' });
+  }
+  const normalizedNote = (reviewerNote || '').toString().trim();
+  if (decision === 'rejected' && normalizedNote.length < 5) {
+    throw Object.assign(new Error('REVIEW_NOTE_REQUIRED'), { code: 'data/review-note-required' });
+  }
+
+  await runTransaction(db, async (transaction) => {
+    const requestRef = doc(db, 'visitCorrectionRequests', requestId);
+    const requestSnapshot = await transaction.get(requestRef);
+    if (!requestSnapshot.exists()) throw Object.assign(new Error('CORRECTION_NOT_FOUND'), { code: 'data/correction-not-found' });
+    const correction = requestSnapshot.data();
+    if (correction.reviewStatus !== 'pending') throw Object.assign(new Error('CORRECTION_ALREADY_REVIEWED'), { code: 'data/correction-already-reviewed' });
+
+    const visitRef = doc(db, 'visits', correction.visitId);
+    const visitSnapshot = await transaction.get(visitRef);
+    if (!visitSnapshot.exists()) throw Object.assign(new Error('VISIT_NOT_FOUND'), { code: 'data/visit-not-found' });
+    const visit = visitSnapshot.data();
+
+    const agendaRef = correction.agendaId ? doc(db, 'agenda', correction.agendaId) : null;
+    const agendaSnapshot = agendaRef ? await transaction.get(agendaRef) : null;
+    const existingGoalRef = visit.goalJustificationId ? doc(db, 'goalJustifications', visit.goalJustificationId) : null;
+    const existingGoalSnapshot = existingGoalRef ? await transaction.get(existingGoalRef) : null;
+
+    if (decision === 'approved') {
+      const requestedStatusCode = correction.requestedStatusCode;
+      const requestedStatusLabel = correctionStatusLabels[requestedStatusCode];
+      if (!requestedStatusLabel) throw Object.assign(new Error('INVALID_REQUESTED_STATUS'), { code: 'data/invalid-requested-status' });
+
+      const operationalStatus = ['postponed', 'cancelled'].includes(requestedStatusCode);
+      let goalJustificationId = null;
+      if (requestedStatusCode === 'justified') {
+        const goalRef = existingGoalRef || doc(db, 'goalJustifications', `correction-${correction.visitId}`);
+        const visitDate = visit.visitDate?.toDate?.() || new Date();
+        const year = visitDate.getFullYear();
+        const month = visitDate.getMonth() + 1;
+        goalJustificationId = goalRef.id;
+        transaction.set(goalRef, {
+          supervisorId: visit.supervisorId,
+          visitId: correction.visitId,
+          agendaId: correction.agendaId || visit.agendaId || null,
+          schoolId: visit.schoolId,
+          schoolName: visit.schoolName || correction.schoolName || '',
+          referenceDate: visit.visitDate,
+          periodKey: `${year}-${String(month).padStart(2, '0')}`,
+          referenceYear: year,
+          referenceMonth: month,
+          reason: correction.reason,
+          validationStatus: 'pending',
+          goalCreditRequested: 1,
+          goalCreditApproved: 0,
+          createdByUid: correction.createdByUid,
+          submittedByEmail: correction.requestedByEmail || '',
+          submittedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          sourceCorrectionRequestId: requestId,
+          schemaVersion: 1
+        }, { merge: true });
+      } else if (existingGoalRef && existingGoalSnapshot?.exists()) {
+        transaction.update(existingGoalRef, {
+          validationStatus: 'superseded',
+          goalCreditApproved: 0,
+          supersededByCorrectionRequestId: requestId,
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      transaction.update(visitRef, {
+        status: requestedStatusLabel,
+        statusCode: requestedStatusCode,
+        reasonType: requestedStatusCode === 'justified'
+          ? 'goal_justification'
+          : requestedStatusCode === 'postponed'
+            ? 'postponement'
+            : requestedStatusCode === 'cancelled'
+              ? 'cancellation'
+              : null,
+        operationalReason: operationalStatus ? correction.reason : null,
+        justification: requestedStatusCode === 'justified' ? correction.reason : null,
+        goalJustificationId,
+        lastCorrectionRequestId: requestId,
+        previousStatusCode: visit.statusCode,
+        correctionReason: correction.reason,
+        correctedByUid: session.user.uid,
+        correctedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      if (agendaRef && agendaSnapshot?.exists()) {
+        transaction.update(agendaRef, {
+          status: requestedStatusCode,
+          updatedAt: serverTimestamp()
+        });
+      }
+    }
+
+    transaction.update(requestRef, {
+      reviewStatus: decision,
+      reviewerNote: normalizedNote || null,
+      reviewedByUid: session.user.uid,
+      reviewedByEmail: session.user.email || '',
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  });
+  dataPromise = null;
+}

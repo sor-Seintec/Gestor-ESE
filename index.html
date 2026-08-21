@@ -924,6 +924,7 @@ html>body{padding:0}</style>
       <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
       <span class="ure-nav-label">Gestão</span>
+      <button type="button" class="ure-nav-item" data-url="correcoes.html"><i data-lucide="history" aria-hidden="true"></i><span>Correções</span></button>
       <button type="button" class="ure-nav-item" data-url="locescola.html"><i data-lucide="map-pinned" aria-hidden="true"></i><span>Localização escolar</span></button>
       <button type="button" class="ure-nav-item" data-url="equipeESE.html"><i data-lucide="users" aria-hidden="true"></i><span>Equipe ESE</span></button>
     </nav>
@@ -1737,7 +1738,7 @@ html>body{padding:0}</style>
       homeView.hidden = true;
       frame.hidden = false;
       const cacheSeparator = url.includes('?') ? '&' : '?';
-      frame.src = `${url}${cacheSeparator}portalBuild=20260821-5`;
+      frame.src = `${url}${cacheSeparator}portalBuild=20260821-6`;
     }
 
     root.querySelectorAll('[data-url]').forEach((item) => {
