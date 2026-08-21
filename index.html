@@ -1175,17 +1175,35 @@ html>body{padding:0}</style>
   <div class="ure-admin-backdrop" data-admin-close="schoolRegistryModal"></div>
   <section class="ure-admin-panel ure-admin-panel-schools">
     <header class="ure-admin-head">
-      <div><span>CADASTRO</span><h2 id="schoolRegistryTitle">Escolas</h2><p>Inclua uma escola, escolha o responsável ou desative cadastros.</p></div>
+      <div><span>CADASTRO</span><h2 id="schoolRegistryTitle">Escolas</h2><p>Cadastre escolas e organize os vínculos com os supervisores.</p></div>
       <button type="button" class="ure-admin-close" data-admin-close="schoolRegistryModal" aria-label="Fechar">×</button>
     </header>
     <div class="ure-admin-grid">
-      <aside class="ure-admin-form-card">
-        <h3>Nova escola</h3>
-        <label for="newSchoolName">Nome oficial</label>
-        <input id="newSchoolName" type="text" autocomplete="off" placeholder="Nome completo da escola">
-        <label for="newSchoolSupervisor">Supervisor responsável</label>
-        <select id="newSchoolSupervisor"><option value="">Sem supervisor por enquanto</option></select>
-        <button type="button" class="ure-admin-primary" id="createSchoolButton">Cadastrar escola</button>
+      <aside class="ure-admin-form-card ure-school-admin-form">
+        <section class="ure-school-form-section">
+          <span class="ure-school-form-step">ETAPA 1</span>
+          <h3>Cadastrar escola</h3>
+          <p>Crie primeiro o cadastro da unidade escolar.</p>
+          <label for="newSchoolName">Nome oficial</label>
+          <input id="newSchoolName" type="text" autocomplete="off" placeholder="Nome completo da escola">
+          <button type="button" class="ure-admin-primary" id="createSchoolButton">Cadastrar escola</button>
+        </section>
+
+        <section class="ure-school-form-section">
+          <span class="ure-school-form-step">ETAPA 2</span>
+          <h3>Vincular responsável</h3>
+          <p>Escolha uma escola já cadastrada e defina o supervisor responsável.</p>
+          <label for="schoolLinkSchool">Escola cadastrada</label>
+          <select id="schoolLinkSchool"><option value="">Selecione uma escola</option></select>
+          <label for="schoolLinkSupervisor">Supervisor responsável</label>
+          <select id="schoolLinkSupervisor"><option value="">Selecione um supervisor</option></select>
+          <div class="ure-school-link-current" id="schoolLinkCurrent">Selecione uma escola para consultar o vínculo atual.</div>
+          <div class="ure-school-link-actions">
+            <button type="button" class="ure-admin-primary" id="linkSchoolSupervisorButton" disabled>Vincular supervisor</button>
+            <button type="button" class="ure-school-unlink" id="unlinkSchoolSupervisorButton" disabled>Desvincular</button>
+          </div>
+        </section>
+
         <p class="ure-admin-message" id="schoolRegistryMessage" role="status"></p>
         <div class="ure-admin-security"><i data-lucide="history" aria-hidden="true"></i><span>Remover desativa o cadastro e preserva o histórico das visitas.</span></div>
       </aside>
@@ -1574,11 +1592,24 @@ html>body{padding:0}</style>
   .ure-assignment-row.is-inactive { opacity:.52; }
   .ure-admin-actions { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:13px 20px; border-top:1px solid #dfe7ec; background:#f7fafb; }
   .ure-admin-actions span { color:#627886; font-size:11.5px; }
-  .ure-school-registry-row { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(150px,.65fr) auto; gap:13px; align-items:center; min-height:62px; border-bottom:1px solid #edf1f3; }
+  .ure-admin-panel-schools .ure-admin-grid { grid-template-columns:350px minmax(0,1fr); }
+  .ure-school-admin-form { display:flex; flex-direction:column; gap:14px; }
+  .ure-school-form-section { padding:16px; border:1px solid #dce7ec; border-radius:14px; background:#f8fbfc; }
+  .ure-school-form-step { display:block; margin-bottom:5px; color:#4382a5; font-size:9px; font-weight:850; letter-spacing:.14em; }
+  .ure-school-form-section h3 { margin:0; color:#203d50; font-size:16px; }
+  .ure-school-form-section p { margin:5px 0 15px; color:#687f8d; font-size:11.5px; line-height:1.5; }
+  .ure-school-form-section label { margin-top:11px; }
+  .ure-school-form-section .ure-admin-primary { margin-top:15px; }
+  .ure-school-link-current { margin-top:13px; padding:10px 11px; border-radius:10px; background:#eaf2f6; color:#516d7e; font-size:11px; line-height:1.45; }
+  .ure-school-link-current strong { color:#203d50; }
+  .ure-school-link-actions { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-top:12px; }
+  .ure-school-link-actions .ure-admin-primary { min-width:0; margin:0; }
+  .ure-school-unlink { min-height:38px; padding:0 12px; border:1px solid #e0baba; border-radius:9px; background:#fff4f4; color:#a44242; cursor:pointer; font:760 11px/1 inherit; }
+  .ure-school-unlink:disabled,.ure-school-link-actions .ure-admin-primary:disabled { cursor:not-allowed; opacity:.48; }
+  .ure-school-registry-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:13px; align-items:center; min-height:62px; border-bottom:1px solid #edf1f3; }
   .ure-school-registry-row strong,.ure-school-registry-row small { display:block; }
   .ure-school-registry-row strong { color:#203d50; font-size:13px; }
   .ure-school-registry-row small { margin-top:3px; color:#768894; font-size:10.5px; }
-  .ure-school-registry-row select { min-height:36px; width:100%; padding:0 9px; border:1px solid #d3e0e7; border-radius:9px; background:#fff; color:#36566b; font:600 11.5px/1 inherit; }
   .ure-school-state { min-width:86px; min-height:34px; padding:0 10px; border:1px solid #e0baba; border-radius:9px; background:#fff4f4; color:#a44242; cursor:pointer; font:720 11px/1 inherit; }
   .ure-school-state.is-restore { border-color:#b9d9c5; background:#eef8f1; color:#277149; }
   .ure-supervisor-state { width:100%; min-height:38px; margin-top:12px; padding:0 12px; border:1px solid #e0baba; border-radius:9px; background:#fff4f4; color:#a44242; cursor:pointer; font:760 11px/1 inherit; }
@@ -1604,7 +1635,7 @@ html>body{padding:0}</style>
     .ure-admin-workspace { min-height:560px; }
     .ure-admin-toolbar { grid-template-columns:1fr; }
     .ure-school-registry-row { grid-template-columns:1fr auto; padding:10px 0; }
-    .ure-school-registry-row select { grid-column:1/-1; grid-row:2; }
+    .ure-admin-panel-schools .ure-admin-grid { grid-template-columns:1fr; }
     .ure-administrator-row { grid-template-columns:1fr auto; padding:11px 0; }
     .ure-administrator-row span,.ure-administrator-row code { grid-column:1/-1; }
   }
@@ -2116,6 +2147,7 @@ html>body{padding:0}</style>
     registry.data = await loadGestorData({refresh:true});
     renderAdministratorRegistry();
     renderSupervisorOptions();
+    renderSchoolLinkControls();
     renderAssignmentSchools();
     renderSchoolRegistry();
     window.loadPortalData?.();
@@ -2154,10 +2186,58 @@ html>body{padding:0}</style>
   function renderSupervisorOptions() {
     const assignment = byId('assignmentSupervisor');
     addSupervisorOptions(assignment,'Selecione um supervisor',supervisorItems());
-    addSupervisorOptions(byId('newSchoolSupervisor'),'Sem supervisor por enquanto');
+    addSupervisorOptions(byId('schoolLinkSupervisor'),'Selecione um supervisor',supervisorItems());
     if (!registry.assignmentSupervisorId || !supervisorItems().some((item) => item.id === registry.assignmentSupervisorId)) registry.assignmentSupervisorId = '';
     assignment.value = registry.assignmentSupervisorId;
     renderSupervisorAccess();
+  }
+
+  function renderSchoolLinkControls() {
+    if (!registry.data) return;
+    const schoolSelect = byId('schoolLinkSchool');
+    const selectedSchoolId = schoolSelect.value;
+    const schools = [...registry.data.schools]
+      .filter((school) => school.active !== false)
+      .sort((a,b) => a.name.localeCompare(b.name,'pt-BR'));
+    schoolSelect.replaceChildren(new Option('Selecione uma escola',''));
+    schools.forEach((school) => schoolSelect.add(new Option(school.name,school.id)));
+    if (schools.some((school) => school.id === selectedSchoolId)) schoolSelect.value = selectedSchoolId;
+    renderSchoolLinkSelection();
+  }
+
+  function renderSchoolLinkSelection() {
+    const schoolId = byId('schoolLinkSchool').value;
+    const supervisorSelect = byId('schoolLinkSupervisor');
+    const current = byId('schoolLinkCurrent');
+    const linkButton = byId('linkSchoolSupervisorButton');
+    const unlinkButton = byId('unlinkSchoolSupervisorButton');
+    const school = registry.data?.schools.find((item) => item.id === schoolId);
+    if (!school) {
+      supervisorSelect.value = '';
+      supervisorSelect.disabled = true;
+      linkButton.disabled = true;
+      unlinkButton.disabled = true;
+      current.textContent = 'Selecione uma escola para consultar o vínculo atual.';
+      return;
+    }
+    supervisorSelect.disabled = false;
+    supervisorSelect.value = [...supervisorSelect.options].some((option) => option.value === (school.supervisorId || '')) ? (school.supervisorId || '') : '';
+    linkButton.disabled = !supervisorSelect.value || supervisorSelect.value === (school.supervisorId || '');
+    unlinkButton.disabled = !school.supervisorId;
+    current.replaceChildren();
+    if (school.supervisorId) {
+      current.append('Responsável atual: ');
+      const owner = document.createElement('strong');
+      owner.textContent = supervisorName(school.supervisorId);
+      current.appendChild(owner);
+    } else {
+      current.textContent = 'Esta escola ainda está sem supervisor responsável.';
+    }
+  }
+
+  function updateSchoolLinkActionState() {
+    const school = registry.data?.schools.find((item) => item.id === byId('schoolLinkSchool').value);
+    byId('linkSchoolSupervisorButton').disabled = !school || !byId('schoolLinkSupervisor').value || byId('schoolLinkSupervisor').value === (school.supervisorId || '');
   }
 
   function renderSupervisorAccess() {
@@ -2256,16 +2336,6 @@ html>body{padding:0}</style>
       name.textContent = school.name;
       status.textContent = school.active === false ? 'Cadastro desativado' : `Responsável: ${supervisorName(school.supervisorId)}`;
       copy.append(name,status);
-      const select = document.createElement('select');
-      select.add(new Option('Sem supervisor',''));
-      supervisorItems().forEach((item) => select.add(new Option(item.displayName || item.id,item.id)));
-      select.value = school.supervisorId || '';
-      select.disabled = school.active === false;
-      select.addEventListener('change',async()=>{
-        select.disabled = true;
-        try { await updateSchoolAssignment(school.id,select.value); await refreshRegistryData(); setRegistryMessage('schoolRegistryMessage','Responsável atualizado.'); }
-        catch(error) { setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true); select.disabled=false; }
-      });
       const state = document.createElement('button');
       state.type = 'button';
       state.className = `ure-school-state${school.active === false ? ' is-restore' : ''}`;
@@ -2277,7 +2347,7 @@ html>body{padding:0}</style>
         try { await setSchoolActive(school.id,next); await refreshRegistryData(); setRegistryMessage('schoolRegistryMessage',next?'Escola reativada.':'Escola desativada.'); }
         catch(error) { setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true); state.disabled=false; }
       });
-      row.append(copy,select,state);
+      row.append(copy,state);
       list.appendChild(row);
     });
     const active = registry.data.schools.filter((item) => item.active !== false).length;
@@ -2333,6 +2403,8 @@ html>body{padding:0}</style>
   byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderSupervisorAccess();renderAssignmentSchools()});
   byId('assignmentSchoolSearch').addEventListener('input',renderAssignmentSchools);
   byId('schoolRegistrySearch').addEventListener('input',renderSchoolRegistry);
+  byId('schoolLinkSchool').addEventListener('change',renderSchoolLinkSelection);
+  byId('schoolLinkSupervisor').addEventListener('change',updateSchoolLinkActionState);
   byId('administratorRegistrySearch').addEventListener('input',renderAdministratorRegistry);
   byId('newAdministratorEmailVariable').addEventListener('input',(event)=>{
     const cleaned=cleanEmailVariable(event.target.value);
@@ -2555,11 +2627,45 @@ html>body{padding:0}</style>
   });
 
   byId('createSchoolButton').addEventListener('click',async()=>{
-    const button=byId('createSchoolButton'),name=byId('newSchoolName').value,supervisorId=byId('newSchoolSupervisor').value;
+    const button=byId('createSchoolButton'),name=byId('newSchoolName').value;
     button.disabled=true;setRegistryMessage('schoolRegistryMessage','Salvando…');
-    try { await createSchoolRecord({name,supervisorId});byId('newSchoolName').value='';await refreshRegistryData();setRegistryMessage('schoolRegistryMessage','Escola cadastrada com sucesso.'); }
+    try {
+      const schoolId=await createSchoolRecord({name});
+      byId('newSchoolName').value='';
+      await refreshRegistryData();
+      byId('schoolLinkSchool').value=schoolId;
+      renderSchoolLinkSelection();
+      setRegistryMessage('schoolRegistryMessage','Escola cadastrada. Agora você pode vincular um supervisor.');
+    }
     catch(error){setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true)}
     finally{button.disabled=false}
+  });
+
+  byId('linkSchoolSupervisorButton').addEventListener('click',async()=>{
+    const button=byId('linkSchoolSupervisorButton');
+    const schoolId=byId('schoolLinkSchool').value;
+    const supervisorId=byId('schoolLinkSupervisor').value;
+    if(!schoolId||!supervisorId){setRegistryMessage('schoolRegistryMessage','Selecione a escola e o supervisor.',true);return}
+    button.disabled=true;setRegistryMessage('schoolRegistryMessage','Atualizando vínculo…');
+    try {
+      await updateSchoolAssignment(schoolId,supervisorId);
+      await refreshRegistryData();
+      setRegistryMessage('schoolRegistryMessage','Supervisor vinculado à escola com sucesso.');
+    } catch(error){setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true);updateSchoolLinkActionState()}
+  });
+
+  byId('unlinkSchoolSupervisorButton').addEventListener('click',async()=>{
+    const button=byId('unlinkSchoolSupervisorButton');
+    const schoolId=byId('schoolLinkSchool').value;
+    const school=registry.data?.schools.find((item)=>item.id===schoolId);
+    if(!school?.supervisorId){setRegistryMessage('schoolRegistryMessage','Esta escola não possui supervisor vinculado.',true);return}
+    if(!confirm(`Deseja desvincular ${supervisorName(school.supervisorId)} da escola ${school.name}?`))return;
+    button.disabled=true;setRegistryMessage('schoolRegistryMessage','Removendo vínculo…');
+    try {
+      await updateSchoolAssignment(schoolId,null);
+      await refreshRegistryData();
+      setRegistryMessage('schoolRegistryMessage','Escola desvinculada. O histórico foi preservado.');
+    } catch(error){setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true);renderSchoolLinkSelection()}
   });
 
   window.portalFirebase = { auth, loadGestorData };
