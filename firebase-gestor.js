@@ -104,6 +104,51 @@ export async function logoutAdmin() {
   await signOut(auth);
 }
 
+function validGoalPeriod(period) {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test((period || '').toString());
+}
+
+export async function saveMonthlyGoals(period, goals = []) {
+  const session = await requireAdmin();
+  if (!validGoalPeriod(period)) {
+    throw Object.assign(new Error('INVALID_GOAL_PERIOD'), { code: 'data/invalid-goal-period' });
+  }
+  if (!Array.isArray(goals) || !goals.length) return;
+
+  const batch = writeBatch(db);
+  goals.forEach(({ supervisorId, monthlyGoal }) => {
+    const id = (supervisorId || '').toString().trim();
+    const value = Number(monthlyGoal);
+    if (!id) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
+    if (!Number.isInteger(value) || value < 0 || value > 999) {
+      throw Object.assign(new Error('INVALID_MONTHLY_GOAL'), { code: 'data/invalid-monthly-goal' });
+    }
+    batch.set(doc(db, 'monthlyGoals', `${period}_${id}`), {
+      period,
+      supervisorId: id,
+      monthlyGoal: value,
+      schemaVersion: 1,
+      updatedAt: serverTimestamp(),
+      updatedByUid: session.user.uid
+    }, { merge: true });
+  });
+  await batch.commit();
+  dataPromise = null;
+}
+
+export async function resetMonthlyGoals(period, supervisorIds = []) {
+  await requireAdmin();
+  if (!validGoalPeriod(period)) {
+    throw Object.assign(new Error('INVALID_GOAL_PERIOD'), { code: 'data/invalid-goal-period' });
+  }
+  const ids = [...new Set(supervisorIds.map((value) => (value || '').toString().trim()).filter(Boolean))];
+  if (!ids.length) return;
+  const batch = writeBatch(db);
+  ids.forEach((supervisorId) => batch.delete(doc(db, 'monthlyGoals', `${period}_${supervisorId}`)));
+  await batch.commit();
+  dataPromise = null;
+}
+
 export function authErrorMessage(error) {
   const messages = {
     'auth/invalid-credential': 'Usuário ou senha inválidos.',
@@ -554,13 +599,14 @@ export async function loadGestorData({ refresh = false } = {}) {
   if (refresh) dataPromise = null;
   if (!dataPromise) {
     dataPromise = (async () => {
-      const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot] = await Promise.all([
+      const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot, monthlyGoalSnapshot] = await Promise.all([
         getDocs(collection(db, 'users')),
         getDocs(collection(db, 'supervisors')),
         getDocs(collection(db, 'schools')),
         getDocs(collection(db, 'agenda')),
         getDocs(collection(db, 'visits')),
-        optionalCollection('goalJustifications')
+        optionalCollection('goalJustifications'),
+        optionalCollection('monthlyGoals')
       ]);
 
       const users = new Map(userSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
@@ -573,6 +619,7 @@ export async function loadGestorData({ refresh = false } = {}) {
       const agenda = agendaSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const visits = visitSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const goalJustifications = justificationSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+      const monthlyGoals = monthlyGoalSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 
       const agendaRows = agenda.map((item) => ({
         'Data Agendada': brDate(item.scheduledDate),
@@ -617,6 +664,7 @@ export async function loadGestorData({ refresh = false } = {}) {
         agenda,
         visits,
         goalJustifications,
+        monthlyGoals,
         agendaRows,
         visitRows,
         loadedAt: new Date()

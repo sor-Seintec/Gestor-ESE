@@ -119,7 +119,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
       </tr></thead>
       <tbody id="tabela-body"><tr><td colspan="7" class="loading">Sincronizando com a Nuvem... <i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
     </table>
-    <div class="note"><i class="fa-solid fa-circle-info"></i> Metas semanais e mensais são carregadas da configuração de cada supervisor. A meta padrão usada quando não houver configuração é 3 visitas por semana e 12 por mês.</div>
+    <div class="note"><i class="fa-solid fa-circle-info"></i> A meta mensal é carregada do Firebase. A meta semanal é calculada automaticamente dividindo a meta mensal em quatro semanas e arredondando para uma visita inteira.</div>
   </section>
 </div>
 
@@ -129,7 +129,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     <form id="formMetas" class="admin-form">
       <input type="hidden" name="action" value="saveMeta">
       <label>Selecione o Supervisor</label><select id="adminSelectSup" name="supervisor" required><option value="">Carregando...</option></select>
-      <div style="display:flex;gap:15px"><div style="flex:1"><label>Meta Semanal</label><input type="number" name="metaSemanal" min="1" placeholder="Ex: 3" required></div><div style="flex:1"><label>Meta Mensal</label><input type="number" name="metaMensal" min="1" placeholder="Ex: 12" required></div></div>
+      <div style="display:flex;gap:15px"><div style="flex:1"><label>Meta semanal automática</label><input type="number" id="adminMetaSemanal" min="0" readonly aria-readonly="true"></div><div style="flex:1"><label>Meta mensal</label><input type="number" id="adminMetaMensal" name="metaMensal" min="0" max="999" step="1" placeholder="Ex: 15" required></div></div>
       <button type="submit" class="btn-save-meta" id="btnSalvarMeta">Salvar Nova Meta</button>
     </form>
   </div>
@@ -142,6 +142,38 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     
     let dadosNuvemGlobais = [];
     let metasNuvemGlobais = {};
+    let metasMensaisGlobais = new Map();
+    const LEGACY_GOAL_KEY = 'gestor-ese-metas-provisorias-v1';
+    const fold = value => (value || '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    function metasAnteriores() {
+        try { return JSON.parse(localStorage.getItem(LEGACY_GOAL_KEY) || '{}'); }
+        catch { return {}; }
+    }
+
+    function periodoDaMeta() {
+        const agora = new Date();
+        const ano = selectAno.value === 'todos' ? agora.getFullYear() : Number(selectAno.value);
+        const mes = selectMes.value === 'todos' ? agora.getMonth() : Number(selectMes.value);
+        return `${ano}-${String(mes + 1).padStart(2, '0')}`;
+    }
+
+    function metaDoSupervisor(nome) {
+        const cadastro = metasNuvemGlobais[fold(nome)] || {};
+        const periodo = periodoDaMeta();
+        const salva = cadastro.id ? metasMensaisGlobais.get(`${periodo}|${cadastro.id}`) : undefined;
+        const anterior = metasAnteriores()[`${periodo}|${nome}`];
+        const mensal = salva !== undefined
+            ? Number(salva)
+            : anterior !== undefined
+              ? Number(anterior)
+              : Number(cadastro.mensal ?? META_PADRAO.mensal);
+        return {
+            id: cadastro.id || '',
+            mensal: Number.isFinite(mensal) ? mensal : META_PADRAO.mensal,
+            semanal: Math.ceil((Number.isFinite(mensal) ? mensal : META_PADRAO.mensal) / 4)
+        };
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     if(urlParams.get('admin') === 'true') {
@@ -149,7 +181,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     }
 
     const adminModal = document.getElementById('adminModal');
-    document.getElementById('btnAdminToggle').addEventListener('click', () => adminModal.classList.add('open'));
+    document.getElementById('btnAdminToggle').addEventListener('click', () => { adminModal.classList.add('open'); preencherFormularioMeta(); });
     document.getElementById('closeAdmin').addEventListener('click', () => adminModal.classList.remove('open'));
 
     const selectMes = document.getElementById('filtroMes');
@@ -178,10 +210,12 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         if(!dataStr) return false;
         const d = new Date(dataStr);
         const hoje = new Date();
-        const primeiroDiaSemana = hoje.getDate() - hoje.getDay(); 
-        const inicioSemana = new Date(hoje.setDate(primeiroDiaSemana));
+        const primeiroDiaSemana = hoje.getDate() - hoje.getDay();
+        const inicioSemana = new Date(hoje.getFullYear(), hoje.getMonth(), primeiroDiaSemana);
         inicioSemana.setHours(0,0,0,0);
-        return d >= inicioSemana;
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 7);
+        return d >= inicioSemana && d < fimSemana;
     }
 
     selectMes.addEventListener('change', atualizarDashboard);
@@ -192,12 +226,13 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
       try {
         const payload = await window.getGestorFirebaseData({refresh:true});
         const dadosVistorias = payload.visitRows;
-        const metasNuvem = Object.fromEntries([...payload.supervisors.values()].map(item => [item.displayName || item.id, {
-          semanal: Number(item.weeklyGoal || 3),
-          mensal: Number(item.monthlyGoal || 12)
+        const metasNuvem = Object.fromEntries([...payload.supervisors.values()].map(item => [fold(item.displayName || item.id), {
+          id: item.id,
+          mensal: Number(item.monthlyGoal ?? META_PADRAO.mensal)
         }]));
         dadosNuvemGlobais = dadosVistorias;
         metasNuvemGlobais = metasNuvem;
+        metasMensaisGlobais = new Map((payload.monthlyGoals || []).map(item => [`${item.period}|${item.supervisorId}`, Number(item.monthlyGoal)]));
         
         const anosSet = new Set();
         const supSet = new Set();
@@ -206,9 +241,13 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
             if(linha['Data da Visita']) anosSet.add(new Date(linha['Data da Visita']).getFullYear());
             if(linha['Supervisor']) supSet.add(linha['Supervisor']);
         });
+        [...payload.supervisors.values()].filter(item => item.active !== false).forEach(item => supSet.add(item.displayName || item.id));
 
-        Array.from(anosSet).sort().forEach(ano => selectAno.innerHTML += `<option value="${ano}">${ano}</option>`);
+        selectAno.innerHTML = '<option value="todos">Todos</option>';
+        selectSup.innerHTML = '<option value="todos">Todos</option>';
         const adminSelect = document.getElementById('adminSelectSup');
+        adminSelect.innerHTML = '<option value="">Selecione um supervisor</option>';
+        Array.from(anosSet).sort().forEach(ano => selectAno.innerHTML += `<option value="${ano}">${ano}</option>`);
         Array.from(supSet).sort().forEach(sup => {
             selectSup.innerHTML += `<option value="${sup}">${sup}</option>`;
             adminSelect.innerHTML += `<option value="${sup}">${sup}</option>`;
@@ -293,7 +332,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         const lista = Object.values(stats);
         const qtdSup = lista.length;
         const totalVisitas = dadosFiltrados.length;
-        const metas = lista.map(s => metasNuvemGlobais[s.nome] || META_PADRAO);
+        const metas = lista.map(s => metaDoSupervisor(s.nome));
         const metaMensalTotal = metas.reduce((a, m) => a + Number(m.mensal || 0), 0);
         const metaSemanalTotal = metas.reduce((a, m) => a + Number(m.semanal || 0), 0);
         const realizadoSemanaTotal = lista.reduce((a, s) => a + s.realizadasSemana, 0);
@@ -328,7 +367,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         }
 
         lista.sort((a,b) => b.concluidasTotais - a.concluidasTotais).forEach(sup => {
-            const meta = metasNuvemGlobais[sup.nome] || META_PADRAO;
+            const meta = metaDoSupervisor(sup.nome);
             const metaM = Number(meta.mensal || 0);
             const metaS = Number(meta.semanal || 0);
             const percM = safePercent(sup.concluidasTotais, metaM);
@@ -441,15 +480,48 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         }
     });
 
-    document.getElementById('formMetas').addEventListener('submit', function(e) {
+    function preencherFormularioMeta() {
+        const nome = document.getElementById('adminSelectSup').value;
+        const meta = metaDoSupervisor(nome);
+        document.getElementById('adminMetaMensal').value = nome ? meta.mensal : '';
+        document.getElementById('adminMetaSemanal').value = nome ? meta.semanal : '';
+    }
+
+    document.getElementById('adminSelectSup').addEventListener('change', preencherFormularioMeta);
+    document.getElementById('adminMetaMensal').addEventListener('input', event => {
+        const mensal = Math.max(0, Number(event.target.value) || 0);
+        document.getElementById('adminMetaSemanal').value = Math.ceil(mensal / 4);
+    });
+
+    document.getElementById('formMetas').addEventListener('submit', async function(e) {
         e.preventDefault();
-        alert('O cadastro auditável de metas no Firebase será configurado na próxima etapa. Nenhuma informação foi enviada ao sistema antigo.');
+        const nome = document.getElementById('adminSelectSup').value;
+        const meta = metaDoSupervisor(nome);
+        const mensal = Math.max(0, Math.round(Number(document.getElementById('adminMetaMensal').value) || 0));
+        if (!nome || !meta.id) { alert('Selecione um supervisor válido.'); return; }
+        const button = document.getElementById('btnSalvarMeta');
+        button.disabled = true;
+        button.textContent = 'Salvando...';
+        try {
+            await window.saveDmcMonthlyGoals(periodoDaMeta(), [{ supervisorId: meta.id, monthlyGoal: mensal }]);
+            const antigas = metasAnteriores();
+            delete antigas[`${periodoDaMeta()}|${nome}`];
+            localStorage.setItem(LEGACY_GOAL_KEY, JSON.stringify(antigas));
+            adminModal.classList.remove('open');
+            await carregarPanoramaFirebase();
+        } catch (error) {
+            console.error(error);
+            alert('Não foi possível salvar a meta no Firebase. Verifique se as regras foram publicadas.');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Salvar Nova Meta';
+        }
     });
 
 </script>
 <script type="module">
-  import{auth,loadGestorData,requireAdmin}from'./firebase-gestor.js';
-  window.getGestorFirebaseData=loadGestorData;
+  import{auth,loadGestorData,requireAdmin,saveMonthlyGoals}from'./firebase-gestor.js';
+  window.getGestorFirebaseData=loadGestorData;window.saveDmcMonthlyGoals=saveMonthlyGoals;
   try{await requireAdmin();await window.carregarPanoramaFirebase()}catch(error){if(!auth.currentUser)location.href='index.html';else{console.error(error);document.getElementById('tabela-body').innerHTML='<tr><td colspan="7" style="color:red;text-align:center">Esta conta não possui acesso ao Gestor-ESE.</td></tr>'}}
 </script>
 </body>
