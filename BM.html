@@ -102,6 +102,32 @@
       gap: 14px
     }
 
+    .home-return {
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--theme-dark);
+      box-shadow: var(--shadow)
+    }
+
+    .home-return:hover {
+      border-color: var(--theme-dark);
+      background: var(--theme-medium);
+      transform: translateX(-2px)
+    }
+
+    .home-return svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor
+    }
+
     .eyebrow {
       display: block;
       color: var(--theme-dark);
@@ -1008,6 +1034,7 @@
   <main class="page">
     <header class="topbar">
       <div class="title-group">
+        <button class="home-return" type="button" onclick="if(window.parent!==window&&typeof window.parent.portalNavigate==='function'){window.parent.portalNavigate('home')}else{location.href='index.html'}" aria-label="Voltar à Visão geral" title="Voltar à Visão geral"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 5.6 1 12l6.5 6.4V14H14c2.2 0 4 1.8 4 4v2h2v-2c0-3.3-2.7-6-6-6H7.5V5.6z"/></svg></button>
         <div><span class="eyebrow">GESTÃO 360°</span>
           <h1>Escolas planejamento</h1>
           <p class="top-note">Planejamento, metas e cobertura das escolas no período.</p>
