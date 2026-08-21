@@ -1099,6 +1099,13 @@ html>body{padding:0}</style>
           <small>Esta ação concede acesso integral aos dados e cadastros do Gestor-ESE.</small>
         </div>
         <div class="ure-admin-security"><i data-lucide="shield-alert" aria-hidden="true"></i><span>Nunca vincule um UID recebido por mensagem sem conferir o e-mail diretamente no Firebase.</span></div>
+        <div class="ure-sanitize-zone">
+          <span>MANUTENÇÃO DE TESTES</span>
+          <strong>Limpar agenda e visitas</strong>
+          <p>Gera um backup em JSON e remove somente agendamentos, visitas e justificativas vinculadas. Usuários, supervisores, escolas, ações e metas são preservados.</p>
+          <button type="button" id="sanitizeOperationalDataButton">Baixar backup e sanitizar</button>
+          <small id="sanitizeOperationalDataStatus" role="status"></small>
+        </div>
       </aside>
       <div class="ure-admin-workspace">
         <div class="ure-admin-toolbar ure-admin-toolbar-single"><label><span>Pesquisar administrador</span><input id="administratorRegistrySearch" type="search" placeholder="Nome, e-mail ou UID"></label></div>
@@ -1520,6 +1527,13 @@ html>body{padding:0}</style>
   .ure-admin-message.is-error { color:#ad4343 !important; }
   .ure-admin-security { display:flex; align-items:flex-start; gap:8px; margin-top:13px; padding:11px; border-radius:11px; background:#eef5f8; color:#55707f; font-size:11.5px; line-height:1.45; }
   .ure-admin-security svg { flex:0 0 auto; width:17px; height:17px; color:#477c9e; }
+  .ure-sanitize-zone { margin-top:15px; padding:12px; border:1px solid #e3c8c8; border-radius:11px; background:#fff7f7; color:#743b3b; }
+  .ure-sanitize-zone > span { display:block; color:#a04444; font-size:10px; font-weight:850; letter-spacing:.08em; }
+  .ure-sanitize-zone > strong { display:block; margin-top:4px; font-size:13px; }
+  .ure-sanitize-zone p { margin:6px 0 0; color:#7d5b5b; font-size:10.5px; line-height:1.45; }
+  .ure-sanitize-zone button { width:100%; min-height:38px; margin-top:10px; border:1px solid #d8a9a9; border-radius:9px; background:#9b4444; color:#fff; cursor:pointer; font:760 11px/1 inherit; }
+  .ure-sanitize-zone button:disabled { cursor:wait; opacity:.58; }
+  .ure-sanitize-zone small { display:block; min-height:15px; margin-top:7px; color:#8b4d4d; font-size:10.5px; line-height:1.4; }
   .ure-password-result { margin-top:13px; padding:12px; border:1px solid #b9d9c9; border-radius:11px; background:#edf8f2; color:#234d3a; }
   .ure-password-result > span { display:block; margin-bottom:7px; font-size:11px; font-weight:800; }
   .ure-password-result > div { display:grid; grid-template-columns:1fr auto; gap:7px; }
@@ -1980,7 +1994,7 @@ html>body{padding:0}</style>
 <script type="module">
   import {
     activateAdministratorAccess, activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
-    loadGestorData, loginAdmin, logoutAdmin, requireAdmin, setSchoolActive, setSupervisorActive,
+    loadGestorData, loginAdmin, logoutAdmin, prepareOperationalSanitization, requireAdmin, sanitizeOperationalTestData, setSchoolActive, setSupervisorActive,
     updateSchoolAssignment
   } from './firebase-gestor.js';
   const loginScreen = document.getElementById('loginScreen');
@@ -2342,6 +2356,44 @@ html>body{padding:0}</style>
     if(!password)return;
     try{await navigator.clipboard.writeText(password);byId('copyAdministratorPassword').textContent='Copiado';setTimeout(()=>{byId('copyAdministratorPassword').textContent='Copiar senha'},1600)}
     catch{setRegistryMessage('administratorRegistryMessage','Não foi possível copiar automaticamente. Selecione a senha exibida.',true)}
+  });
+  byId('sanitizeOperationalDataButton').addEventListener('click',async()=>{
+    const button=byId('sanitizeOperationalDataButton'),status=byId('sanitizeOperationalDataStatus');
+    button.disabled=true;
+    status.textContent='Contando os registros que serão removidos…';
+    try{
+      const plan=await prepareOperationalSanitization();
+      const agendaCount=plan.agendaIds.length,visitCount=plan.visitIds.length,justificationCount=plan.justificationIds.length;
+      if(!agendaCount&&!visitCount&&!justificationCount){
+        status.textContent='O banco operacional já está limpo.';
+        return;
+      }
+      const phrase=prompt(`SANITIZAÇÃO DO BANCO\n\nSerão removidos:\n• ${agendaCount} agendamentos\n• ${visitCount} visitas\n• ${justificationCount} justificativas vinculadas\n\nUsuários, supervisores, escolas, ações e metas serão preservados.\nUm backup JSON será baixado antes da exclusão.\n\nDigite LIMPAR DADOS DE TESTE para confirmar:`);
+      if(phrase!=='LIMPAR DADOS DE TESTE'){
+        status.textContent='Sanitização cancelada. Nenhum dado foi removido.';
+        return;
+      }
+
+      const backupBlob=new Blob([JSON.stringify(plan.backup,null,2)],{type:'application/json'});
+      const backupUrl=URL.createObjectURL(backupBlob);
+      const backupLink=document.createElement('a');
+      const timestamp=new Date().toISOString().replace(/[:.]/g,'-');
+      backupLink.href=backupUrl;
+      backupLink.download=`backup-agenda-visitas-${timestamp}.json`;
+      document.body.appendChild(backupLink);
+      backupLink.click();
+      backupLink.remove();
+      setTimeout(()=>URL.revokeObjectURL(backupUrl),3000);
+
+      status.textContent='Backup gerado. Removendo os dados de teste…';
+      const result=await sanitizeOperationalTestData(plan);
+      await refreshRegistryData();
+      status.textContent=`Sanitização concluída: ${result.agendaDeleted} agendamentos, ${result.visitsDeleted} visitas e ${result.justificationsDeleted} justificativas removidos.`;
+    }catch(error){
+      status.textContent=dataErrorMessage(error);
+    }finally{
+      button.disabled=false;
+    }
   });
   byId('prepareAdministratorButton').addEventListener('click',()=>{
     const name=byId('newAdministratorName').value.trim(),variable=cleanEmailVariable(byId('newAdministratorEmailVariable').value);

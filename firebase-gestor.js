@@ -257,6 +257,65 @@ export async function setSupervisorActive(supervisorId, active) {
   };
 }
 
+function backupValue(value) {
+  if (value == null) return value;
+  if (typeof value?.toDate === 'function') return value.toDate().toISOString();
+  if (Array.isArray(value)) return value.map(backupValue);
+  if (typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, backupValue(item)]));
+  }
+  return value;
+}
+
+export async function prepareOperationalSanitization() {
+  await requireMasterAdmin();
+  const [agendaSnapshot, visitsSnapshot, justificationsSnapshot] = await Promise.all([
+    getDocs(collection(db, 'agenda')),
+    getDocs(collection(db, 'visits')),
+    getDocs(collection(db, 'goalJustifications'))
+  ]);
+  const agendaIds = new Set(agendaSnapshot.docs.map((item) => item.id));
+  const visitIds = new Set(visitsSnapshot.docs.map((item) => item.id));
+  const relatedJustifications = justificationsSnapshot.docs.filter((item) => {
+    const data = item.data();
+    return (data.visitId && visitIds.has(data.visitId)) || (data.agendaId && agendaIds.has(data.agendaId));
+  });
+  const records = (items) => items.map((item) => ({ id: item.id, ...backupValue(item.data()) }));
+  return {
+    agendaIds: [...agendaIds],
+    visitIds: [...visitIds],
+    justificationIds: relatedJustifications.map((item) => item.id),
+    backup: {
+      schemaVersion: 1,
+      generatedAt: new Date().toISOString(),
+      scope: ['agenda', 'visits', 'goalJustifications vinculadas'],
+      agenda: records(agendaSnapshot.docs),
+      visits: records(visitsSnapshot.docs),
+      goalJustifications: records(relatedJustifications)
+    }
+  };
+}
+
+export async function sanitizeOperationalTestData({ agendaIds = [], visitIds = [], justificationIds = [] } = {}) {
+  await requireMasterAdmin();
+  const targets = [
+    ...agendaIds.map((id) => doc(db, 'agenda', id)),
+    ...visitIds.map((id) => doc(db, 'visits', id)),
+    ...justificationIds.map((id) => doc(db, 'goalJustifications', id))
+  ];
+  for (let index = 0; index < targets.length; index += 450) {
+    const batch = writeBatch(db);
+    targets.slice(index, index + 450).forEach((reference) => batch.delete(reference));
+    await batch.commit();
+  }
+  dataPromise = null;
+  return {
+    agendaDeleted: agendaIds.length,
+    visitsDeleted: visitIds.length,
+    justificationsDeleted: justificationIds.length
+  };
+}
+
 export async function activateAdministratorAccess({ displayName, loginEmail, authUid }) {
   const session = await requireMasterAdmin();
   const name = (displayName || '').toString().trim();
