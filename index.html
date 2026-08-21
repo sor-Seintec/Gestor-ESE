@@ -1736,7 +1736,8 @@ html>body{padding:0}</style>
       }
       homeView.hidden = true;
       frame.hidden = false;
-      frame.src = url;
+      const cacheSeparator = url.includes('?') ? '&' : '?';
+      frame.src = `${url}${cacheSeparator}portalBuild=20260821-3`;
     }
 
     root.querySelectorAll('[data-url]').forEach((item) => {
