@@ -1019,7 +1019,7 @@ html>body{padding:0}</style>
         <span class="ure-eyebrow">FOCO DE HOJE</span>
         <div class="ure-focus-head"><div class="ure-focus-icon"><i data-lucide="sparkle" aria-hidden="true"></i></div><span><strong id="priorityCount">—</strong> prioridades</span></div>
         <h2>Atenção onde<br>faz diferença.</h2>
-        <ul><li><i data-lucide="circle-alert" aria-hidden="true"></i><span><strong id="overdueSchoolCount">— escolas</strong> sem visita há mais de 15 dias</span></li><li><i data-lucide="clipboard-check" aria-hidden="true"></i><span><strong id="pendingRecordCount">— registros</strong> aguardam validação</span></li></ul>
+        <ul><li><i data-lucide="clipboard-check" aria-hidden="true"></i><span><strong id="pendingRecordCount">— registros</strong> aguardam validação</span></li><li><i data-lucide="circle-alert" aria-hidden="true"></i><span><strong id="overdueSchoolCount">— escolas</strong> sem visita há mais de 15 dias</span></li></ul>
         <button type="button" data-url="prioridade.html">Ver prioridades <i data-lucide="arrow-right" aria-hidden="true"></i></button>
       </div>
     </section>
@@ -1737,7 +1737,7 @@ html>body{padding:0}</style>
       homeView.hidden = true;
       frame.hidden = false;
       const cacheSeparator = url.includes('?') ? '&' : '?';
-      frame.src = `${url}${cacheSeparator}portalBuild=20260821-3`;
+      frame.src = `${url}${cacheSeparator}portalBuild=20260821-5`;
     }
 
     root.querySelectorAll('[data-url]').forEach((item) => {
@@ -1790,7 +1790,7 @@ html>body{padding:0}</style>
       const status = normalize(row.Status || row.status).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
       return ['aguardando','pendente','validacao','em analise'].some((term) => status.includes(term));
     };
-    function analyzePriorities(rows, schools = []) {
+    function analyzePriorities(rows, schools = [], goalJustifications = []) {
       const today = new Date();
       today.setHours(0,0,0,0);
       const schoolRows = new Map();
@@ -1820,13 +1820,20 @@ html>body{padding:0}</style>
         if (!lastVisit || daysWithoutVisit > 15) overdue += 1;
         if (completedMonth < 2 && !justifiedMonth) critical += 1;
       });
-      const pending = rows.filter(isPendingValidation).length;
+      const pendingVisitRecords = rows.filter(isPendingValidation).length;
+      const pendingGoalJustifications = goalJustifications.filter((item) => {
+        const status = normalize(item.validationStatus).toLowerCase();
+        return status === 'pending'
+          && Number(item.referenceYear) === today.getFullYear()
+          && Number(item.referenceMonth) === today.getMonth() + 1;
+      }).length;
+      const pending = pendingVisitRecords + pendingGoalJustifications;
       document.getElementById('priorityCount').textContent = critical;
       document.getElementById('overdueSchoolCount').textContent = `${overdue} ${overdue === 1 ? 'escola' : 'escolas'}`;
       document.getElementById('pendingRecordCount').textContent = `${pending} ${pending === 1 ? 'registro' : 'registros'}`;
     }
 
-    function renderVisitFlow(rows, schools = []) {
+    function renderVisitFlow(rows, schools = [], goalJustifications = []) {
       const today = new Date();
       today.setHours(0,0,0,0);
       const completed = rows.filter((row) => isCompleted(row) && dateFromRow(row));
@@ -1863,7 +1870,7 @@ html>body{padding:0}</style>
         const dateLabel = new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit'}).format(day);
         return `<div class="${sameDay(day,today) ? 'is-today' : ''}"><span style="height:${height}%" title="${counts[index]} realizadas em ${dateLabel}"></span><b>${label}<small>${dateLabel}</small></b></div>`;
       }).join('');
-      analyzePriorities(rows, activeSchools);
+      analyzePriorities(rows, activeSchools, goalJustifications);
       globalThis.lucide?.createIcons({attrs:{width:16,height:16}});
     }
 
@@ -1872,7 +1879,7 @@ html>body{padding:0}</style>
       status.textContent = 'Atualizando visitas…';
       try {
         const data = await window.getGestorFirebaseData({refresh:true});
-        renderVisitFlow(data.visitRows, data.schools);
+        renderVisitFlow(data.visitRows, data.schools, data.goalJustifications);
       } catch (error) {
         console.error('Falha ao carregar o fluxo de visitas:', error);
         status.textContent = 'Não foi possível atualizar o gráfico';
