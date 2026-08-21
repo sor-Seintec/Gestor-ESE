@@ -1020,7 +1020,15 @@ html>body{padding:0}</style>
         <span class="ure-eyebrow">FOCO DE HOJE</span>
         <div class="ure-focus-head"><div class="ure-focus-icon"><i data-lucide="sparkle" aria-hidden="true"></i></div><span><strong id="priorityCount">—</strong> prioridades</span></div>
         <h2>Atenção onde<br>faz diferença.</h2>
-        <ul><li><i data-lucide="target" aria-hidden="true"></i><span><strong id="criticalSchoolCount">— escolas</strong> com meta não atingida</span></li><li><i data-lucide="circle-alert" aria-hidden="true"></i><span><strong id="overdueSchoolCount">— escolas</strong> sem visita há mais de 15 dias</span></li><li><i data-lucide="file-check-2" aria-hidden="true"></i><span><strong id="justifiedSchoolCount">— escolas</strong> justificadas</span></li></ul>
+        <ul>
+          <li><i data-lucide="target" aria-hidden="true"></i><span><strong id="criticalSchoolCount">— escolas</strong> com meta não atingida</span></li>
+          <li><i data-lucide="circle-alert" aria-hidden="true"></i><span><strong id="overdueSchoolCount">— escolas</strong> sem visita há mais de 15 dias</span></li>
+          <li><i data-lucide="file-check-2" aria-hidden="true"></i><span><strong id="justifiedSchoolCount">— escolas</strong> justificadas</span></li>
+          <li class="ure-validation-line">
+            <span class="ure-validation-copy"><i data-lucide="clock-3" aria-hidden="true"></i><span><strong id="pendingJustificationCount">— registros</strong> aguardam validação</span></span>
+            <button type="button" class="ure-validation-action" data-url="justificativas.html" aria-label="Analisar justificativas" title="Analisar justificativas"><i data-lucide="badge-check" aria-hidden="true"></i></button>
+          </li>
+        </ul>
         <button type="button" data-url="prioridade.html">Ver prioridades <i data-lucide="arrow-right" aria-hidden="true"></i></button>
       </div>
     </section>
@@ -1462,6 +1470,12 @@ html>body{padding:0}</style>
   #ure-concept .ure-pulse h2,#ure-concept .ure-focus h2 { font-size:20px; font-weight:750; line-height:1.3; }
   #ure-concept .ure-focus li { font-size:14px; font-weight:500; line-height:1.5; }
   #ure-concept .ure-focus li strong { font-weight:750; }
+  #ure-concept .ure-focus .ure-validation-line { align-items:center; justify-content:space-between; gap:12px; margin-top:8px; padding-top:10px; border-top:1px solid rgba(255,255,255,.16); }
+  #ure-concept .ure-focus .ure-validation-copy { min-width:0; display:flex; align-items:center; gap:9px; }
+  #ure-concept .ure-focus .ure-validation-copy > svg { flex:0 0 auto; }
+  #ure-concept .ure-focus .ure-validation-action { flex:0 0 auto; width:35px; height:35px; display:grid; place-items:center; padding:0; border:1px solid rgba(255,255,255,.28); border-radius:10px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; transition:transform .18s ease,background .18s ease; }
+  #ure-concept .ure-focus .ure-validation-action:hover { transform:translateY(-1px); background:#fff; color:var(--theme-dark); }
+  #ure-concept .ure-focus .ure-validation-action svg { width:18px; height:18px; }
   #contentFrame { width:100%; height:100vh; border:0; background:#eef4f8; grid-column:2; }
   #contentFrame:not([hidden]) { display:block; }
 
@@ -1733,12 +1747,13 @@ html>body{padding:0}</style>
         homeView.hidden = false;
         frame.hidden = true;
         frame.removeAttribute('src');
+        window.setTimeout(() => loadPortalData(), 0);
         return;
       }
       homeView.hidden = true;
       frame.hidden = false;
       const cacheSeparator = url.includes('?') ? '&' : '?';
-      frame.src = `${url}${cacheSeparator}portalBuild=20260821-7`;
+      frame.src = `${url}${cacheSeparator}portalBuild=20260821-8`;
     }
 
     root.querySelectorAll('[data-url]').forEach((item) => {
@@ -1834,6 +1849,12 @@ html>body{padding:0}</style>
       document.getElementById('criticalSchoolCount').textContent = `${critical} ${critical === 1 ? 'escola' : 'escolas'}`;
       document.getElementById('overdueSchoolCount').textContent = `${overdue} ${overdue === 1 ? 'escola' : 'escolas'}`;
       document.getElementById('justifiedSchoolCount').textContent = `${justifiedSchools} ${justifiedSchools === 1 ? 'escola' : 'escolas'}`;
+      const pendingJustifications = goalJustifications.filter((item) => (
+        item.validationStatus === 'pending'
+        && Number(item.referenceYear) === today.getFullYear()
+        && Number(item.referenceMonth) === today.getMonth() + 1
+      )).length;
+      document.getElementById('pendingJustificationCount').textContent = `${pendingJustifications} ${pendingJustifications === 1 ? 'registro' : 'registros'}`;
     }
 
     function renderVisitFlow(rows, schools = [], goalJustifications = []) {

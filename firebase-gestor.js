@@ -796,3 +796,35 @@ export async function reviewVisitCorrectionRequest(requestId, decision, reviewer
   });
   dataPromise = null;
 }
+
+export async function reviewGoalJustification(justificationId, decision, reviewerNote = '') {
+  const session = await requireAdmin();
+  if (!['approved', 'rejected'].includes(decision)) {
+    throw Object.assign(new Error('INVALID_JUSTIFICATION_DECISION'), { code: 'data/invalid-justification-decision' });
+  }
+  const normalizedNote = (reviewerNote || '').toString().trim();
+  if (decision === 'rejected' && normalizedNote.length < 5) {
+    throw Object.assign(new Error('REVIEW_NOTE_REQUIRED'), { code: 'data/review-note-required' });
+  }
+
+  const reference = doc(db, 'goalJustifications', justificationId);
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists()) throw Object.assign(new Error('JUSTIFICATION_NOT_FOUND'), { code: 'data/justification-not-found' });
+    const justification = snapshot.data();
+    if (justification.validationStatus !== 'pending') {
+      throw Object.assign(new Error('JUSTIFICATION_ALREADY_REVIEWED'), { code: 'data/justification-already-reviewed' });
+    }
+    const requestedCredit = Math.max(1, Number(justification.goalCreditRequested) || 1);
+    transaction.update(reference, {
+      validationStatus: decision,
+      goalCreditApproved: decision === 'approved' ? requestedCredit : 0,
+      reviewerNote: normalizedNote || null,
+      reviewedByUid: session.user.uid,
+      reviewedByEmail: session.user.email || '',
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+  });
+  dataPromise = null;
+}
