@@ -78,7 +78,7 @@
       <div class="title-wrap"><button class="back" id="backButton" type="button" aria-label="Voltar ao portal">←</button><div><span class="eyebrow">GESTÃO 360°</span><h1>Prioridades de acompanhamento</h1></div></div>
       <div class="top-actions"><button class="btn btn-secondary" id="refreshButton" type="button">↻ Atualizar</button><button class="btn btn-primary" id="exportButton" type="button" disabled>↓ Extrair CSV</button></div>
     </header>
-    <section class="rule-banner"><div class="rule-icon">15</div><div><strong>Regra inteligente de acompanhamento</strong><span>Uma escola entra em atenção quando não recebe visita realizada há mais de 15 dias. A meta atual é de duas visitas mensais; justificativas registradas no mês retiram a escola da fila crítica.</span></div></section>
+    <section class="rule-banner"><div class="rule-icon">15</div><div><strong>Regra inteligente de acompanhamento</strong><span>Uma escola entra em atenção quando não recebe visita realizada há mais de 15 dias. A meta atual é de duas visitas mensais; justificativas aprovadas no mês retiram a escola da fila crítica.</span></div></section>
     <section class="kpis" aria-label="Resumo das prioridades">
       <article class="kpi is-critical"><span>Prioridades críticas</span><strong id="kpiCritical">—</strong><small>abaixo da meta e sem justificativa</small></article>
       <article class="kpi"><span>Sem visita +15 dias</span><strong id="kpiOverdue">—</strong><small>inclui escolas nunca visitadas</small></article>
@@ -122,7 +122,8 @@
         const days=lastVisit?Math.max(0,Math.floor((today-lastVisit)/86400000)):null;
         const monthRows=records.filter(row=>{const date=rowDate(row);return date&&date.getMonth()===today.getMonth()&&date.getFullYear()===today.getFullYear()});
         const completedMonth=monthRows.filter(completed).length;
-        const schoolJustifications=goalJustifications.filter(item=>(normalize(item.schoolName)===school||records.some(row=>row._raw?.schoolId===item.schoolId))&&item.referenceYear===today.getFullYear()&&item.referenceMonth===today.getMonth()+1);
+        const schoolJustifications=goalJustifications.filter(item=>(normalize(item.schoolName)===school||records.some(row=>row._raw?.schoolId===item.schoolId))&&Number(item.referenceYear)===today.getFullYear()&&Number(item.referenceMonth)===today.getMonth()+1);
+        const registeredJustificationMonth=monthRows.some(justified)||schoolJustifications.length>0;
         const justifiedMonth=schoolJustifications.some(item=>item.validationStatus==='approved'&&Number(item.goalCreditApproved)>0);
         const pendingCount=records.filter(pending).length+schoolJustifications.filter(item=>item.validationStatus==='pending').length;
         const detectedGoals=records.map(row=>Number(row['Meta Mensal']||row.metaMensal||row.Meta||0)).filter(value=>Number.isFinite(value)&&value>0);
@@ -135,9 +136,9 @@
         if(critical)labels.push('Meta não atingida');
         if(overdue)labels.push('Sem visita +15 dias');
         if(pendingCount)labels.push('Aguardando validação');
-        if(justifiedMonth&&!critical)labels.push('Justificada');
+        if(registeredJustificationMonth)labels.push('Justificada');
         if(ok)labels.push('Dentro da regra');
-        return{school,lastVisit,days,completedMonth,goal,justifiedMonth,pendingCount,overdue,goalMissed,critical,ok,labels,search:fold(`${school} ${labels.join(' ')}`)};
+        return{school,lastVisit,days,completedMonth,goal,registeredJustificationMonth,justifiedMonth,pendingCount,overdue,goalMissed,critical,ok,labels,search:fold(`${school} ${labels.join(' ')}`)};
       }).sort((a,b)=>Number(b.critical)-Number(a.critical)||Number(b.overdue)-Number(a.overdue)||b.pendingCount-a.pendingCount||(b.days??9999)-(a.days??9999));
     }
     function tag(label){const span=document.createElement('span');let type='tag-ok';if(label.includes('Meta'))type='tag-critical';else if(label.includes('+15'))type='tag-overdue';else if(label.includes('validação'))type='tag-pending';else if(label.includes('Justificada'))type='tag-justified';span.className=`tag ${type}`;span.textContent=label;return span}
@@ -145,12 +146,12 @@
     function render(){
       const term=fold($('searchInput').value);
       visible=analysis.filter(item=>{
-        const type=(activeFilter==='all'&&!item.ok)||(activeFilter==='critical'&&item.critical)||(activeFilter==='overdue'&&item.overdue)||(activeFilter==='pending'&&item.pendingCount)||(activeFilter==='justified'&&item.justifiedMonth);
+        const type=(activeFilter==='all'&&!item.ok)||(activeFilter==='critical'&&item.critical)||(activeFilter==='overdue'&&item.overdue)||(activeFilter==='pending'&&item.pendingCount)||(activeFilter==='justified'&&item.registeredJustificationMonth);
         return type&&(!term||item.search.includes(term));
       });
       const body=$('tableBody');body.replaceChildren();
       if(!visible.length){const tr=document.createElement('tr');const td=cell(tr,'Nenhuma escola encontrada para este filtro.','empty');td.colSpan=8;body.appendChild(tr)}
-      visible.forEach(item=>{const tr=document.createElement('tr');cell(tr,item.school);cell(tr,formatDate(item.lastVisit));const daysCell=cell(tr,item.days===null?'Nunca':`${item.days} dias`,'center days');if(item.days!==null&&item.days<=VISIT_WINDOW_DAYS)daysCell.classList.add('is-ok');cell(tr,String(item.completedMonth),'center');cell(tr,String(item.goal),'center');const justCell=cell(tr,item.justifiedMonth?'Sim':'Não','center');justCell.style.fontWeight='750';cell(tr,String(item.pendingCount),'center');const labels=document.createElement('td');labels.style.display='flex';labels.style.flexWrap='wrap';labels.style.gap='5px';item.labels.forEach(label=>labels.appendChild(tag(label)));tr.appendChild(labels);body.appendChild(tr)});
+      visible.forEach(item=>{const tr=document.createElement('tr');cell(tr,item.school);cell(tr,formatDate(item.lastVisit));const daysCell=cell(tr,item.days===null?'Nunca':`${item.days} dias`,'center days');if(item.days!==null&&item.days<=VISIT_WINDOW_DAYS)daysCell.classList.add('is-ok');cell(tr,String(item.completedMonth),'center');cell(tr,String(item.goal),'center');const justificationLabel=item.justifiedMonth?'Aprovada':item.registeredJustificationMonth?'Em validação':'Não';const justCell=cell(tr,justificationLabel,'center');justCell.style.fontWeight='750';cell(tr,String(item.pendingCount),'center');const labels=document.createElement('td');labels.style.display='flex';labels.style.flexWrap='wrap';labels.style.gap='5px';item.labels.forEach(label=>labels.appendChild(tag(label)));tr.appendChild(labels);body.appendChild(tr)});
       $('resultCount').textContent=`${visible.length} ${visible.length===1?'escola':'escolas'}`;
       $('exportButton').disabled=!visible.length;
     }
