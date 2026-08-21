@@ -56,7 +56,9 @@
     function reviewErrorMessage(error){
       const messages={
         'permission-denied':'O Firestore bloqueou a aprovação. Publique o arquivo firestore.rules atualizado no Firebase e tente novamente.',
+        'resource-exhausted':'O Firebase atingiu um limite temporário de uso. A solicitação continua pendente; consulte Firestore → Uso antes de tentar novamente.',
         'unavailable':'O Firebase está temporariamente indisponível. Verifique a conexão e tente novamente.',
+        'aborted':'A análise encontrou outra atualização simultânea. Atualize a página e tente novamente.',
         'data/correction-already-reviewed':'Esta solicitação já foi analisada. Atualize a página.',
         'data/correction-not-found':'A solicitação não existe mais. Atualize a página.',
         'data/visit-not-found':'A visita vinculada a esta solicitação não foi encontrada.',
