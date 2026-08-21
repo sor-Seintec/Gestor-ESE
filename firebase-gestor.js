@@ -11,6 +11,7 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -125,6 +126,13 @@ function documentId(value) {
   return searchable(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 72);
 }
 
+function schoolSupervisorIds(school = {}) {
+  return [...new Set([
+    ...(Array.isArray(school.supervisorIds) ? school.supervisorIds : []),
+    school.supervisorId
+  ].filter(Boolean))];
+}
+
 export async function createSupervisorProfile({ displayName, loginEmail = '' }) {
   await requireMasterAdmin();
   const name = (displayName || '').trim();
@@ -219,7 +227,7 @@ export async function setSupervisorActive(supervisorId, active) {
     getDocs(collection(db, 'schools')),
     getDocs(collection(db, 'users'))
   ]);
-  const linkedSchools = schoolsSnapshot.docs.filter((item) => item.data().supervisorId === supervisorId);
+  const linkedSchools = schoolsSnapshot.docs.filter((item) => schoolSupervisorIds(item.data()).includes(supervisorId));
   const linkedUsers = usersSnapshot.docs.filter((item) =>
     item.data().supervisorId === supervisorId || (supervisor.authUid && item.id === supervisor.authUid)
   );
@@ -241,10 +249,16 @@ export async function setSupervisorActive(supervisorId, active) {
   });
 
   if (!nextActive) {
-    linkedSchools.forEach((item) => batch.set(item.ref, {
-      supervisorId: null,
-      updatedAt: serverTimestamp()
-    }, { merge: true }));
+    linkedSchools.forEach((item) => {
+      const school = item.data();
+      const remainingSupervisorIds = schoolSupervisorIds(school).filter((id) => id !== supervisorId);
+      batch.set(item.ref, {
+        supervisorIds: remainingSupervisorIds,
+        supervisorId: remainingSupervisorIds.includes(school.supervisorId) ? school.supervisorId : (remainingSupervisorIds[0] || null),
+        schemaVersion: 2,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    });
   }
 
   await batch.commit();
@@ -252,6 +266,7 @@ export async function setSupervisorActive(supervisorId, active) {
   return {
     supervisorId,
     active: nextActive,
+    removedSchoolLinks: nextActive ? 0 : linkedSchools.length,
     unassignedSchools: nextActive ? 0 : linkedSchools.length,
     loginBlocked: !nextActive
   };
@@ -406,8 +421,9 @@ export async function createSchoolRecord({ name, supervisorId = null }) {
     name: schoolName,
     searchName: searchable(schoolName),
     supervisorId: supervisorId || null,
+    supervisorIds: supervisorId ? [supervisorId] : [],
     active: true,
-    schemaVersion: 1,
+    schemaVersion: 2,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
@@ -415,11 +431,43 @@ export async function createSchoolRecord({ name, supervisorId = null }) {
   return id;
 }
 
-export async function updateSchoolAssignment(schoolId, supervisorId = null) {
+export async function addSchoolSupervisor(schoolId, supervisorId) {
   await requireAdmin();
-  await updateDoc(doc(db, 'schools', schoolId), {
-    supervisorId: supervisorId || null,
-    updatedAt: serverTimestamp()
+  if (!schoolId) throw Object.assign(new Error('SCHOOL_REQUIRED'), { code: 'data/school-required' });
+  if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
+  await runTransaction(db, async (transaction) => {
+    const reference = doc(db, 'schools', schoolId);
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists()) throw Object.assign(new Error('SCHOOL_NOT_FOUND'), { code: 'data/school-not-found' });
+    const school = snapshot.data();
+    const supervisorIds = schoolSupervisorIds(school);
+    if (!supervisorIds.includes(supervisorId)) supervisorIds.push(supervisorId);
+    transaction.update(reference, {
+      supervisorIds,
+      supervisorId: school.supervisorId || supervisorIds[0] || null,
+      schemaVersion: 2,
+      updatedAt: serverTimestamp()
+    });
+  });
+  dataPromise = null;
+}
+
+export async function removeSchoolSupervisor(schoolId, supervisorId) {
+  await requireAdmin();
+  if (!schoolId) throw Object.assign(new Error('SCHOOL_REQUIRED'), { code: 'data/school-required' });
+  if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
+  await runTransaction(db, async (transaction) => {
+    const reference = doc(db, 'schools', schoolId);
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists()) throw Object.assign(new Error('SCHOOL_NOT_FOUND'), { code: 'data/school-not-found' });
+    const school = snapshot.data();
+    const supervisorIds = schoolSupervisorIds(school).filter((id) => id !== supervisorId);
+    transaction.update(reference, {
+      supervisorIds,
+      supervisorId: supervisorIds.includes(school.supervisorId) ? school.supervisorId : (supervisorIds[0] || null),
+      schemaVersion: 2,
+      updatedAt: serverTimestamp()
+    });
   });
   dataPromise = null;
 }
@@ -443,6 +491,8 @@ export function dataErrorMessage(error) {
     'data/already-exists': 'Já existe um cadastro com esse nome.',
     'data/supervisor-required': 'Selecione o supervisor que receberá o acesso.',
     'data/supervisor-not-found': 'O cadastro do supervisor não foi encontrado.',
+    'data/school-required': 'Selecione a escola.',
+    'data/school-not-found': 'O cadastro da escola não foi encontrado.',
     'data/invalid-uid': 'Cole o UID completo gerado pelo Firebase Authentication.',
     'data/access-already-linked': 'Este supervisor já está vinculado a outro UID.',
     'data/uid-admin': 'Este UID pertence a uma conta administrativa e não pode ser alterado.',
@@ -515,7 +565,10 @@ export async function loadGestorData({ refresh = false } = {}) {
 
       const users = new Map(userSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
       const supervisors = new Map(supervisorSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
-      const schools = schoolSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+      const schools = schoolSnapshot.docs.map((item) => {
+        const school = { id: item.id, ...item.data() };
+        return { ...school, supervisorIds: schoolSupervisorIds(school) };
+      });
       const schoolMap = new Map(schools.map((item) => [item.id, item]));
       const agenda = agendaSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const visits = visitSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));

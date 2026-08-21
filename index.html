@@ -1192,10 +1192,10 @@ html>body{padding:0}</style>
         <section class="ure-school-form-section">
           <span class="ure-school-form-step">ETAPA 2</span>
           <h3>Vincular responsável</h3>
-          <p>Escolha uma escola já cadastrada e defina o supervisor responsável.</p>
+          <p>Escolha uma escola e adicione um supervisor. Os vínculos existentes serão mantidos.</p>
           <label for="schoolLinkSchool">Escola cadastrada</label>
           <select id="schoolLinkSchool"><option value="">Selecione uma escola</option></select>
-          <label for="schoolLinkSupervisor">Supervisor responsável</label>
+          <label for="schoolLinkSupervisor">Supervisor para vincular ou desvincular</label>
           <select id="schoolLinkSupervisor"><option value="">Selecione um supervisor</option></select>
           <div class="ure-school-link-current" id="schoolLinkCurrent">Selecione uma escola para consultar o vínculo atual.</div>
           <div class="ure-school-link-actions">
@@ -2024,9 +2024,9 @@ html>body{padding:0}</style>
 
 <script type="module">
   import {
-    activateAdministratorAccess, activateSupervisorAccess, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
+    activateAdministratorAccess, activateSupervisorAccess, addSchoolSupervisor, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
     loadGestorData, loginAdmin, logoutAdmin, prepareOperationalSanitization, requireAdmin, sanitizeOperationalTestData, setSchoolActive, setSupervisorActive,
-    updateSchoolAssignment
+    removeSchoolSupervisor
   } from './firebase-gestor.js';
   const loginScreen = document.getElementById('loginScreen');
   const loginMessage = document.getElementById('loginMessage');
@@ -2118,6 +2118,12 @@ html>body{padding:0}</style>
   const supervisorItems = () => allSupervisorItems().filter((item) => item.active !== false);
   const administratorItems = () => registry.data ? [...registry.data.users.values()].filter((item) => item.role === 'admin').sort((a,b) => (a.displayName || a.email || a.id).localeCompare(b.displayName || b.email || b.id,'pt-BR')) : [];
   const supervisorName = (id) => registry.data?.supervisors.get(id)?.displayName || (id ? 'Supervisor não localizado' : 'Sem supervisor');
+  const schoolSupervisorIds = (school = {}) => [...new Set([...(Array.isArray(school.supervisorIds) ? school.supervisorIds : []),school.supervisorId].filter(Boolean))];
+  const schoolHasSupervisor = (school,supervisorId) => Boolean(supervisorId) && schoolSupervisorIds(school).includes(supervisorId);
+  const schoolSupervisorNames = (school) => {
+    const names = schoolSupervisorIds(school).map(supervisorName);
+    return names.length ? names.join(', ') : 'Sem supervisor';
+  };
 
   function generateStrongPassword(length = 12) {
     const groups = ['ABCDEFGHJKLMNPQRSTUVWXYZ','abcdefghijkmnopqrstuvwxyz','23456789','!@#$%&*?'];
@@ -2221,15 +2227,23 @@ html>body{padding:0}</style>
       return;
     }
     supervisorSelect.disabled = false;
-    supervisorSelect.value = [...supervisorSelect.options].some((option) => option.value === (school.supervisorId || '')) ? (school.supervisorId || '') : '';
-    linkButton.disabled = !supervisorSelect.value || supervisorSelect.value === (school.supervisorId || '');
-    unlinkButton.disabled = !school.supervisorId;
+    if (![...supervisorSelect.options].some((option) => option.value === supervisorSelect.value)) supervisorSelect.value = '';
+    const linkedSupervisorIds = schoolSupervisorIds(school);
+    [...supervisorSelect.options].forEach((option) => {
+      if (!option.value) return;
+      option.textContent = `${supervisorName(option.value)}${linkedSupervisorIds.includes(option.value) ? ' — vinculado' : ''}`;
+    });
+    linkButton.disabled = !supervisorSelect.value || linkedSupervisorIds.includes(supervisorSelect.value);
+    unlinkButton.disabled = !supervisorSelect.value || !linkedSupervisorIds.includes(supervisorSelect.value);
     current.replaceChildren();
-    if (school.supervisorId) {
-      current.append('Responsável atual: ');
-      const owner = document.createElement('strong');
-      owner.textContent = supervisorName(school.supervisorId);
-      current.appendChild(owner);
+    if (linkedSupervisorIds.length) {
+      current.append(linkedSupervisorIds.length === 1 ? 'Responsável atual: ' : 'Responsáveis atuais: ');
+      linkedSupervisorIds.forEach((supervisorId,index) => {
+        if (index) current.append(' · ');
+        const owner = document.createElement('strong');
+        owner.textContent = supervisorName(supervisorId);
+        current.appendChild(owner);
+      });
     } else {
       current.textContent = 'Esta escola ainda está sem supervisor responsável.';
     }
@@ -2237,7 +2251,10 @@ html>body{padding:0}</style>
 
   function updateSchoolLinkActionState() {
     const school = registry.data?.schools.find((item) => item.id === byId('schoolLinkSchool').value);
-    byId('linkSchoolSupervisorButton').disabled = !school || !byId('schoolLinkSupervisor').value || byId('schoolLinkSupervisor').value === (school.supervisorId || '');
+    const supervisorId = byId('schoolLinkSupervisor').value;
+    const isLinked = schoolHasSupervisor(school,supervisorId);
+    byId('linkSchoolSupervisorButton').disabled = !school || !supervisorId || isLinked;
+    byId('unlinkSchoolSupervisorButton').disabled = !school || !supervisorId || !isLinked;
   }
 
   function renderSupervisorAccess() {
@@ -2261,7 +2278,7 @@ html>body{padding:0}</style>
       uidInput.disabled=true;
       button.disabled=true;
       button.textContent='Supervisor inativo';
-      byId('supervisorAccessStatus').textContent='Login bloqueado. O histórico foi preservado e as escolas ficaram disponíveis para redistribuição.';
+      byId('supervisorAccessStatus').textContent='Login bloqueado. O histórico foi preservado e somente os vínculos deste supervisor foram removidos.';
     } else if (supervisor.authUid) {
       panel.classList.add('is-active');
       uidInput.value = supervisor.authUid;
@@ -2297,7 +2314,7 @@ html>body{padding:0}</style>
     byId('saveAssignmentsButton').disabled = false;
     const term = foldRegistry(byId('assignmentSchoolSearch').value);
     const schools = [...registry.data.schools]
-      .filter((item) => !term || foldRegistry(`${item.name} ${supervisorName(item.supervisorId)}`).includes(term))
+      .filter((item) => !term || foldRegistry(`${item.name} ${schoolSupervisorNames(item)}`).includes(term))
       .sort((a,b) => Number(b.active !== false) - Number(a.active !== false) || a.name.localeCompare(b.name,'pt-BR'));
     list.replaceChildren();
     schools.forEach((school) => {
@@ -2308,16 +2325,16 @@ html>body{padding:0}</style>
       checkbox.disabled = school.active === false;
       checkbox.checked = registry.assignmentDraft.has(school.id)
         ? registry.assignmentDraft.get(school.id)
-        : school.supervisorId === registry.assignmentSupervisorId;
+        : schoolHasSupervisor(school,registry.assignmentSupervisorId);
       checkbox.addEventListener('change', () => registry.assignmentDraft.set(school.id,checkbox.checked));
       const name = document.createElement('strong');
       name.textContent = school.name;
       const owner = document.createElement('span');
-      owner.textContent = school.active === false ? 'Cadastro inativo' : supervisorName(school.supervisorId);
+      owner.textContent = school.active === false ? 'Cadastro inativo' : schoolSupervisorNames(school);
       row.append(checkbox,name,owner);
       list.appendChild(row);
     });
-    const linked = registry.data.schools.filter((school) => school.active !== false && (registry.assignmentDraft.has(school.id) ? registry.assignmentDraft.get(school.id) : school.supervisorId === registry.assignmentSupervisorId)).length;
+    const linked = registry.data.schools.filter((school) => school.active !== false && (registry.assignmentDraft.has(school.id) ? registry.assignmentDraft.get(school.id) : schoolHasSupervisor(school,registry.assignmentSupervisorId))).length;
     byId('assignmentSummary').textContent = `${supervisorName(registry.assignmentSupervisorId)} · ${linked} ${linked === 1 ? 'escola vinculada' : 'escolas vinculadas'}`;
     if (!schools.length) list.innerHTML = '<div class="ure-admin-empty">Nenhuma escola encontrada.</div>';
   }
@@ -2326,7 +2343,7 @@ html>body{padding:0}</style>
     if (!registry.data) return;
     const list = byId('schoolRegistryList'), term = foldRegistry(byId('schoolRegistrySearch').value);
     const schools = [...registry.data.schools]
-      .filter((item) => !term || foldRegistry(`${item.name} ${supervisorName(item.supervisorId)}`).includes(term))
+      .filter((item) => !term || foldRegistry(`${item.name} ${schoolSupervisorNames(item)}`).includes(term))
       .sort((a,b) => Number(b.active !== false) - Number(a.active !== false) || a.name.localeCompare(b.name,'pt-BR'));
     list.replaceChildren();
     schools.forEach((school) => {
@@ -2334,7 +2351,7 @@ html>body{padding:0}</style>
       row.className = `ure-school-registry-row${school.active === false ? ' is-inactive' : ''}`;
       const copy = document.createElement('div'), name = document.createElement('strong'), status = document.createElement('small');
       name.textContent = school.name;
-      status.textContent = school.active === false ? 'Cadastro desativado' : `Responsável: ${supervisorName(school.supervisorId)}`;
+      status.textContent = school.active === false ? 'Cadastro desativado' : `Responsáveis: ${schoolSupervisorNames(school)}`;
       copy.append(name,status);
       const state = document.createElement('button');
       state.type = 'button';
@@ -2403,7 +2420,7 @@ html>body{padding:0}</style>
   byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderSupervisorAccess();renderAssignmentSchools()});
   byId('assignmentSchoolSearch').addEventListener('input',renderAssignmentSchools);
   byId('schoolRegistrySearch').addEventListener('input',renderSchoolRegistry);
-  byId('schoolLinkSchool').addEventListener('change',renderSchoolLinkSelection);
+  byId('schoolLinkSchool').addEventListener('change',()=>{byId('schoolLinkSupervisor').value='';renderSchoolLinkSelection()});
   byId('schoolLinkSupervisor').addEventListener('change',updateSchoolLinkActionState);
   byId('administratorRegistrySearch').addEventListener('input',renderAdministratorRegistry);
   byId('newAdministratorEmailVariable').addEventListener('input',(event)=>{
@@ -2592,10 +2609,10 @@ html>body{padding:0}</style>
     const button=byId('toggleSupervisorActiveButton');
     if(!supervisor){setRegistryMessage('supervisorRegistryMessage','Selecione um supervisor.',true);return}
     const nextActive=supervisor.active===false;
-    const linkedSchools=registry.data.schools.filter((school)=>school.supervisorId===supervisor.id).length;
+    const linkedSchools=registry.data.schools.filter((school)=>schoolHasSupervisor(school,supervisor.id)).length;
     const question=nextActive
       ? `Reativar ${supervisor.displayName||supervisor.id}?\n\nO login será liberado novamente se o UID ainda estiver vinculado. As escolas anteriores não serão restauradas automaticamente.`
-      : `Desativar ${supervisor.displayName||supervisor.id}?\n\n• O login será bloqueado imediatamente.\n• ${linkedSchools} ${linkedSchools===1?'escola ficará':'escolas ficarão'} sem responsável para redistribuição.\n• Visitas, planejamentos e histórico serão preservados.\n\nA conta não será apagada do Firebase Authentication.`;
+      : `Desativar ${supervisor.displayName||supervisor.id}?\n\n• O login será bloqueado imediatamente.\n• ${linkedSchools} ${linkedSchools===1?'vínculo com escola será removido':'vínculos com escolas serão removidos'}.\n• Os demais supervisores vinculados serão mantidos.\n• Visitas, planejamentos e histórico serão preservados.\n\nA conta não será apagada do Firebase Authentication.`;
     if(!confirm(question))return;
     button.disabled=true;
     setRegistryMessage('supervisorRegistryMessage',nextActive?'Reativando supervisor…':'Desativando supervisor e liberando escolas…');
@@ -2604,7 +2621,7 @@ html>body{padding:0}</style>
       await refreshRegistryData();
       setRegistryMessage('supervisorRegistryMessage',nextActive
         ? 'Supervisor reativado. As escolas podem ser vinculadas novamente.'
-        : `Supervisor desativado. Login bloqueado e ${result.unassignedSchools} ${result.unassignedSchools===1?'escola liberada':'escolas liberadas'} para redistribuição.`);
+        : `Supervisor desativado. Login bloqueado e ${result.removedSchoolLinks} ${result.removedSchoolLinks===1?'vínculo removido':'vínculos removidos'}; os demais responsáveis foram preservados.`);
     }catch(error){
       setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true);
       button.disabled=false;
@@ -2618,8 +2635,9 @@ html>body{padding:0}</style>
       registry.assignmentDraft.forEach((checked,schoolId)=>{
         const school=registry.data.schools.find((item)=>item.id===schoolId);
         if(!school)return;
-        const target=checked?registry.assignmentSupervisorId:(school.supervisorId===registry.assignmentSupervisorId?null:school.supervisorId);
-        if((school.supervisorId||null)!==target)changes.push(updateSchoolAssignment(schoolId,target));
+        const isLinked=schoolHasSupervisor(school,registry.assignmentSupervisorId);
+        if(checked&&!isLinked)changes.push(addSchoolSupervisor(schoolId,registry.assignmentSupervisorId));
+        if(!checked&&isLinked)changes.push(removeSchoolSupervisor(schoolId,registry.assignmentSupervisorId));
       });
       await Promise.all(changes);registry.assignmentDraft.clear();await refreshRegistryData();setRegistryMessage('supervisorRegistryMessage',changes.length?`${changes.length} vínculo(s) atualizado(s).`:'Nenhuma alteração pendente.');
     } catch(error){setRegistryMessage('supervisorRegistryMessage',dataErrorMessage(error),true)}
@@ -2634,6 +2652,7 @@ html>body{padding:0}</style>
       byId('newSchoolName').value='';
       await refreshRegistryData();
       byId('schoolLinkSchool').value=schoolId;
+      byId('schoolLinkSupervisor').value='';
       renderSchoolLinkSelection();
       setRegistryMessage('schoolRegistryMessage','Escola cadastrada. Agora você pode vincular um supervisor.');
     }
@@ -2648,7 +2667,7 @@ html>body{padding:0}</style>
     if(!schoolId||!supervisorId){setRegistryMessage('schoolRegistryMessage','Selecione a escola e o supervisor.',true);return}
     button.disabled=true;setRegistryMessage('schoolRegistryMessage','Atualizando vínculo…');
     try {
-      await updateSchoolAssignment(schoolId,supervisorId);
+      await addSchoolSupervisor(schoolId,supervisorId);
       await refreshRegistryData();
       setRegistryMessage('schoolRegistryMessage','Supervisor vinculado à escola com sucesso.');
     } catch(error){setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true);updateSchoolLinkActionState()}
@@ -2657,12 +2676,13 @@ html>body{padding:0}</style>
   byId('unlinkSchoolSupervisorButton').addEventListener('click',async()=>{
     const button=byId('unlinkSchoolSupervisorButton');
     const schoolId=byId('schoolLinkSchool').value;
+    const supervisorId=byId('schoolLinkSupervisor').value;
     const school=registry.data?.schools.find((item)=>item.id===schoolId);
-    if(!school?.supervisorId){setRegistryMessage('schoolRegistryMessage','Esta escola não possui supervisor vinculado.',true);return}
-    if(!confirm(`Deseja desvincular ${supervisorName(school.supervisorId)} da escola ${school.name}?`))return;
+    if(!school||!supervisorId||!schoolHasSupervisor(school,supervisorId)){setRegistryMessage('schoolRegistryMessage','Selecione um supervisor que esteja vinculado a esta escola.',true);return}
+    if(!confirm(`Deseja desvincular ${supervisorName(supervisorId)} da escola ${school.name}? Os demais responsáveis serão mantidos.`))return;
     button.disabled=true;setRegistryMessage('schoolRegistryMessage','Removendo vínculo…');
     try {
-      await updateSchoolAssignment(schoolId,null);
+      await removeSchoolSupervisor(schoolId,supervisorId);
       await refreshRegistryData();
       setRegistryMessage('schoolRegistryMessage','Escola desvinculada. O histórico foi preservado.');
     } catch(error){setRegistryMessage('schoolRegistryMessage',dataErrorMessage(error),true);renderSchoolLinkSelection()}
