@@ -1012,10 +1012,17 @@ html>body{padding:0}</style>
 
     <section class="ure-bottom-grid">
       <div class="ure-pulse">
-        <div class="ure-section-heading"><div><span class="ure-eyebrow">PULSO DA REDE</span><h2>Movimento das últimas duas semanas</h2></div><span class="ure-positive" id="weeklyTrend"><i data-lucide="database" aria-hidden="true"></i> Aguardando dados</span></div>
-        <div class="ure-bars" id="weeklyBars" aria-label="Gráfico aguardando conexão com o banco">
-          <div><span style="height:24%"></span><b>Seg</b></div><div><span style="height:24%"></span><b>Ter</b></div><div><span style="height:24%"></span><b>Qua</b></div><div><span style="height:24%"></span><b>Qui</b></div><div><span style="height:24%"></span><b>Sex</b></div><div><span style="height:24%"></span><b>Sáb</b></div><div><span style="height:24%"></span><b>Dom</b></div>
-          <div><span style="height:24%"></span><b>Seg</b></div><div><span style="height:24%"></span><b>Ter</b></div><div><span style="height:24%"></span><b>Qua</b></div><div><span style="height:24%"></span><b>Qui</b></div><div><span style="height:24%"></span><b>Sex</b></div><div><span style="height:24%"></span><b>Sáb</b></div><div><span style="height:24%"></span><b>Dom</b></div>
+        <header class="ure-daily-head"><h2>ANÁLISE DE ATIVIDADE DIÁRIA</h2><p id="dailyChartPeriod">ÚLTIMAS DUAS SEMANAS</p></header>
+        <div class="ure-chart-scroll">
+          <div class="ure-daily-chart">
+            <div class="ure-chart-stats" aria-label="Resumo da atividade diária">
+              <article><span>EVENTOS TOTAIS:</span><strong id="dailyEventTotal">—</strong></article>
+              <article><span>MÉDIA DIÁRIA:</span><strong id="dailyAverage">—</strong><small id="dailyPeakDays">Aguardando dados</small></article>
+            </div>
+            <span class="ure-y-title">QUANTIDADE DE EVENTOS</span>
+            <div class="ure-y-ticks" id="dailyChartTicks" aria-hidden="true"></div>
+            <div class="ure-bars" id="weeklyBars" aria-label="Gráfico aguardando conexão com o banco"></div>
+          </div>
         </div>
       </div>
       <div class="ure-focus">
@@ -1313,15 +1320,31 @@ html>body{padding:0}</style>
   #ure-concept .ure-module h3 { margin:4px 0 7px; }
   #ure-concept .ure-module-arrow { grid-column:2; justify-self:end; width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:var(--ure-soft); }
   #ure-concept .ure-module-featured .ure-module-arrow { background:#173b2b; color:var(--ure-lime); }
-  #ure-concept .ure-bottom-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(240px,.5fr); gap:12px; margin-top:12px; }
+  #ure-concept .ure-bottom-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(240px,.5fr); align-items:start; gap:12px; margin-top:12px; }
   #ure-concept .ure-pulse, #ure-concept .ure-focus { background:var(--ure-panel); border:1px solid var(--ure-line); border-radius:16px; padding:20px; }
   #ure-concept .ure-positive { color:var(--ure-green); display:flex; align-items:center; gap:6px; }
-  #ure-concept .ure-bars { display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:112px; gap:16px 12px; align-items:end; padding-top:14px; }
-  #ure-concept .ure-bars div { height:100%; display:grid; grid-template-rows:1fr auto; align-items:end; gap:7px; text-align:center; color:var(--ure-muted); }
-  #ure-concept .ure-bars span { display:block; background:var(--ure-soft); border-radius:7px 7px 2px 2px; }
-  #ure-concept .ure-bars div:nth-child(n+8) { padding-top:8px; border-top:1px dashed var(--ure-line); }
-  #ure-concept .ure-bars .is-today span { background:var(--ure-green); }
-  #ure-concept .ure-bars .is-today b { color:var(--ure-green); }
+  #ure-concept .ure-daily-head { text-align:center; margin:0 0 8px; }
+  #ure-concept .ure-daily-head h2 { color:var(--ure-ink); font-size:18px; font-weight:900; letter-spacing:.015em; }
+  #ure-concept .ure-daily-head p { margin-top:1px; color:var(--ure-ink); font-size:12px; font-weight:650; text-transform:uppercase; }
+  #ure-concept .ure-chart-scroll { overflow-x:auto; padding:0 2px 3px; }
+  #ure-concept .ure-daily-chart { position:relative; min-width:850px; height:295px; padding:20px 8px 0 47px; }
+  #ure-concept .ure-chart-stats { position:absolute; z-index:3; top:18px; left:54px; display:flex; gap:11px; }
+  #ure-concept .ure-chart-stats article { width:112px; min-height:89px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:10px 8px 8px; border:1px solid color-mix(in srgb,var(--ure-line) 78%,#fff); border-radius:11px; background:color-mix(in srgb,var(--ure-panel) 88%,transparent); box-shadow:0 9px 18px rgba(20,46,63,.14); backdrop-filter:blur(7px); }
+  #ure-concept .ure-chart-stats span { color:var(--ure-ink); font-size:9px; font-weight:700; }
+  #ure-concept .ure-chart-stats strong { margin-top:1px; color:#102943; font-size:31px; font-weight:900; line-height:1.05; }
+  #ure-concept .ure-chart-stats small { max-width:100%; color:var(--ure-ink); font-size:8px; font-weight:650; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #ure-concept .ure-y-title { position:absolute; left:-37px; top:130px; width:145px; transform:rotate(-90deg); color:var(--ure-ink); font-size:10px; font-weight:700; text-align:center; }
+  #ure-concept .ure-y-ticks { position:absolute; left:25px; top:20px; bottom:37px; width:18px; color:var(--ure-ink); font-size:9px; font-weight:650; }
+  #ure-concept .ure-y-ticks span { position:absolute; right:0; transform:translateY(50%); }
+  #ure-concept .ure-bars { position:relative; height:258px; display:grid; grid-template-columns:repeat(14,minmax(42px,1fr)); gap:9px; align-items:end; padding:0 5px 36px; border-bottom:1px solid var(--ure-line); background:repeating-linear-gradient(to top,var(--ure-line) 0 1px,transparent 1px calc(100% / var(--chart-max))); }
+  #ure-concept .ure-chart-column { position:relative; height:100%; display:grid; grid-template-rows:1fr 30px; align-items:end; text-align:center; }
+  #ure-concept .ure-bar-space { position:relative; height:100%; display:flex; align-items:flex-end; justify-content:center; }
+  #ure-concept .ure-bar { position:relative; width:min(38px,78%); height:var(--height); min-height:2px; display:block; border-radius:4px 4px 0 0; background:var(--theme-dark); box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--theme-dark) 80%,#17354a); }
+  #ure-concept .ure-bar-value { position:absolute; z-index:2; left:50%; bottom:calc(var(--height) - 11px); min-width:26px; height:26px; display:grid; place-items:center; transform:translateX(-50%); border-radius:50%; background:color-mix(in srgb,var(--theme-light) 82%,#fff); color:#12304c; font-size:15px; font-weight:900; box-shadow:0 3px 9px rgba(20,46,63,.08); }
+  #ure-concept .ure-chart-column b { display:block; align-self:end; color:var(--ure-ink); font-size:9.5px; font-weight:650; white-space:nowrap; }
+  #ure-concept .ure-chart-column.is-weekend b { font-weight:900; }
+  #ure-concept .ure-chart-column.is-today .ure-bar { background:color-mix(in srgb,var(--theme-dark) 78%,#163b4e); }
+  #ure-concept .ure-chart-column.is-today b { color:var(--theme-dark); font-weight:900; }
   #ure-concept .ure-focus { background:var(--ure-nav); color:#eff9f3; }
   #ure-concept .ure-focus .ure-eyebrow { color:rgba(239,249,243,.45); }
   #ure-concept .ure-focus-head { display:flex; justify-content:space-between; align-items:center; margin:16px 0 12px; color:var(--ure-lime); }
@@ -1465,11 +1488,7 @@ html>body{padding:0}</style>
   #ure-concept .ure-focus-icon { background:rgba(217,239,250,.14); }
   #ure-concept .ure-focus li { color:rgba(255,255,255,.7); }
   #ure-concept .ure-focus li strong { color:#fff; }
-  #ure-concept .ure-bars .is-today span { background:var(--theme-dark); }
-  #ure-concept .ure-bars .is-today b, #ure-concept .ure-positive { color:var(--theme-dark); }
-  #ure-concept .ure-bars b { display:flex; flex-direction:column; gap:1px; }
-  #ure-concept .ure-bars b { font-size:12.5px; font-weight:700; }
-  #ure-concept .ure-bars b small { font-size:10px; font-weight:600; opacity:.82; }
+  #ure-concept .ure-positive { color:var(--theme-dark); }
   #ure-concept .ure-pulse h2,#ure-concept .ure-focus h2 { font-size:20px; font-weight:750; line-height:1.3; }
   #ure-concept .ure-focus li { font-size:14px; font-weight:500; line-height:1.5; }
   #ure-concept .ure-focus li strong { font-weight:750; }
@@ -1890,28 +1909,46 @@ html>body{padding:0}</style>
       const navVisitCount = document.getElementById('navVisitCount');
       if (navVisitCount) navVisitCount.textContent = todayRows.length;
       document.getElementById('goalPercent').textContent = monthRows.length;
-      document.getElementById('weeklyTrend').innerHTML = `<i data-lucide="calendar-check" aria-hidden="true"></i> ${twoWeekTotal} em 2 semanas • ${monthRows.length} no mês`;
+      const average = twoWeekTotal / weekDays.length;
+      const peak = Math.max(...counts, 0);
+      const shortLabel = (day) => new Intl.DateTimeFormat('pt-BR',{weekday:'short',day:'2-digit'}).format(day).replace(/\./g,'');
+      const rangeStart = new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit'}).format(weekDays[0]);
+      const rangeEnd = new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(weekDays.at(-1));
+      document.getElementById('dailyChartPeriod').textContent = `${rangeStart} A ${rangeEnd}`;
+      document.getElementById('dailyEventTotal').textContent = twoWeekTotal;
+      document.getElementById('dailyAverage').textContent = average.toFixed(2).replace('.',',');
+      document.getElementById('dailyPeakDays').textContent = peak ? `Pico: ${weekDays.filter((day,index)=>counts[index]===peak).map(shortLabel).join(', ')}` : 'Sem eventos no período';
+      const ticks = document.getElementById('dailyChartTicks');
+      ticks.replaceChildren();
+      for(let value=0;value<=max;value++){
+        const tick=document.createElement('span');
+        tick.style.bottom=`${value/max*100}%`;
+        tick.textContent=value;
+        ticks.appendChild(tick);
+      }
       const bars = document.getElementById('weeklyBars');
       bars.setAttribute('aria-label', `Visitas realizadas nas últimas duas semanas: ${counts.join(', ')}`);
+      bars.style.setProperty('--chart-max',max);
       bars.innerHTML = weekDays.map((day,index) => {
-        const height = counts[index] ? Math.max(12, Math.round(counts[index] / max * 100)) : 4;
+        const height = counts[index] ? Math.round(counts[index] / max * 100) : 0;
         const label = new Intl.DateTimeFormat('pt-BR',{weekday:'short'}).format(day).replace('.','');
-        const dateLabel = new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit'}).format(day);
-        return `<div class="${sameDay(day,today) ? 'is-today' : ''}"><span style="height:${height}%" title="${counts[index]} realizadas em ${dateLabel}"></span><b>${label}<small>${dateLabel}</small></b></div>`;
+        const dateLabel = new Intl.DateTimeFormat('pt-BR',{day:'2-digit'}).format(day);
+        const classes=[sameDay(day,today)?'is-today':'',[0,6].includes(day.getDay())?'is-weekend':''].filter(Boolean).join(' ');
+        return `<div class="ure-chart-column ${classes}"><div class="ure-bar-space" title="${counts[index]} realizadas em ${shortLabel(day)}"><span class="ure-bar-value" style="--height:${height}%">${counts[index]}</span><i class="ure-bar" style="--height:${height}%"></i></div><b>${label} ${dateLabel}</b></div>`;
       }).join('');
       analyzePriorities(rows, activeSchools, goalJustifications);
       globalThis.lucide?.createIcons({attrs:{width:16,height:16}});
     }
 
     async function loadPortalData() {
-      const status = document.getElementById('weeklyTrend');
-      status.textContent = 'Atualizando visitas…';
+      const status = document.getElementById('dailyChartPeriod');
+      status.textContent = 'ATUALIZANDO VISITAS…';
       try {
         const data = await window.getGestorFirebaseData({refresh:true});
         renderVisitFlow(data.visitRows, data.schools, data.goalJustifications);
       } catch (error) {
         console.error('Falha ao carregar o fluxo de visitas:', error);
-        status.textContent = 'Não foi possível atualizar o gráfico';
+        status.textContent = 'NÃO FOI POSSÍVEL ATUALIZAR O GRÁFICO';
         document.getElementById('weeklyBars').setAttribute('aria-label','Falha ao carregar os dados de visitas');
       }
     }
