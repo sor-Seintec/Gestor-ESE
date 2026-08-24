@@ -738,21 +738,26 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 5px;
-      padding: 3px 6px;
-      border-radius: 6px;
+      gap: 8px;
+      min-height: 25px;
+      padding: 4px 7px;
+      border: 1px solid color-mix(in srgb, var(--badge) 18%, transparent);
+      border-radius: 7px;
       background: color-mix(in srgb, var(--badge) 13%, #fff);
       color: var(--badge);
-      font-size: 9px;
-      font-weight: 850
+      font-size: 10px;
+      font-weight: 780
     }
 
     .calendar-badge i {
-      width: 6px;
-      height: 6px;
-      border-radius: 2px;
+      width: 7px;
+      height: 7px;
+      flex:none;
+      border-radius: 50%;
       background: var(--badge)
     }
+
+    .calendar-badge span{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calendar-badge strong{min-width:24px;padding:2px 6px;border-radius:999px;background:var(--badge);color:#fff;font-size:11px;font-weight:900;text-align:center}
 
     .school-analysis {
       display: grid;
@@ -1257,7 +1262,7 @@
     function isoWeekInfo(date) { const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())), day = utc.getUTCDay() || 7; utc.setUTCDate(utc.getUTCDate() + 4 - day); const isoYear = utc.getUTCFullYear(), yearStart = new Date(Date.UTC(isoYear, 0, 1)), week = Math.ceil((((utc - yearStart) / 86400000) + 1) / 7), monday = new Date(date); monday.setHours(0, 0, 0, 0); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); return { key: `${isoYear}-${week}`, year: isoYear, week, monday, sunday } }
     const shortDay = date => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(date);
     function renderWeekChart(plannedRows, visitRows, year, month) { const byKey = new Map(), days = new Date(year, month + 1, 0).getDate(); for (let day = 1; day <= days; day++) { const info = isoWeekInfo(new Date(year, month, day)); if (!byKey.has(info.key)) byKey.set(info.key, { ...info, planned: 0, visited: 0 }) } plannedRows.forEach(item => { const bucket = byKey.get(isoWeekInfo(item.date).key); if (bucket) bucket.planned++ }); visitRows.filter(item => item.status === 'visited').forEach(item => { const bucket = byKey.get(isoWeekInfo(item.date).key); if (bucket) bucket.visited++ }); const weeks = [...byKey.values()], max = Math.max(1, ...weeks.flatMap(item => [item.planned, item.visited])), container = $('weekChart'); container.replaceChildren(); container.style.gridTemplateColumns = `repeat(${weeks.length},minmax(76px,1fr))`; weeks.forEach(item => { const group = document.createElement('div'); group.className = 'week-group'; group.innerHTML = `<div class="bar-space"><i class="bar" style="--height:${Math.max(2, item.planned / max * 100)}%;--bar-color:var(--planned)" data-value="${item.planned}"></i><i class="bar" style="--height:${Math.max(2, item.visited / max * 100)}%;--bar-color:var(--visited)" data-value="${item.visited}"></i></div><b>Semana ${item.week}<small>${shortDay(item.monday)}–${shortDay(item.sunday)}</small></b>`; container.appendChild(group) }) }
-    function renderCalendar(plannedRows, visitRows, year, month) { const grid = $('calendarGrid'), days = new Date(year, month + 1, 0).getDate(), firstDay = new Date(year, month, 1).getDay(), planned = new Map(), visited = new Map(), today = new Date(); plannedRows.forEach(item => planned.set(item.date.getDate(), (planned.get(item.date.getDate()) || 0) + 1)); visitRows.filter(item => item.status === 'visited').forEach(item => visited.set(item.date.getDate(), (visited.get(item.date.getDate()) || 0) + 1)); grid.replaceChildren(); for (let index = 0; index < firstDay; index++) { const cell = document.createElement('div'); cell.className = 'calendar-day calendar-empty'; grid.appendChild(cell) } for (let day = 1; day <= days; day++) { const cell = document.createElement('div'), plannedTotal = planned.get(day) || 0, visitedTotal = visited.get(day) || 0; cell.className = 'calendar-day'; if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === day) cell.classList.add('is-today'); cell.innerHTML = `<span class="calendar-number">${day}</span><div class="calendar-events">${plannedTotal ? `<span class="calendar-badge" style="--badge:var(--planned)"><i></i>P ${plannedTotal}</span>` : ''}${visitedTotal ? `<span class="calendar-badge" style="--badge:var(--visited)"><i></i>V ${visitedTotal}</span>` : ''}</div>`; grid.appendChild(cell) } const remainder = grid.children.length % 7; if (remainder) for (let index = remainder; index < 7; index++) { const cell = document.createElement('div'); cell.className = 'calendar-day calendar-empty'; grid.appendChild(cell) } }
+    function renderCalendar(plannedRows, visitRows, year, month) { const grid = $('calendarGrid'), days = new Date(year, month + 1, 0).getDate(), firstDay = new Date(year, month, 1).getDay(), planned = new Map(), visited = new Map(), today = new Date(); plannedRows.forEach(item => planned.set(item.date.getDate(), (planned.get(item.date.getDate()) || 0) + 1)); visitRows.filter(item => item.status === 'visited').forEach(item => visited.set(item.date.getDate(), (visited.get(item.date.getDate()) || 0) + 1)); grid.replaceChildren(); for (let index = 0; index < firstDay; index++) { const cell = document.createElement('div'); cell.className = 'calendar-day calendar-empty'; grid.appendChild(cell) } for (let day = 1; day <= days; day++) { const cell = document.createElement('div'), plannedTotal = planned.get(day) || 0, visitedTotal = visited.get(day) || 0; cell.className = 'calendar-day'; if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === day) cell.classList.add('is-today'); cell.innerHTML = `<span class="calendar-number">${day}</span><div class="calendar-events">${plannedTotal ? `<span class="calendar-badge" style="--badge:var(--planned)" title="${plannedTotal} visitas planejadas"><i></i><span>Planejadas</span><strong>${plannedTotal}</strong></span>` : ''}${visitedTotal ? `<span class="calendar-badge" style="--badge:var(--visited)" title="${visitedTotal} visitas realizadas"><i></i><span>Realizadas</span><strong>${visitedTotal}</strong></span>` : ''}</div>`; grid.appendChild(cell) } const remainder = grid.children.length % 7; if (remainder) for (let index = remainder; index < 7; index++) { const cell = document.createElement('div'); cell.className = 'calendar-day calendar-empty'; grid.appendChild(cell) } }
     function renderDonut(metrics) { const total = metrics.visited + metrics.justified + metrics.postponed + metrics.cancelled, percentage = value => total ? value / total * 100 : 0, v = percentage(metrics.visited), j = v + percentage(metrics.justified), a = j + percentage(metrics.postponed), donut = $('statusDonut'); donut.style.cssText = `--v:${v}%;--j:${j}%;--a:${a}%`; donut.style.background = total ? '' : '#e8eef1'; $('statusTotal').textContent = total; $('statusVisited').textContent = metrics.visited; $('statusJustified').textContent = metrics.justified; $('statusPostponed').textContent = metrics.postponed; $('statusCancelled').textContent = metrics.cancelled }
     function renderScenarios() { const counts = { ok: 0, attention: 0, critical: 0, extra: 0 }; schoolStats.forEach(item => counts[schoolScenario(item).key]++); $('scenarioOk').textContent = counts.ok; $('scenarioAttention').textContent = counts.attention; $('scenarioCritical').textContent = counts.critical; $('scenarioExtra').textContent = counts.extra; return counts }
     function renderPriorities() { const list = $('priorityList'); list.replaceChildren(); const priorities = schoolStats.map(item => ({ ...item, gap: Math.max(item.planned - item.visited, 0) })).filter(item => item.gap > 0).sort((a, b) => b.gap - a.gap || a.name.localeCompare(b.name, 'pt-BR')).slice(0, 6); if (!priorities.length) { list.innerHTML = '<div class="priority-row"><div><strong>Nenhuma lacuna identificada</strong><span>O realizado atende ao planejamento do filtro.</span></div></div>'; return } priorities.forEach(item => { const row = document.createElement('div'); row.className = 'priority-row'; row.innerHTML = `<div><strong></strong><span>${item.visited} realizadas de ${item.planned} planejadas</span></div><b class="gap-badge">${item.gap} pendente${item.gap === 1 ? '' : 's'}</b>`; row.querySelector('strong').textContent = item.name; list.appendChild(row) }) }

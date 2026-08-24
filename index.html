@@ -924,7 +924,7 @@ html>body{padding:0}</style>
       <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
       <span class="ure-nav-label">Gestão</span>
-      <button type="button" class="ure-nav-item" data-url="correcoes.html"><i data-lucide="history" aria-hidden="true"></i><span>Correções</span></button>
+      <button type="button" class="ure-nav-item" data-url="correcoes.html"><i data-lucide="history" aria-hidden="true"></i><span>Correções status</span></button>
       <button type="button" class="ure-nav-item" data-url="locescola.html"><i data-lucide="map-pinned" aria-hidden="true"></i><span>Localização escolar</span></button>
       <button type="button" class="ure-nav-item" data-url="equipeESE.html"><i data-lucide="users" aria-hidden="true"></i><span>Equipe ESE</span></button>
     </nav>
@@ -955,6 +955,7 @@ html>body{padding:0}</style>
         <p>Acompanhe visitas, identifique prioridades e transforme dados em decisões.</p>
         <div class="ure-hero-actions">
           <button type="button" class="ure-primary-action" data-url="DMC.html">Ver panorama mensal <i data-lucide="arrow-up-right" aria-hidden="true"></i></button>
+          <button type="button" class="ure-secondary-action" data-url="historico.html">Histórico <i data-lucide="history" aria-hidden="true"></i></button>
         </div>
       </div>
       <div class="ure-orbit" aria-label="Resumo: 47 escolas conectadas, 12 visitas hoje e 86 por cento das metas em dia">
@@ -991,6 +992,11 @@ html>body{padding:0}</style>
           <div><span>Gestão</span><h3>Supervisores planejamento</h3><p>Planejamento, execução e cobertura das escolas por supervisor.</p></div>
           <span class="ure-module-arrow"><i data-lucide="arrow-right" aria-hidden="true"></i></span>
         </button>
+        <button type="button" class="ure-module" data-url="BM.html">
+          <div class="ure-module-icon"><i data-lucide="school" aria-hidden="true"></i></div>
+          <div><span>Planejamento</span><h3>Escolas planejamento</h3><p>Visão das escolas, planejamento mensal e visitas realizadas.</p></div>
+          <span class="ure-module-arrow"><i data-lucide="arrow-right" aria-hidden="true"></i></span>
+        </button>
         <button type="button" class="ure-module" data-url="meta.html">
           <div class="ure-module-icon"><i data-lucide="target" aria-hidden="true"></i></div>
           <div><span>Desempenho</span><h3>Metas</h3><p>Metas, projeção, calendário e resultados dos supervisores.</p></div>
@@ -1001,19 +1007,15 @@ html>body{padding:0}</style>
           <div><span>Inteligência</span><h3>Filtro</h3><p>Filtros por escola, período, supervisor e tipo de ação.</p></div>
           <span class="ure-module-arrow"><i data-lucide="arrow-right" aria-hidden="true"></i></span>
         </button>
-        <button type="button" class="ure-module" data-url="BM.html">
-          <div class="ure-module-icon"><i data-lucide="school" aria-hidden="true"></i></div>
-          <div><span>Planejamento</span><h3>Escolas planejamento</h3><p>Visão das escolas, planejamento mensal e visitas realizadas.</p></div>
-          <span class="ure-module-arrow"><i data-lucide="arrow-right" aria-hidden="true"></i></span>
-        </button>
       </div>
     </section>
 
     <section class="ure-bottom-grid">
       <div class="ure-pulse">
-        <div class="ure-section-heading"><div><span class="ure-eyebrow">PULSO DA REDE</span><h2>Movimento desta semana</h2></div><span class="ure-positive" id="weeklyTrend"><i data-lucide="database" aria-hidden="true"></i> Aguardando dados</span></div>
+        <div class="ure-section-heading"><div><span class="ure-eyebrow">PULSO DA REDE</span><h2>Movimento das últimas duas semanas</h2></div><span class="ure-positive" id="weeklyTrend"><i data-lucide="database" aria-hidden="true"></i> Aguardando dados</span></div>
         <div class="ure-bars" id="weeklyBars" aria-label="Gráfico aguardando conexão com o banco">
-          <div><span style="height:24%"></span><b>Seg</b></div><div><span style="height:24%"></span><b>Ter</b></div><div><span style="height:24%"></span><b>Qua</b></div><div class="is-today"><span style="height:24%"></span><b>Qui</b></div><div><span style="height:24%"></span><b>Sex</b></div>
+          <div><span style="height:24%"></span><b>Seg</b></div><div><span style="height:24%"></span><b>Ter</b></div><div><span style="height:24%"></span><b>Qua</b></div><div><span style="height:24%"></span><b>Qui</b></div><div><span style="height:24%"></span><b>Sex</b></div><div><span style="height:24%"></span><b>Sáb</b></div><div><span style="height:24%"></span><b>Dom</b></div>
+          <div><span style="height:24%"></span><b>Seg</b></div><div><span style="height:24%"></span><b>Ter</b></div><div><span style="height:24%"></span><b>Qua</b></div><div><span style="height:24%"></span><b>Qui</b></div><div><span style="height:24%"></span><b>Sex</b></div><div><span style="height:24%"></span><b>Sáb</b></div><div><span style="height:24%"></span><b>Dom</b></div>
         </div>
       </div>
       <div class="ure-focus">
@@ -1314,9 +1316,10 @@ html>body{padding:0}</style>
   #ure-concept .ure-bottom-grid { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(240px,.5fr); gap:12px; margin-top:12px; }
   #ure-concept .ure-pulse, #ure-concept .ure-focus { background:var(--ure-panel); border:1px solid var(--ure-line); border-radius:16px; padding:20px; }
   #ure-concept .ure-positive { color:var(--ure-green); display:flex; align-items:center; gap:6px; }
-  #ure-concept .ure-bars { height:150px; display:grid; grid-template-columns:repeat(7,1fr); gap:12px; align-items:end; padding-top:14px; }
-  #ure-concept .ure-bars div { height:100%; display:grid; grid-template-rows:1fr auto; align-items:end; gap:8px; text-align:center; color:var(--ure-muted); }
+  #ure-concept .ure-bars { display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:112px; gap:16px 12px; align-items:end; padding-top:14px; }
+  #ure-concept .ure-bars div { height:100%; display:grid; grid-template-rows:1fr auto; align-items:end; gap:7px; text-align:center; color:var(--ure-muted); }
   #ure-concept .ure-bars span { display:block; background:var(--ure-soft); border-radius:7px 7px 2px 2px; }
+  #ure-concept .ure-bars div:nth-child(n+8) { padding-top:8px; border-top:1px dashed var(--ure-line); }
   #ure-concept .ure-bars .is-today span { background:var(--ure-green); }
   #ure-concept .ure-bars .is-today b { color:var(--ure-green); }
   #ure-concept .ure-focus { background:var(--ure-nav); color:#eff9f3; }
@@ -1871,13 +1874,15 @@ html>body{padding:0}</style>
       const monday = new Date(today);
       const offset = (today.getDay() + 6) % 7;
       monday.setDate(today.getDate() - offset);
-      const weekDays = Array.from({length:7}, (_,index) => {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + index);
+      const twoWeekStart = new Date(monday);
+      twoWeekStart.setDate(monday.getDate() - 7);
+      const weekDays = Array.from({length:14}, (_,index) => {
+        const date = new Date(twoWeekStart);
+        date.setDate(twoWeekStart.getDate() + index);
         return date;
       });
       const counts = weekDays.map((day) => completed.filter((row) => sameDay(dateFromRow(row), day)).length);
-      const weekTotal = counts.reduce((total,value) => total + value, 0);
+      const twoWeekTotal = counts.reduce((total,value) => total + value, 0);
       const max = Math.max(...counts, 1);
 
       document.getElementById('schoolCount').textContent = activeSchools.length;
@@ -1885,9 +1890,9 @@ html>body{padding:0}</style>
       const navVisitCount = document.getElementById('navVisitCount');
       if (navVisitCount) navVisitCount.textContent = todayRows.length;
       document.getElementById('goalPercent').textContent = monthRows.length;
-      document.getElementById('weeklyTrend').innerHTML = `<i data-lucide="calendar-check" aria-hidden="true"></i> ${weekTotal} na semana • ${monthRows.length} no mês`;
+      document.getElementById('weeklyTrend').innerHTML = `<i data-lucide="calendar-check" aria-hidden="true"></i> ${twoWeekTotal} em 2 semanas • ${monthRows.length} no mês`;
       const bars = document.getElementById('weeklyBars');
-      bars.setAttribute('aria-label', `Visitas realizadas nesta semana: ${counts.join(', ')}`);
+      bars.setAttribute('aria-label', `Visitas realizadas nas últimas duas semanas: ${counts.join(', ')}`);
       bars.innerHTML = weekDays.map((day,index) => {
         const height = counts[index] ? Math.max(12, Math.round(counts[index] / max * 100)) : 4;
         const label = new Intl.DateTimeFormat('pt-BR',{weekday:'short'}).format(day).replace('.','');
