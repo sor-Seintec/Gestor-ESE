@@ -14,6 +14,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js';
@@ -373,6 +374,85 @@ export async function sanitizeOperationalTestData({ agendaIds = [], visitIds = [
     agendaDeleted: agendaIds.length,
     visitsDeleted: visitIds.length,
     justificationsDeleted: justificationIds.length
+  };
+}
+
+function restoreValue(value) {
+  if (Array.isArray(value)) return value.map(restoreValue);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, restoreValue(item)]));
+  }
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value)) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return Timestamp.fromDate(parsed);
+  }
+  return value;
+}
+
+function validateBackupRecords(records, collectionName) {
+  if (!Array.isArray(records)) throw Object.assign(new Error(`INVALID_${collectionName}`), { code: 'backup/invalid-file' });
+  return records.map((record) => {
+    if (!record || typeof record !== 'object' || Array.isArray(record)) {
+      throw Object.assign(new Error(`INVALID_${collectionName}_RECORD`), { code: 'backup/invalid-file' });
+    }
+    const id = (record.id || '').toString().trim();
+    if (!id || id.includes('/')) throw Object.assign(new Error(`INVALID_${collectionName}_ID`), { code: 'backup/invalid-file' });
+    const { id: ignoredId, ...data } = record;
+    return { id, data: restoreValue(data) };
+  });
+}
+
+export async function restoreOperationalBackup(backup, { replace = false } = {}) {
+  await requireMasterAdmin();
+  if (!backup || typeof backup !== 'object' || Number(backup.schemaVersion) !== 1) {
+    throw Object.assign(new Error('INVALID_BACKUP'), { code: 'backup/invalid-file' });
+  }
+  const agenda = validateBackupRecords(backup.agenda, 'agenda');
+  const visits = validateBackupRecords(backup.visits, 'visits');
+  const goalJustifications = validateBackupRecords(backup.goalJustifications, 'goalJustifications');
+  const records = [
+    ...agenda.map((item) => ({ ...item, collectionName: 'agenda' })),
+    ...visits.map((item) => ({ ...item, collectionName: 'visits' })),
+    ...goalJustifications.map((item) => ({ ...item, collectionName: 'goalJustifications' }))
+  ];
+
+  if (replace) {
+    const snapshots = await Promise.all([
+      getDocs(collection(db, 'agenda')),
+      getDocs(collection(db, 'visits')),
+      getDocs(collection(db, 'goalJustifications'))
+    ]);
+    const currentAgendaIds = new Set(snapshots[0].docs.map((item) => item.id));
+    const currentVisitIds = new Set(snapshots[1].docs.map((item) => item.id));
+    const relatedJustifications = snapshots[2].docs.filter((item) => {
+      const data = item.data();
+      return (data.visitId && currentVisitIds.has(data.visitId)) || (data.agendaId && currentAgendaIds.has(data.agendaId));
+    });
+    const targets = [
+      ...snapshots[0].docs.map((item) => item.ref),
+      ...snapshots[1].docs.map((item) => item.ref),
+      ...relatedJustifications.map((item) => item.ref)
+    ];
+    for (let index = 0; index < targets.length; index += 450) {
+      const batch = writeBatch(db);
+      targets.slice(index, index + 450).forEach((reference) => batch.delete(reference));
+      await batch.commit();
+    }
+  }
+
+  for (let index = 0; index < records.length; index += 450) {
+    const batch = writeBatch(db);
+    records.slice(index, index + 450).forEach((item) => {
+      batch.set(doc(db, item.collectionName, item.id), item.data, { merge: !replace });
+    });
+    await batch.commit();
+  }
+  dataPromise = null;
+  return {
+    agendaRestored: agenda.length,
+    visitsRestored: visits.length,
+    justificationsRestored: goalJustifications.length,
+    mode: replace ? 'replace' : 'merge'
   };
 }
 

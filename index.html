@@ -924,6 +924,8 @@ html>body{padding:0}</style>
       <button type="button" class="ure-nav-item ure-master-only" id="openSupervisorRegistry" hidden><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
       <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
+      <span class="ure-nav-label ure-master-only" hidden>Sistema</span>
+      <button type="button" class="ure-nav-item ure-master-only" id="openBackupRegistry" hidden><i data-lucide="database-backup" aria-hidden="true"></i><span>Backup e restauração</span></button>
       <span class="ure-nav-label">Gestão</span>
       <button type="button" class="ure-nav-item" data-url="correcoes.html"><i data-lucide="history" aria-hidden="true"></i><span>Correções status</span></button>
       <button type="button" class="ure-nav-item" data-url="locescola.html"><i data-lucide="map-pinned" aria-hidden="true"></i><span>Localização escolar</span></button>
@@ -1118,19 +1120,53 @@ html>body{padding:0}</style>
           <small>Esta ação concede acesso integral aos dados e cadastros do Gestor-ESE.</small>
         </div>
         <div class="ure-admin-security"><i data-lucide="shield-alert" aria-hidden="true"></i><span>Nunca vincule um UID recebido por mensagem sem conferir o e-mail diretamente no Firebase.</span></div>
-        <div class="ure-sanitize-zone">
-          <span>MANUTENÇÃO DE TESTES</span>
-          <strong>Limpar agenda e visitas</strong>
-          <p>Gera um backup em JSON e remove somente agendamentos, visitas e justificativas vinculadas. Usuários, supervisores, escolas, ações e metas são preservados.</p>
-          <button type="button" id="sanitizeOperationalDataButton">Baixar backup e sanitizar</button>
-          <small id="sanitizeOperationalDataStatus" role="status"></small>
-        </div>
       </aside>
       <div class="ure-admin-workspace">
         <div class="ure-admin-toolbar ure-admin-toolbar-single"><label><span>Pesquisar administrador</span><input id="administratorRegistrySearch" type="search" placeholder="Nome, e-mail ou UID"></label></div>
         <div class="ure-school-registry-summary" id="administratorRegistrySummary">Carregando administradores…</div>
         <div class="ure-administrator-list" id="administratorRegistryList"></div>
       </div>
+    </div>
+  </section>
+</div>
+
+<div class="ure-admin-modal" id="backupRegistryModal" role="dialog" aria-modal="true" aria-labelledby="backupRegistryTitle" hidden>
+  <div class="ure-admin-backdrop" data-admin-close="backupRegistryModal"></div>
+  <section class="ure-admin-panel ure-backup-panel">
+    <header class="ure-admin-head">
+      <div><span>SISTEMA</span><h2 id="backupRegistryTitle">Backup e restauração</h2><p>Proteja e recupere os dados operacionais do portal.</p></div>
+      <button type="button" class="ure-admin-close" data-admin-close="backupRegistryModal" aria-label="Fechar">×</button>
+    </header>
+    <div class="ure-backup-grid">
+      <article class="ure-backup-card">
+        <div class="ure-backup-icon"><i data-lucide="download" aria-hidden="true"></i></div>
+        <span>ETAPA SEGURA</span>
+        <h3>Gerar backup</h3>
+        <p>Baixa um arquivo JSON com agendamentos, visitas e justificativas vinculadas. Cadastros e contas não entram neste arquivo.</p>
+        <button type="button" class="ure-admin-primary" id="downloadOperationalBackupButton">Baixar backup JSON</button>
+        <small id="downloadOperationalBackupStatus" role="status"></small>
+      </article>
+      <article class="ure-backup-card">
+        <div class="ure-backup-icon"><i data-lucide="upload" aria-hidden="true"></i></div>
+        <span>RECUPERAÇÃO</span>
+        <h3>Restaurar backup</h3>
+        <p>Selecione um JSON gerado por este portal. O arquivo será validado antes de qualquer gravação.</p>
+        <label class="ure-backup-file" for="restoreOperationalBackupFile"><i data-lucide="file-json" aria-hidden="true"></i><span id="restoreOperationalBackupFileName">Selecionar arquivo JSON</span></label>
+        <input id="restoreOperationalBackupFile" type="file" accept="application/json,.json" hidden>
+        <label for="restoreOperationalBackupMode">Modo de restauração</label>
+        <select id="restoreOperationalBackupMode"><option value="merge">Mesclar com os dados atuais</option><option value="replace">Substituir agenda, visitas e justificativas</option></select>
+        <div class="ure-backup-preview" id="restoreOperationalBackupPreview">Nenhum arquivo selecionado.</div>
+        <button type="button" class="ure-admin-primary" id="restoreOperationalBackupButton" disabled>Restaurar backup</button>
+        <small id="restoreOperationalBackupStatus" role="status"></small>
+      </article>
+      <article class="ure-backup-card ure-backup-danger">
+        <div class="ure-backup-icon"><i data-lucide="eraser" aria-hidden="true"></i></div>
+        <span>MANUTENÇÃO DE TESTES</span>
+        <h3>Sanitizar dados operacionais</h3>
+        <p>Antes da limpeza, o sistema gera obrigatoriamente um novo backup. Somente agenda, visitas e justificativas vinculadas serão removidas.</p>
+        <button type="button" id="sanitizeOperationalDataButton">Gerar backup e sanitizar</button>
+        <small id="sanitizeOperationalDataStatus" role="status"></small>
+      </article>
     </div>
   </section>
 </div>
@@ -1590,6 +1626,28 @@ html>body{padding:0}</style>
   .ure-sanitize-zone button { width:100%; min-height:38px; margin-top:10px; border:1px solid #d8a9a9; border-radius:9px; background:#9b4444; color:#fff; cursor:pointer; font:760 11px/1 inherit; }
   .ure-sanitize-zone button:disabled { cursor:wait; opacity:.58; }
   .ure-sanitize-zone small { display:block; min-height:15px; margin-top:7px; color:#8b4d4d; font-size:10.5px; line-height:1.4; }
+  .ure-backup-panel { width:min(1050px,calc(100vw - 34px)); }
+  .ure-backup-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; padding:24px; background:#eef5f8; }
+  .ure-backup-card { display:flex; flex-direction:column; min-height:330px; padding:22px; border:1px solid #cbdde7; border-radius:16px; background:#fff; box-shadow:0 10px 28px rgba(29,69,91,.08); }
+  .ure-backup-card > span { margin-top:16px; color:var(--ure-green); font-size:10px; font-weight:850; letter-spacing:.1em; }
+  .ure-backup-card h3 { margin:5px 0 0; font-size:20px; }
+  .ure-backup-card p { min-height:64px; margin:8px 0 16px; color:#537085; font-size:12px; line-height:1.55; }
+  .ure-backup-card label:not(.ure-backup-file) { margin:12px 0 5px; color:#294b61; font-size:11px; font-weight:800; }
+  .ure-backup-card select { min-height:42px; padding:0 11px; border:1px solid #c5d8e4; border-radius:9px; background:#f8fbfd; color:#173b52; font:700 11px/1 inherit; }
+  .ure-backup-card > button { min-height:42px; margin-top:auto; }
+  .ure-backup-card > small { display:block; min-height:32px; margin-top:9px; color:#547184; font-size:10.5px; line-height:1.45; }
+  .ure-backup-icon { display:grid; place-items:center; width:42px; height:42px; border-radius:12px; background:#e2f1f8; color:var(--ure-green); }
+  .ure-backup-icon svg { width:20px; height:20px; }
+  .ure-backup-file { display:flex; align-items:center; gap:8px; min-height:42px; padding:0 11px; border:1px dashed #8eb3c8; border-radius:9px; background:#f5fafc; color:#2d607d; cursor:pointer; font-size:11px; font-weight:800; }
+  .ure-backup-file:hover { border-color:var(--ure-green); background:#eaf5fa; }
+  .ure-backup-file svg { width:17px; height:17px; }
+  .ure-backup-preview { min-height:47px; margin:10px 0; padding:9px 11px; border-radius:9px; background:#edf4f7; color:#496679; font-size:10.5px; line-height:1.45; }
+  .ure-backup-danger { border-color:#e4c2c2; background:#fffafa; }
+  .ure-backup-danger .ure-backup-icon { background:#f9e8e8; color:#a33f3f; }
+  .ure-backup-danger > span { color:#a33f3f; }
+  .ure-backup-danger > button { border:1px solid #d39b9b; border-radius:9px; background:#974343; color:#fff; cursor:pointer; font:800 11px/1 inherit; }
+  .ure-backup-danger > button:disabled { cursor:wait; opacity:.58; }
+  @media (max-width:850px) { .ure-backup-grid { grid-template-columns:1fr; } .ure-backup-card { min-height:0; } }
   .ure-password-result { margin-top:13px; padding:12px; border:1px solid #b9d9c9; border-radius:11px; background:#edf8f2; color:#234d3a; }
   .ure-password-result > span { display:block; margin-bottom:7px; font-size:11px; font-weight:800; }
   .ure-password-result > div { display:grid; grid-template-columns:1fr auto; gap:7px; }
@@ -2100,7 +2158,7 @@ html>body{padding:0}</style>
 <script type="module">
   import {
     activateAdministratorAccess, activateSupervisorAccess, addSchoolSupervisor, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
-    loadGestorData, loginAdmin, logoutAdmin, prepareOperationalSanitization, requireAdmin, sanitizeOperationalTestData, setSchoolActive, setSupervisorActive,
+    loadGestorData, loginAdmin, logoutAdmin, prepareOperationalSanitization, requireAdmin, restoreOperationalBackup, sanitizeOperationalTestData, setSchoolActive, setSupervisorActive,
     removeSchoolSupervisor
   } from './firebase-gestor.js';
   const loginScreen = document.getElementById('loginScreen');
@@ -2449,7 +2507,7 @@ html>body{padding:0}</style>
 
   async function openRegistry(id) {
     const modal = byId(id);
-    const sourceByModal={administratorRegistryModal:'openAdministratorRegistry',supervisorRegistryModal:'openSupervisorRegistry',schoolRegistryModal:'openSchoolRegistry'};
+    const sourceByModal={administratorRegistryModal:'openAdministratorRegistry',supervisorRegistryModal:'openSupervisorRegistry',schoolRegistryModal:'openSchoolRegistry',backupRegistryModal:'openBackupRegistry'};
     const source = byId(sourceByModal[id]);
     if (id === 'administratorRegistryModal') {
       registry.pendingAdministrator=null;
@@ -2475,6 +2533,7 @@ html>body{padding:0}</style>
     document.querySelectorAll('#ure-concept .ure-nav-item').forEach((item)=>item.classList.toggle('is-active',item===source));
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
+    if (id === 'backupRegistryModal') return;
     try { await refreshRegistryData(); }
     catch (error) {
       const messageId = id === 'administratorRegistryModal' ? 'administratorRegistryMessage' : id === 'supervisorRegistryModal' ? 'supervisorRegistryMessage' : 'schoolRegistryMessage';
@@ -2490,6 +2549,7 @@ html>body{padding:0}</style>
   byId('openAdministratorRegistry').addEventListener('click',()=>openRegistry('administratorRegistryModal'));
   byId('openSupervisorRegistry').addEventListener('click',()=>openRegistry('supervisorRegistryModal'));
   byId('openSchoolRegistry').addEventListener('click',()=>openRegistry('schoolRegistryModal'));
+  byId('openBackupRegistry').addEventListener('click',()=>openRegistry('backupRegistryModal'));
   document.querySelectorAll('[data-admin-close]').forEach((button)=>button.addEventListener('click',()=>closeRegistry(button.dataset.adminClose)));
   document.addEventListener('keydown',(event)=>{if(event.key==='Escape')document.querySelectorAll('.ure-admin-modal:not([hidden])').forEach((item)=>closeRegistry(item.id))});
   byId('assignmentSupervisor').addEventListener('change',(event)=>{registry.assignmentSupervisorId=event.target.value;registry.assignmentDraft.clear();renderSupervisorAccess();renderAssignmentSchools()});
@@ -2521,6 +2581,67 @@ html>body{padding:0}</style>
     try{await navigator.clipboard.writeText(password);byId('copyAdministratorPassword').textContent='Copiado';setTimeout(()=>{byId('copyAdministratorPassword').textContent='Copiar senha'},1600)}
     catch{setRegistryMessage('administratorRegistryMessage','Não foi possível copiar automaticamente. Selecione a senha exibida.',true)}
   });
+
+  let selectedOperationalBackup=null;
+  function downloadBackupFile(backup,prefix='backup-agenda-visitas'){
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;
+    link.download=`${prefix}-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+  }
+  function backupSummary(backup){
+    const agenda=Array.isArray(backup?.agenda)?backup.agenda.length:0;
+    const visits=Array.isArray(backup?.visits)?backup.visits.length:0;
+    const justifications=Array.isArray(backup?.goalJustifications)?backup.goalJustifications.length:0;
+    return {agenda,visits,justifications};
+  }
+  function validateSelectedBackup(backup){
+    return Boolean(backup&&typeof backup==='object'&&Number(backup.schemaVersion)===1&&Array.isArray(backup.agenda)&&Array.isArray(backup.visits)&&Array.isArray(backup.goalJustifications));
+  }
+  byId('downloadOperationalBackupButton').addEventListener('click',async()=>{
+    const button=byId('downloadOperationalBackupButton'),status=byId('downloadOperationalBackupStatus');
+    button.disabled=true;status.textContent='Preparando o arquivo…';
+    try{
+      const plan=await prepareOperationalSanitization();
+      downloadBackupFile(plan.backup);
+      const total=backupSummary(plan.backup);
+      status.textContent=`Backup gerado: ${total.agenda} agendamentos, ${total.visits} visitas e ${total.justifications} justificativas.`;
+    }catch(error){status.textContent=dataErrorMessage(error)}finally{button.disabled=false}
+  });
+  byId('restoreOperationalBackupFile').addEventListener('change',async(event)=>{
+    const file=event.target.files?.[0],preview=byId('restoreOperationalBackupPreview'),status=byId('restoreOperationalBackupStatus');
+    selectedOperationalBackup=null;byId('restoreOperationalBackupButton').disabled=true;status.textContent='';
+    byId('restoreOperationalBackupFileName').textContent=file?.name||'Selecionar arquivo JSON';
+    if(!file){preview.textContent='Nenhum arquivo selecionado.';return}
+    try{
+      const backup=JSON.parse(await file.text());
+      if(!validateSelectedBackup(backup))throw new Error('INVALID_BACKUP');
+      selectedOperationalBackup=backup;
+      const total=backupSummary(backup),generated=backup.generatedAt?new Date(backup.generatedAt).toLocaleString('pt-BR'):'data não informada';
+      preview.textContent=`Backup de ${generated}: ${total.agenda} agendamentos, ${total.visits} visitas e ${total.justifications} justificativas.`;
+      byId('restoreOperationalBackupButton').disabled=false;
+    }catch(error){preview.textContent='Arquivo inválido. Selecione um JSON gerado pelo Gestor-ESE.';status.textContent='Nenhum dado foi alterado.'}
+  });
+  byId('restoreOperationalBackupButton').addEventListener('click',async()=>{
+    if(!selectedOperationalBackup)return;
+    const button=byId('restoreOperationalBackupButton'),status=byId('restoreOperationalBackupStatus');
+    const replace=byId('restoreOperationalBackupMode').value==='replace';
+    const total=backupSummary(selectedOperationalBackup);
+    const phrase=prompt(`RESTAURAÇÃO DO BACKUP\n\nArquivo selecionado:\n• ${total.agenda} agendamentos\n• ${total.visits} visitas\n• ${total.justifications} justificativas\n\nModo: ${replace?'SUBSTITUIR os dados operacionais atuais':'MESCLAR com os dados atuais'}\n\nDigite RESTAURAR BACKUP para confirmar:`);
+    if(phrase!=='RESTAURAR BACKUP'){status.textContent='Restauração cancelada. Nenhum dado foi alterado.';return}
+    button.disabled=true;status.textContent=replace?'Gerando backup preventivo dos dados atuais…':'Restaurando registros…';
+    try{
+      if(replace){const current=await prepareOperationalSanitization();downloadBackupFile(current.backup,'backup-pre-restauracao')}
+      status.textContent='Restaurando registros…';
+      const result=await restoreOperationalBackup(selectedOperationalBackup,{replace});
+      dataLoaded=false;window.loadPortalData?.();
+      status.textContent=`Restauração concluída: ${result.agendaRestored} agendamentos, ${result.visitsRestored} visitas e ${result.justificationsRestored} justificativas.`;
+    }catch(error){status.textContent=error?.code==='backup/invalid-file'?'O arquivo não passou na validação. Nenhum dado foi restaurado.':dataErrorMessage(error)}finally{button.disabled=false}
+  });
   byId('sanitizeOperationalDataButton').addEventListener('click',async()=>{
     const button=byId('sanitizeOperationalDataButton'),status=byId('sanitizeOperationalDataStatus');
     button.disabled=true;
@@ -2538,16 +2659,7 @@ html>body{padding:0}</style>
         return;
       }
 
-      const backupBlob=new Blob([JSON.stringify(plan.backup,null,2)],{type:'application/json'});
-      const backupUrl=URL.createObjectURL(backupBlob);
-      const backupLink=document.createElement('a');
-      const timestamp=new Date().toISOString().replace(/[:.]/g,'-');
-      backupLink.href=backupUrl;
-      backupLink.download=`backup-agenda-visitas-${timestamp}.json`;
-      document.body.appendChild(backupLink);
-      backupLink.click();
-      backupLink.remove();
-      setTimeout(()=>URL.revokeObjectURL(backupUrl),3000);
+      downloadBackupFile(plan.backup);
 
       status.textContent='Backup gerado. Removendo os dados de teste…';
       const result=await sanitizeOperationalTestData(plan);
