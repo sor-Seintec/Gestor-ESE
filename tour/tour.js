@@ -19,6 +19,12 @@
       <div class="gestor-demo-rule"><b>15</b><span><strong>Regra inteligente de acompanhamento</strong><small>Identifica escolas abaixo da meta, sem visita recente ou com validações pendentes.</small></span></div>
       <div class="gestor-demo-kpis gestor-demo-priority-kpis"><article class="is-active"><small>PRIORIDADES CRÍTICAS</small><strong>54</strong><span>abaixo da meta e sem justificativa</span></article><article><small>SEM VISITA +15 DIAS</small><strong>51</strong><span>inclui escolas nunca visitadas</span></article><article><small>AGUARDANDO VALIDAÇÃO</small><strong>3</strong><span>registros pendentes ou em análise</span></article><article><small>DENTRO DA REGRA</small><strong>2</strong><span>meta ou justificativa regular</span></article></div>
       <div class="gestor-demo-panel gestor-demo-priority-table"><header><div><h3>Escolas que exigem atenção</h3><p>Use a pesquisa e as classificações para investigar o cenário.</p></div><span class="gestor-demo-search">⌕ Pesquisar escola ou classificação...</span></header><div class="gestor-demo-filters"><b>Todas</b><span>Meta não atingida</span><span>Sem visita +15 dias</span><span>Aguardando validação</span><span>Justificadas</span></div><div class="gestor-demo-table-head"><span>ESCOLA</span><span>ÚLTIMA VISITA</span><span>REALIZADAS</span><span>META</span><span>CLASSIFICAÇÃO</span></div><div class="gestor-demo-table-row"><strong>Escola de demonstração</strong><span>Nunca visitada</span><span>0</span><span>2</span><span><em>Meta não atingida</em> <em>Sem visita +15 dias</em></span></div></div>
+    </section>
+    <section class="gestor-demo-screen gestor-demo-module" hidden>
+      <header class="gestor-demo-topbar gestor-module-demo-header"><span class="gestor-demo-back">←</span><div><small>GESTÃO 360°</small><h2 id="gestorModuleTitle">Módulo</h2><p id="gestorModuleSubtitle"></p></div><button disabled>↓ Exportar análise</button></header>
+      <div class="gestor-demo-period gestor-module-demo-period"><strong>Período e filtros</strong><span>Mês atual</span><span>Ano atual</span><span id="gestorModuleFilter">Todos</span></div>
+      <div class="gestor-demo-kpis gestor-module-demo-kpis" id="gestorModuleKpis"></div>
+      <div class="gestor-demo-panel gestor-module-demo-content"><header><div><h3 id="gestorModulePanelTitle">Detalhamento</h3><p id="gestorModulePanelText"></p></div><span class="gestor-demo-search">⌕ Pesquisar na análise...</span></header><div class="gestor-module-visual" id="gestorModuleVisual"></div></div>
     </section>`;
     document.body.appendChild(managementDemo);
     return managementDemo;
@@ -26,6 +32,32 @@
   function showManagementDemo(name){ensureManagementDemo();managementDemo.hidden=false;managementDemo.querySelectorAll('.gestor-demo-screen').forEach(screen=>screen.hidden=!screen.classList.contains(`gestor-demo-${name}`))}
   function showJustificationDemo(){showManagementDemo('justifications')}
   function showPriorityDemo(){showManagementDemo('priority')}
+  const moduleDefinitions={
+    panorama:{title:'Panorama mensal',subtitle:'Visão consolidada das visitas, status e resultados do mês.',filter:'Todos os supervisores',kpis:[['PLANEJADAS','12','agenda do período'],['VISITADAS','8','visitas concluídas'],['JUSTIFICADAS','2','ausências justificadas'],['ADIADAS','1','serão reagendadas'],['CANCELADAS','1','não realizadas']],panel:'Calendário e relatório analítico',panelText:'Cada dia reúne os registros com a letra e a cor padronizadas.',visual:'calendar'},
+    history:{title:'Histórico de visitas',subtitle:'Acontecimentos organizados por data, supervisor e escola.',filter:'Todos os registros',kpis:[['REGISTROS','24','no período'],['SUPERVISORES','8','com atividade'],['ESCOLAS','18','alcançadas'],['REALIZADAS','16','visitas concluídas']],panel:'Linha do tempo das atividades',panelText:'Consulte quem visitou, qual escola recebeu a visita e o que foi registrado.',visual:'timeline'},
+    supervisors:{title:'Supervisores × planejamento',subtitle:'Planejamento, execução e cobertura das escolas por supervisor.',filter:'Todos os supervisores',kpis:[['PLANEJADAS','15','visitas previstas'],['REALIZADAS','10','visitas concluídas'],['COBERTURA','67%','do planejamento'],['ESCOLAS','22','unidades alcançadas']],panel:'Desempenho por supervisor',panelText:'Compare planejado, realizado, metas e distribuição semanal.',visual:'bars'},
+    schools:{title:'Escolas × planejamento',subtitle:'Acompanhamento mensal das escolas, visitas e metas.',filter:'Todas as escolas',kpis:[['ESCOLAS','58','cadastradas'],['COM VISITA','21','no período'],['SEM VISITA','37','no período'],['META ATINGIDA','18','escolas regulares']],panel:'Detalhamento por escola',panelText:'Identifique planejamento, visitas realizadas, extras e escolas críticas.',visual:'schools'},
+    goals:{title:'Metas dos supervisores',subtitle:'Meta mensal, execução, projeção e resultados.',filter:'Todos os supervisores',kpis:[['META DO MÊS','25','visitas previstas'],['REALIZADO','10','visitas concluídas'],['DESEMPENHO','40%','da meta atingida'],['FALTAM','15','visitas para a meta']],panel:'Desempenho por supervisor',panelText:'A meta semanal é calculada a partir da meta mensal configurada.',visual:'goals'},
+    filters:{title:'Filtros de vistoria',subtitle:'Consulta detalhada dos registros escolares.',filter:'Todo o período',kpis:[['REGISTROS','24','encontrados'],['REALIZADAS','16','concluídas'],['JUSTIFICADAS','3','com motivo'],['OUTROS STATUS','5','adiadas ou canceladas']],panel:'Registros encontrados',panelText:'Combine supervisor, escola, tipo, status, período e ações realizadas.',visual:'records'}
+  };
+  function renderModuleDemo(name){
+    const data=moduleDefinitions[name];if(!data)return;
+    showManagementDemo('module');
+    managementDemo.dataset.module=name;
+    managementDemo.querySelector('#gestorModuleTitle').textContent=data.title;
+    managementDemo.querySelector('#gestorModuleSubtitle').textContent=data.subtitle;
+    managementDemo.querySelector('#gestorModuleFilter').textContent=data.filter;
+    managementDemo.querySelector('#gestorModuleKpis').innerHTML=data.kpis.map((item,i)=>`<article class="${i===0?'is-active':''}"><small>${item[0]}</small><strong>${item[1]}</strong><span>${item[2]}</span></article>`).join('');
+    managementDemo.querySelector('#gestorModulePanelTitle').textContent=data.panel;
+    managementDemo.querySelector('#gestorModulePanelText').textContent=data.panelText;
+    managementDemo.querySelector('#gestorModuleVisual').innerHTML=data.visual==='calendar'?'<div class="gestor-demo-calendar">'+Array.from({length:14},(_,i)=>`<span><b>${i+1}</b>${[3,7,10].includes(i)?'<em>P 2 · V 1</em>':''}</span>`).join('')+'</div>':data.visual==='timeline'?'<div class="gestor-demo-timeline"><article><b>25 AGO</b><span><strong>Escola de demonstração</strong><small>Supervisor · Visita realizada · Atividade registrada</small></span></article><article><b>24 AGO</b><span><strong>Outra escola</strong><small>Supervisor · Justificativa informada</small></span></article></div>':data.visual==='bars'?'<div class="gestor-demo-bars"><span style="--h:72%">Supervisor A</span><span style="--h:48%">Supervisor B</span><span style="--h:86%">Supervisor C</span><span style="--h:61%">Supervisor D</span></div>':data.visual==='schools'?'<div class="gestor-demo-records"><b>ESCOLA</b><b>PLANEJADAS</b><b>REALIZADAS</b><b>META</b><span>Escola A</span><span>2</span><span>2</span><em>Em dia</em><span>Escola B</span><span>2</span><span>0</span><em>Atenção</em></div>':data.visual==='goals'?'<div class="gestor-demo-records"><b>SUPERVISOR</b><b>VISITAS</b><b>META</b><b>DESEMPENHO</b><span>Supervisor A</span><span>8</span><span>10</span><em>80%</em><span>Supervisor B</span><span>4</span><span>8</span><em>50%</em></div>':'<div class="gestor-demo-records"><b>DATA</b><b>SUPERVISOR</b><b>ESCOLA</b><b>STATUS</b><span>25/08</span><span>Supervisor A</span><span>Escola A</span><em>Realizada</em><span>24/08</span><span>Supervisor B</span><span>Escola B</span><em>Justificada</em></div>';
+  }
+  const showPanoramaDemo=()=>renderModuleDemo('panorama');
+  const showHistoryDemo=()=>renderModuleDemo('history');
+  const showSupervisorsDemo=()=>renderModuleDemo('supervisors');
+  const showSchoolsDemo=()=>renderModuleDemo('schools');
+  const showGoalsDemo=()=>renderModuleDemo('goals');
+  const showFiltersDemo=()=>renderModuleDemo('filters');
   function hideManagementDemo(){if(managementDemo)managementDemo.hidden=true}
   const configs={
     'index.html':[
@@ -41,10 +73,33 @@
       {selector:'.ure-user',title:'Conta conectada',text:'Confira o nome e o perfil atual. O ícone de saída encerra o acesso com segurança.',tip:'Sempre saia do portal ao terminar o trabalho em computadores compartilhados.'},
       {selector:'.ure-topbar',title:'Visão geral',text:'Esta é a página inicial da gestão. Aqui você acompanha os principais números e acessa rapidamente todas as análises.'},
       {selector:'#searchOpenButton',title:'Busca em tempo real',text:'Pesquise registros por supervisor, escola, status, ação ou autor. A consulta também pode ser aberta com Ctrl + K.'},
-      {selector:'.ure-hero-actions',title:'Panorama e histórico',text:'Abra o panorama mensal para uma leitura consolidada ou o Histórico para consultar acontecimentos por data, supervisor e escola.'},
-      {selector:'.ure-orbit',title:'Resumo do período',text:'Este painel apresenta escolas conectadas, visitas do dia e volume realizado no mês diretamente a partir da base.'},
+      {selector:'.ure-primary-action[data-url="DMC.html"]',prepare:hideManagementDemo,title:'Ver panorama mensal',text:'Este botão abre a visão consolidada do mês, reunindo planejamento, visitas e status.'},
+      {selector:'.gestor-module-demo-header',prepare:showPanoramaDemo,title:'Panorama mensal',text:'No panorama você escolhe o período e acompanha os totais de visitas planejadas, realizadas, justificadas, adiadas e canceladas.'},
+      {selector:'.gestor-module-demo-kpis',prepare:showPanoramaDemo,title:'Indicadores do mês',text:'Os cartões resumem o volume de cada status usando as mesmas letras e cores adotadas em todo o sistema.'},
+      {selector:'.gestor-module-demo-content',prepare:showPanoramaDemo,title:'Calendário e análise',text:'Use o calendário para localizar os registros por dia e alterne para o relatório analítico quando precisar de mais detalhes.'},
+      {selector:'.ure-secondary-action[data-url="historico.html"]',prepare:hideManagementDemo,title:'Histórico',text:'Este botão abre a consulta de todos os acontecimentos registrados no sistema.'},
+      {selector:'.gestor-module-demo-header',prepare:showHistoryDemo,title:'Histórico de visitas',text:'Escolha data, supervisor ou escola para reconstruir o histórico das atividades realizadas.'},
+      {selector:'.gestor-module-demo-kpis',prepare:showHistoryDemo,title:'Resumo do histórico',text:'Os indicadores mostram o volume de registros, supervisores com atividade, escolas alcançadas e visitas concluídas.'},
+      {selector:'.gestor-module-demo-content',prepare:showHistoryDemo,title:'Linha do tempo',text:'Cada acontecimento informa a data, a escola, o supervisor, o resultado e o conteúdo registrado na atividade.'},
+      {selector:'.ure-orbit',prepare:hideManagementDemo,title:'Resumo do período',text:'Este painel apresenta escolas conectadas, visitas do dia e volume realizado no mês diretamente a partir da base.'},
       {selector:'.ure-module-grid',title:'Módulos de análise',text:'Acesse planejamento por supervisor, planejamento por escola, metas e filtros detalhados.'},
-      {selector:'#themePickerButton',title:'Personalizar cores',text:'Escolha uma paleta mais confortável para leitura. A preferência fica memorizada neste navegador.'},
+      {selector:'.ure-module[data-url="BS.html"]',prepare:hideManagementDemo,title:'Supervisores planejamento',text:'Abra este módulo para comparar planejamento, execução e cobertura das escolas por supervisor.'},
+      {selector:'.gestor-module-demo-header',prepare:showSupervisorsDemo,title:'Planejamento por supervisor',text:'Selecione o período e um supervisor específico ou mantenha Todos para comparar a equipe.'},
+      {selector:'.gestor-module-demo-kpis',prepare:showSupervisorsDemo,title:'Indicadores dos supervisores',text:'Veja planejadas, realizadas, percentual de cobertura e quantidade de escolas alcançadas.'},
+      {selector:'.gestor-module-demo-content',prepare:showSupervisorsDemo,title:'Desempenho individual',text:'O detalhamento permite comparar meta, execução semanal e mensal e identificar quem precisa de acompanhamento.'},
+      {selector:'.ure-module[data-url="BM.html"]',prepare:hideManagementDemo,title:'Escolas planejamento',text:'Abra este módulo para analisar cada escola em relação ao planejamento e às visitas realizadas.'},
+      {selector:'.gestor-module-demo-header',prepare:showSchoolsDemo,title:'Planejamento por escola',text:'Selecione o período e consulte a cobertura das unidades escolares, sem misturar a análise individual dos supervisores.'},
+      {selector:'.gestor-module-demo-kpis',prepare:showSchoolsDemo,title:'Cenário das escolas',text:'Os indicadores mostram escolas cadastradas, visitadas, sem visita e com a meta atingida.'},
+      {selector:'.gestor-module-demo-content',prepare:showSchoolsDemo,title:'Detalhamento por escola',text:'Compare visitas planejadas e realizadas, identifique atividades extras e localize escolas que exigem atenção.'},
+      {selector:'.ure-module[data-url="meta.html"]',prepare:hideManagementDemo,title:'Metas',text:'Este módulo acompanha metas mensais e semanais dos supervisores.'},
+      {selector:'.gestor-module-demo-header',prepare:showGoalsDemo,title:'Metas dos supervisores',text:'Escolha o mês, o ano e o supervisor para analisar o resultado individual ou consolidado.'},
+      {selector:'.gestor-module-demo-kpis',prepare:showGoalsDemo,title:'Meta × realidade',text:'Compare a meta prevista, o realizado, o percentual de desempenho e quantas visitas ainda faltam.'},
+      {selector:'.gestor-module-demo-content',prepare:showGoalsDemo,title:'Desempenho por supervisor',text:'A tabela detalha visitas, meta mensal, meta semanal e desempenho, facilitando a identificação de desvios.'},
+      {selector:'.ure-module[data-url="filtros.html"]',prepare:hideManagementDemo,title:'Filtro',text:'Abra esta consulta para localizar registros específicos e extrair informações detalhadas.'},
+      {selector:'.gestor-module-demo-header',prepare:showFiltersDemo,title:'Filtros de vistoria',text:'Combine período, supervisor, escola, tipo de visita, status e ações realizadas.'},
+      {selector:'.gestor-module-demo-kpis',prepare:showFiltersDemo,title:'Resultado da consulta',text:'Os totais ajudam a entender rapidamente quantos registros foram encontrados em cada situação.'},
+      {selector:'.gestor-module-demo-content',prepare:showFiltersDemo,title:'Registros encontrados',text:'A lista apresenta data, origem, supervisor, escola, status, ações ou justificativa e autor do registro.',tip:'Use a exportação quando precisar trabalhar com o resultado fora do portal.'},
+      {selector:'#themePickerButton',prepare:hideManagementDemo,title:'Personalizar cores',text:'Escolha uma paleta mais confortável para leitura. A preferência fica memorizada neste navegador.'},
       {selector:'.ure-pulse',title:'Atividade das últimas semanas',text:'O gráfico mostra o volume diário de eventos das duas últimas semanas, com total, média e dias de maior movimento.'},
       {selector:'.ure-focus',title:'Prioridades de acompanhamento',text:'Veja escolas com meta não atingida, sem visita há mais de 15 dias, justificadas e registros aguardando validação.'},
       {selector:'.ure-validation-action',title:'Validar justificativas',text:'Este atalho abre a análise das justificativas enviadas. A gestão pode aprovar ou rejeitar cada solicitação.'},
