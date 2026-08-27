@@ -1999,11 +1999,11 @@ html>body{padding:0}</style>
       globalThis.lucide?.createIcons({attrs:{width:16,height:16}});
     }
 
-    async function loadPortalData() {
+    async function loadPortalData(forceRefresh = false) {
       const status = document.getElementById('dailyChartPeriod');
       status.textContent = 'ATUALIZANDO VISITAS…';
       try {
-        const data = await window.getGestorFirebaseData({refresh:true});
+        const data = await window.getGestorFirebaseData({refresh:forceRefresh});
         renderVisitFlow(data.visitRows, data.schools, data.goalJustifications);
       } catch (error) {
         console.error('Falha ao carregar o fluxo de visitas:', error);
@@ -2090,7 +2090,7 @@ html>body{padding:0}</style>
       searchLimit.textContent = searchResults.length > 100 ? 'Exibindo os 100 mais recentes — a exportação inclui todos.' : 'Todos os resultados estão sendo exibidos.';
     }
     async function fetchSearchRows() {
-      const data = await window.getGestorFirebaseData({refresh:true});
+      const data = await window.getGestorFirebaseData();
       return data.visitRows.map(mapSearchRecord).sort((a,b) => (parsePortalDate(b.date)?.getTime() || 0) - (parsePortalDate(a.date)?.getTime() || 0));
     }
     async function refreshSearch() {
@@ -2283,7 +2283,7 @@ html>body{padding:0}</style>
   }
 
   async function refreshRegistryData() {
-    registry.data = await loadGestorData({refresh:true});
+    registry.data = await loadGestorData();
     renderAdministratorRegistry();
     renderSupervisorOptions();
     renderSchoolLinkControls();

@@ -226,9 +226,9 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     selectAno.addEventListener('change', atualizarDashboard);
     selectSup.addEventListener('change', atualizarDashboard);
 
-    async function carregarPanoramaFirebase() {
+    async function carregarPanoramaFirebase(forceRefresh = false) {
       try {
-        const payload = await window.getGestorFirebaseData({refresh:true});
+        const payload = await window.getGestorFirebaseData({refresh:forceRefresh});
         const dadosVistorias = payload.visitRows;
         const metasNuvem = Object.fromEntries([...payload.supervisors.values()].map(item => [fold(item.displayName || item.id), {
           id: item.id,
@@ -512,7 +512,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
             delete antigas[`${periodoDaMeta()}|${nome}`];
             localStorage.setItem(LEGACY_GOAL_KEY, JSON.stringify(antigas));
             adminModal.classList.remove('open');
-            await carregarPanoramaFirebase();
+            await carregarPanoramaFirebase(true);
         } catch (error) {
             console.error(error);
             alert('Não foi possível salvar a meta no Firebase. Verifique se as regras foram publicadas.');

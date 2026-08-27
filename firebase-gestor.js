@@ -37,6 +37,45 @@ const ACCESS_EMAIL_DOMAIN = '@prof.educacao.sp.gov.br';
 
 let adminSessionPromise;
 let dataPromise;
+let dataGeneration = -1;
+const DATA_CACHE_KEY = '__GESTOR_ESE_FIREBASE_DATA_CACHE_V1__';
+const ADMIN_CACHE_KEY = '__GESTOR_ESE_ADMIN_SESSION_CACHE_V1__';
+const DATA_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function cacheHost() {
+  try {
+    if (window.top && window.top.location.origin === window.location.origin) return window.top;
+  } catch (_) {
+    // Uma página isolada ou de outra origem usa o próprio contexto.
+  }
+  return window;
+}
+
+function sharedDataCache() {
+  return cacheHost()[DATA_CACHE_KEY] || null;
+}
+
+function storeSharedData(data) {
+  const generation = sharedDataCache()?.generation || 0;
+  cacheHost()[DATA_CACHE_KEY] = {
+    generation,
+    uid: auth.currentUser?.uid || '',
+    data,
+    expiresAt: Date.now() + DATA_CACHE_TTL_MS
+  };
+  dataGeneration = generation;
+}
+
+function invalidateDataCache() {
+  dataPromise = undefined;
+  const generation = (sharedDataCache()?.generation || 0) + 1;
+  dataGeneration = generation;
+  cacheHost()[DATA_CACHE_KEY] = { generation, uid: auth.currentUser?.uid || '', data: null, expiresAt: 0 };
+}
+
+export function clearGestorDataCache() {
+  invalidateDataCache();
+}
 
 function waitForAuthState() {
   return new Promise((resolve) => {
@@ -52,12 +91,17 @@ export async function requireAdmin() {
     adminSessionPromise = (async () => {
       const user = auth.currentUser || await waitForAuthState();
       if (!user) throw Object.assign(new Error('AUTH_REQUIRED'), { code: 'auth/required' });
+      const shared = cacheHost()[ADMIN_CACHE_KEY];
+      if (shared?.uid === user.uid && shared.expiresAt > Date.now()) {
+        return { user, profile: shared.profile };
+      }
       const profileSnapshot = await getDoc(doc(db, 'users', user.uid));
       if (!profileSnapshot.exists()) throw Object.assign(new Error('PROFILE_NOT_FOUND'), { code: 'access/profile-not-found' });
       const profile = profileSnapshot.data();
       if (profile.active !== true || profile.role !== 'admin') {
         throw Object.assign(new Error('ADMIN_REQUIRED'), { code: 'access/admin-required' });
       }
+      cacheHost()[ADMIN_CACHE_KEY] = { uid: user.uid, profile, expiresAt: Date.now() + DATA_CACHE_TTL_MS };
       return { user, profile };
     })();
   }
@@ -93,7 +137,8 @@ function administratorEmailFromLogin(identifier) {
 
 export async function loginAdmin(identifier, password) {
   adminSessionPromise = null;
-  dataPromise = null;
+  delete cacheHost()[ADMIN_CACHE_KEY];
+  invalidateDataCache();
   const email = administratorEmailFromLogin(identifier);
   await signInWithEmailAndPassword(auth, email, password);
   return requireAdmin();
@@ -101,7 +146,8 @@ export async function loginAdmin(identifier, password) {
 
 export async function logoutAdmin() {
   adminSessionPromise = null;
-  dataPromise = null;
+  delete cacheHost()[ADMIN_CACHE_KEY];
+  invalidateDataCache();
   await signOut(auth);
 }
 
@@ -134,7 +180,7 @@ export async function saveMonthlyGoals(period, goals = []) {
     }, { merge: true });
   });
   await batch.commit();
-  dataPromise = null;
+  invalidateDataCache();
 }
 
 export async function resetMonthlyGoals(period, supervisorIds = []) {
@@ -147,7 +193,7 @@ export async function resetMonthlyGoals(period, supervisorIds = []) {
   const batch = writeBatch(db);
   ids.forEach((supervisorId) => batch.delete(doc(db, 'monthlyGoals', `${period}_${supervisorId}`)));
   await batch.commit();
-  dataPromise = null;
+  invalidateDataCache();
 }
 
 export function authErrorMessage(error) {
@@ -205,7 +251,7 @@ export async function createSupervisorProfile({ displayName, loginEmail = '' }) 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
-  dataPromise = null;
+  invalidateDataCache();
   return id;
 }
 
@@ -256,7 +302,7 @@ export async function activateSupervisorAccess({ supervisorId, authUid }) {
     updatedAt: serverTimestamp()
   }, { merge: true });
   await batch.commit();
-  dataPromise = null;
+  invalidateDataCache();
   return { uid, supervisorId, email };
 }
 
@@ -308,7 +354,7 @@ export async function setSupervisorActive(supervisorId, active) {
   }
 
   await batch.commit();
-  dataPromise = null;
+  invalidateDataCache();
   return {
     supervisorId,
     active: nextActive,
@@ -369,7 +415,7 @@ export async function sanitizeOperationalTestData({ agendaIds = [], visitIds = [
     targets.slice(index, index + 450).forEach((reference) => batch.delete(reference));
     await batch.commit();
   }
-  dataPromise = null;
+  invalidateDataCache();
   return {
     agendaDeleted: agendaIds.length,
     visitsDeleted: visitIds.length,
@@ -447,7 +493,7 @@ export async function restoreOperationalBackup(backup, { replace = false } = {})
     });
     await batch.commit();
   }
-  dataPromise = null;
+  invalidateDataCache();
   return {
     agendaRestored: agenda.length,
     visitsRestored: visits.length,
@@ -520,7 +566,7 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
     updatedAt: serverTimestamp()
   });
   await batch.commit();
-  dataPromise = null;
+  invalidateDataCache();
   return {
     uid,
     displayName: name,
@@ -552,7 +598,7 @@ export async function createSchoolRecord({ name, supervisorId = null }) {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
   });
-  dataPromise = null;
+  invalidateDataCache();
   return id;
 }
 
@@ -574,7 +620,7 @@ export async function addSchoolSupervisor(schoolId, supervisorId) {
       updatedAt: serverTimestamp()
     });
   });
-  dataPromise = null;
+  invalidateDataCache();
 }
 
 export async function removeSchoolSupervisor(schoolId, supervisorId) {
@@ -594,7 +640,7 @@ export async function removeSchoolSupervisor(schoolId, supervisorId) {
       updatedAt: serverTimestamp()
     });
   });
-  dataPromise = null;
+  invalidateDataCache();
 }
 
 export async function setSchoolActive(schoolId, active) {
@@ -603,7 +649,7 @@ export async function setSchoolActive(schoolId, active) {
     active: active === true,
     updatedAt: serverTimestamp()
   });
-  dataPromise = null;
+  invalidateDataCache();
 }
 
 export function dataErrorMessage(error) {
@@ -676,7 +722,16 @@ async function optionalCollection(name) {
 
 export async function loadGestorData({ refresh = false } = {}) {
   await requireAdmin();
-  if (refresh) dataPromise = null;
+  if (refresh) invalidateDataCache();
+  const shared = sharedDataCache();
+  const sharedGeneration = shared?.generation || 0;
+  if (dataGeneration !== sharedGeneration) {
+    dataPromise = undefined;
+    dataGeneration = sharedGeneration;
+  }
+  if (!dataPromise && !refresh && shared?.data && shared.uid === auth.currentUser?.uid && shared.expiresAt > Date.now()) {
+    dataPromise = Promise.resolve(shared.data);
+  }
   if (!dataPromise) {
     dataPromise = (async () => {
       const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot, monthlyGoalSnapshot] = await Promise.all([
@@ -737,7 +792,7 @@ export async function loadGestorData({ refresh = false } = {}) {
         };
       });
 
-      return {
+      const data = {
         users,
         supervisors,
         schools,
@@ -749,9 +804,16 @@ export async function loadGestorData({ refresh = false } = {}) {
         visitRows,
         loadedAt: new Date()
       };
+      storeSharedData(data);
+      return data;
     })();
   }
-  return dataPromise;
+  try {
+    return await dataPromise;
+  } catch (error) {
+    invalidateDataCache();
+    throw error;
+  }
 }
 
 const correctionStatusLabels = {
@@ -874,7 +936,7 @@ export async function reviewVisitCorrectionRequest(requestId, decision, reviewer
       updatedAt: serverTimestamp()
     });
   });
-  dataPromise = null;
+  invalidateDataCache();
 }
 
 export async function reviewGoalJustification(justificationId, decision, reviewerNote = '') {
@@ -906,5 +968,5 @@ export async function reviewGoalJustification(justificationId, decision, reviewe
       updatedAt: serverTimestamp()
     });
   });
-  dataPromise = null;
+  invalidateDataCache();
 }

@@ -15,7 +15,7 @@ O Gestor antigo e o Supervisor antigo, com `_` no nome, não são alterados por 
 
 - `users`: validação do perfil administrativo;
 - `supervisors`: cadastro e nomes dos supervisores;
-- `schools`: escolas e vínculo com o supervisor;
+- `schools`: escolas e vínculos múltiplos com supervisores em `supervisorIds`; o campo antigo `supervisorId` continua sendo lido durante a transição;
 - `agenda`: planejamento das visitas;
 - `visits`: registros e status das visitas;
 - `goalJustifications`: solicitações de justificativa de meta, quando a regra já estiver publicada.
@@ -44,6 +44,19 @@ O Gestor antigo e o Supervisor antigo, com `_` no nome, não são alterados por 
 8. Aguarde a publicação e abra `https://sor-seintec.github.io/Gestor-ESE/`.
 
 O domínio `sor-seintec.github.io` já está autorizado no Firebase Authentication.
+
+## Liberar o acesso de um novo supervisor no plano Spark
+
+1. No popup **Supervisores**, informe o nome e a variável do e-mail e clique em **Preparar cadastro**.
+2. Copie o e-mail e a senha temporária apresentados pelo Gestor.
+3. Abra o link **Abrir usuários do Firebase** e clique em **Adicionar usuário**.
+4. Cole exatamente o e-mail e a senha e confirme.
+5. Na lista do Authentication, copie o **UID do usuário** criado.
+6. Volte ao Gestor, cole o UID no campo da Etapa 2 e clique em **Ativar acesso**.
+
+O Gestor criará `users/{uid}` com `role: "supervisor"`, `active: true` e `mustChangePassword: true`, além de vincular o UID ao documento do supervisor. A senha temporária não é armazenada no Firestore.
+
+O menu **Administradores** usa o mesmo fluxo manual do Authentication. Depois que o UID é colado e confirmado, o Gestor cria `users/{uid}` com `role: "admin"`, `active: true` e `mustChangePassword: true`. Como esse perfil possui acesso integral, o sistema bloqueia UID já utilizado e exige uma confirmação adicional com nome, e-mail e UID.
 
 ## Regras importantes de KPI
 

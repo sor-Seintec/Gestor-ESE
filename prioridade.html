@@ -156,16 +156,16 @@
       $('exportButton').disabled=!visible.length;
     }
     function updateKpis(){const critical=analysis.filter(item=>item.critical).length,overdue=analysis.filter(item=>item.overdue).length,pendingCount=analysis.reduce((total,item)=>total+item.pendingCount,0),ok=analysis.filter(item=>item.ok).length;$('kpiCritical').textContent=critical;$('kpiOverdue').textContent=overdue;$('kpiPending').textContent=pendingCount;$('kpiOk').textContent=ok}
-    async function load(){
+    async function load(forceRefresh=false){
       $('loading').hidden=false;
-      try{const data=await window.getGestorFirebaseData({refresh:true});analysis=analyze(data.visitRows,data.schools,data.goalJustifications);updateKpis();render();$('updatedAt').textContent=`Atualizado em ${new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(new Date())}.`}
+      try{const data=await window.getGestorFirebaseData({refresh:forceRefresh});analysis=analyze(data.visitRows,data.schools,data.goalJustifications);updateKpis();render();$('updatedAt').textContent=`Atualizado em ${new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(new Date())}.`}
       catch(error){console.error(error);analysis=[];updateKpis();render();$('updatedAt').textContent='Não foi possível consultar a base de visitas.'}
       finally{$('loading').hidden=true}
     }
     const csv=value=>`"${normalize(value).replace(/"/g,'""').replace(/[\r\n]+/g,' ')}"`;
     function exportCsv(){if(!visible.length)return;const header=['Escola','Última visita','Dias sem visita','Realizadas no mês','Meta','Justificada','Pendências','Classificação'];const lines=visible.map(item=>[item.school,formatDate(item.lastVisit),item.days===null?'Nunca':item.days,item.completedMonth,item.goal,item.justifiedMonth?'Sim':'Não',item.pendingCount,item.labels.join(' | ')].map(csv).join(';'));const blob=new Blob([`\uFEFF${header.map(csv).join(';')}\n${lines.join('\n')}`],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`Prioridades_URE_${new Date().toISOString().slice(0,10)}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
     $('backButton').addEventListener('click',()=>{if(window.parent!==window&&window.parent.portalNavigate)window.parent.portalNavigate('home');else location.href='index.html'});
-    $('refreshButton').addEventListener('click',load);
+    $('refreshButton').addEventListener('click',()=>load(true));
     $('exportButton').addEventListener('click',exportCsv);
     $('searchInput').addEventListener('input',render);
     document.querySelectorAll('.filter').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.filter').forEach(item=>item.classList.remove('is-active'));button.classList.add('is-active');activeFilter=button.dataset.filter;render()}));

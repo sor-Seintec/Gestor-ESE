@@ -419,10 +419,10 @@
             return null;
         }
 
-        async function carregarDados() {
+        async function carregarDados(forceRefresh = false) {
             document.getElementById('loadingOverlay').style.display = 'flex';
             try {
-                const payload = await window.getGestorFirebaseData({refresh:true});
+                const payload = await window.getGestorFirebaseData({refresh:forceRefresh});
                 const data = payload.visitRows;
                 baseDados = data.map(v => {
                     return {
