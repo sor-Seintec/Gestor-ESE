@@ -42,13 +42,13 @@ export function decorateCloudSyncButton(button = document.getElementById('refres
   if (!button || button.dataset.cloudSyncReady === 'true') return button;
   button.dataset.cloudSyncReady = 'true';
   button.classList.add('cloud-sync-button');
-  button.innerHTML = `${CLOUD_SYNC_ICON}<span>Atualizar</span><span class="cloud-sync-comet" aria-hidden="true"><i></i><i></i><i></i></span>`;
+  button.innerHTML = `${CLOUD_SYNC_ICON}<span>Atualizar</span>`;
   button.title = 'Buscar agora as alterações do Firebase';
   button.setAttribute('aria-label', 'Atualizar dados pelo Firebase');
   if (!document.getElementById('gestor-cloud-sync-style')) {
     const style = document.createElement('style');
     style.id = 'gestor-cloud-sync-style';
-    style.textContent = '.cloud-sync-button{position:relative!important;isolation:isolate;overflow:visible!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;white-space:nowrap}.cloud-sync-button>svg{width:17px;height:17px;fill:currentColor;flex:none}.cloud-sync-button::before{content:"";position:absolute;inset:-3px;z-index:-1;border:1px solid transparent;border-radius:inherit;pointer-events:none;animation:cloudSyncResonance 4.8s ease-out infinite}.cloud-sync-comet{position:absolute;inset:-4px;pointer-events:none}.cloud-sync-comet i{position:absolute;width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.72);offset-path:inset(1px round 12px);offset-rotate:0deg;animation:cloudSyncOrbit 4.8s cubic-bezier(.45,.05,.35,1) infinite}.cloud-sync-comet i:nth-child(2){width:4px;height:4px;opacity:.72;animation-delay:-.12s}.cloud-sync-comet i:nth-child(3){width:3px;height:3px;opacity:.48;animation-delay:-.24s}.cloud-sync-button.is-syncing>svg{animation:gestorCloudSync 1s linear infinite}.cloud-sync-button.is-syncing .cloud-sync-comet{display:none}@keyframes gestorCloudSync{to{transform:rotate(360deg)}}@keyframes cloudSyncOrbit{0%{offset-distance:0%;opacity:0;transform:scale(.55)}8%{opacity:1;transform:scale(1)}58%{opacity:1;transform:scale(1)}72%{offset-distance:100%;opacity:0;transform:scale(.55)}100%{offset-distance:100%;opacity:0;transform:scale(.55)}}@keyframes cloudSyncResonance{0%,64%,100%{border-color:transparent;box-shadow:0 0 0 0 transparent}70%{border-color:rgba(16,185,129,.34);box-shadow:0 0 0 0 rgba(16,185,129,.16)}82%{border-color:transparent;box-shadow:0 0 0 6px transparent}}@media(prefers-reduced-motion:reduce){.cloud-sync-button::before,.cloud-sync-comet i{animation:none}.cloud-sync-comet{display:none}}';
+    style.textContent = '.cloud-sync-button{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;white-space:nowrap}.cloud-sync-button svg{width:17px;height:17px;fill:currentColor;flex:none}.cloud-sync-button.is-syncing svg{animation:gestorCloudSync 1s linear infinite}@keyframes gestorCloudSync{to{transform:rotate(360deg)}}';
     document.head.appendChild(style);
   }
   return button;
@@ -814,28 +814,22 @@ function supervisorName(item, supervisors) {
     || 'Não informado';
 }
 
-async function optionalCollection(name) {
-  try {
-    return await getDocs(collection(db, name));
-  } catch (error) {
-    if (error?.code === 'permission-denied') return { docs: [], size: 0 };
-    throw error;
-  }
+function mergeSnapshotIntoMap(current, snapshot) {
+  const merged = new Map(current instanceof Map ? current : []);
+  snapshot.docs.forEach((item) => merged.set(item.id, { id: item.id, ...item.data() }));
+  return merged;
 }
 
-function mergeChangedItems(current, snapshot) {
-  const map = new Map((current || []).map((item) => [item.id, item]));
-  snapshot.docs.forEach((item) => map.set(item.id, { id: item.id, ...item.data() }));
-  return [...map.values()].filter((item) => item.deleted !== true);
+function mergeSnapshotIntoList(current, snapshot) {
+  const merged = new Map((Array.isArray(current) ? current : []).map((item) => [item.id, item]));
+  snapshot.docs.forEach((item) => merged.set(item.id, { id: item.id, ...item.data() }));
+  return [...merged.values()];
 }
 
-function rebuildGestorData(source) {
-  const users = source.users instanceof Map ? source.users : new Map(source.users || []);
-  const supervisors = source.supervisors instanceof Map ? source.supervisors : new Map(source.supervisors || []);
-  const schools = (source.schools || []).map((item) => ({ ...item, supervisorIds: schoolSupervisorIds(item) }));
-  const schoolMap = new Map(schools.map((item) => [item.id, item]));
-  const agenda = source.agenda || [];
-  const visits = source.visits || [];
+function composeGestorData({ users, supervisors, schools, agenda, visits, goalJustifications, monthlyGoals, visitCorrectionRequests }, syncedAtMs = Date.now()) {
+  const normalizedSchools = schools.map((school) => ({ ...school, supervisorIds: schoolSupervisorIds(school) }));
+  const schoolMap = new Map(normalizedSchools.map((item) => [item.id, item]));
+
   const agendaRows = agenda.map((item) => ({
     'Data Agendada': brDate(item.scheduledDate),
     'Data da Agenda': brDate(item.scheduledDate),
@@ -847,6 +841,7 @@ function rebuildGestorData(source) {
     _id: item.id,
     _raw: item
   }));
+
   const visitRows = visits.map((item) => {
     const actionText = Array.isArray(item.actionNames) && item.actionNames.length
       ? item.actionNames.join(' | ')
@@ -870,66 +865,75 @@ function rebuildGestorData(source) {
       _raw: item
     };
   });
-  return { ...source, users, supervisors, schools, agenda, visits, agendaRows, visitRows, loadedAt: new Date(), lastSyncAt: Date.now() };
+
+  return {
+    users,
+    supervisors,
+    schools: normalizedSchools,
+    agenda,
+    visits,
+    goalJustifications,
+    monthlyGoals,
+    visitCorrectionRequests,
+    agendaRows,
+    visitRows,
+    syncedAtMs,
+    loadedAt: new Date()
+  };
 }
 
-async function changedSince(name, since, { optional = false } = {}) {
+async function changedCollection(name, sinceMs, { optional = false } = {}) {
   try {
-    return await getDocs(query(collection(db, name), where('updatedAt', '>', Timestamp.fromMillis(since))));
+    const threshold = Timestamp.fromMillis(Math.max(0, Number(sinceMs || 0) - 60000));
+    return await getDocs(query(collection(db, name), where('updatedAt', '>', threshold)));
   } catch (error) {
-    if (optional && error?.code === 'permission-denied') return { docs: [] };
+    if (optional && error?.code === 'permission-denied') return { docs: [], size: 0 };
     throw error;
   }
 }
 
-async function refreshGestorDataIncrementally(cachedData) {
-  const syncStartedAt = Date.now();
-  const since = Math.max(0, Number(cachedData.lastSyncAt || cachedData.loadedAt?.getTime?.() || 0) - 60000);
-  if (!since) return null;
-  const [usersDelta, supervisorsDelta, schoolsDelta, agendaDelta, visitsDelta, justificationsDelta, goalsDelta, correctionsDelta] = await Promise.all([
-    changedSince('users', since),
-    changedSince('supervisors', since),
-    changedSince('schools', since),
-    changedSince('agenda', since),
-    changedSince('visits', since),
-    changedSince('goalJustifications', since, { optional: true }),
-    changedSince('monthlyGoals', since, { optional: true }),
-    changedSince('visitCorrectionRequests', since, { optional: true })
+async function loadIncrementalGestorData(current) {
+  const sinceMs = Number(current?.syncedAtMs)
+    || current?.loadedAt?.getTime?.()
+    || 0;
+  if (!sinceMs) throw Object.assign(new Error('CACHE_WITHOUT_SYNC_MARK'), { code: 'cache/full-refresh-required' });
+
+  const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot, monthlyGoalSnapshot, correctionSnapshot] = await Promise.all([
+    changedCollection('users', sinceMs),
+    changedCollection('supervisors', sinceMs),
+    changedCollection('schools', sinceMs),
+    changedCollection('agenda', sinceMs),
+    changedCollection('visits', sinceMs),
+    changedCollection('goalJustifications', sinceMs, { optional: true }),
+    changedCollection('monthlyGoals', sinceMs, { optional: true }),
+    changedCollection('visitCorrectionRequests', sinceMs, { optional: true })
   ]);
-  const users = new Map(cachedData.users);
-  usersDelta.docs.forEach((item) => users.set(item.id, { id: item.id, ...item.data() }));
-  const supervisors = new Map(cachedData.supervisors);
-  supervisorsDelta.docs.forEach((item) => supervisors.set(item.id, { id: item.id, ...item.data() }));
-  return { ...rebuildGestorData({
-    ...cachedData,
-    users,
-    supervisors,
-    schools: mergeChangedItems(cachedData.schools, schoolsDelta),
-    agenda: mergeChangedItems(cachedData.agenda, agendaDelta),
-    visits: mergeChangedItems(cachedData.visits, visitsDelta),
-    goalJustifications: mergeChangedItems(cachedData.goalJustifications, justificationsDelta),
-    monthlyGoals: mergeChangedItems(cachedData.monthlyGoals, goalsDelta),
-    visitCorrectionRequests: mergeChangedItems(cachedData.visitCorrectionRequests, correctionsDelta)
-  }), lastSyncAt: syncStartedAt };
+
+  return composeGestorData({
+    users: mergeSnapshotIntoMap(current.users, userSnapshot),
+    supervisors: mergeSnapshotIntoMap(current.supervisors, supervisorSnapshot),
+    schools: mergeSnapshotIntoList(current.schools, schoolSnapshot),
+    agenda: mergeSnapshotIntoList(current.agenda, agendaSnapshot),
+    visits: mergeSnapshotIntoList(current.visits, visitSnapshot),
+    goalJustifications: mergeSnapshotIntoList(current.goalJustifications, justificationSnapshot),
+    monthlyGoals: mergeSnapshotIntoList(current.monthlyGoals, monthlyGoalSnapshot),
+    visitCorrectionRequests: mergeSnapshotIntoList(current.visitCorrectionRequests, correctionSnapshot)
+  });
+}
+
+async function optionalCollection(name) {
+  try {
+    return await getDocs(collection(db, name));
+  } catch (error) {
+    if (error?.code === 'permission-denied') return { docs: [], size: 0 };
+    throw error;
+  }
 }
 
 export async function loadGestorData({ refresh = false } = {}) {
   await requireAdmin();
   const fallback = sharedDataCache();
-  if (refresh && fallback?.data && fallback.uid === auth.currentUser?.uid) {
-    try {
-      const incremental = await refreshGestorDataIncrementally(fallback.data);
-      if (incremental) {
-        invalidateDataCache();
-        storeSharedData(incremental);
-        dataPromise = Promise.resolve(incremental);
-        return incremental;
-      }
-    } catch (error) {
-      console.warn('A sincronização incremental falhou; será feita uma atualização completa.', error);
-    }
-  }
-  if (refresh) invalidateDataCache({ discard: true });
+  if (refresh) dataPromise = undefined;
   const shared = sharedDataCache();
   const sharedGeneration = shared?.generation || 0;
   if (dataGeneration !== sharedGeneration) {
@@ -941,7 +945,15 @@ export async function loadGestorData({ refresh = false } = {}) {
   }
   if (!dataPromise) {
     dataPromise = (async () => {
-      const syncStartedAt = Date.now();
+      if (refresh && fallback?.data) {
+        try {
+          const incrementalData = await loadIncrementalGestorData(fallback.data);
+          storeSharedData(incrementalData);
+          return incrementalData;
+        } catch (error) {
+          console.warn('Sincronização incremental indisponível; realizando carga completa.', error);
+        }
+      }
       const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot, monthlyGoalSnapshot, correctionSnapshot] = await Promise.all([
         getDocs(collection(db, 'users')),
         getDocs(collection(db, 'supervisors')),
@@ -955,67 +967,13 @@ export async function loadGestorData({ refresh = false } = {}) {
 
       const users = new Map(userSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
       const supervisors = new Map(supervisorSnapshot.docs.map((item) => [item.id, { id: item.id, ...item.data() }]));
-      const schools = schoolSnapshot.docs.map((item) => {
-        const school = { id: item.id, ...item.data() };
-        return { ...school, supervisorIds: schoolSupervisorIds(school) };
-      });
-      const schoolMap = new Map(schools.map((item) => [item.id, item]));
+      const schools = schoolSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const agenda = agendaSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const visits = visitSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const goalJustifications = justificationSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const monthlyGoals = monthlyGoalSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const visitCorrectionRequests = correctionSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-
-      const agendaRows = agenda.map((item) => ({
-        'Data Agendada': brDate(item.scheduledDate),
-        'Data da Agenda': brDate(item.scheduledDate),
-        Data: brDate(item.scheduledDate),
-        Supervisor: supervisorName(item, supervisors),
-        Escola: item.schoolName || schoolMap.get(item.schoolId)?.name || '',
-        Turno: item.shift || '',
-        Status: statusLabel(item),
-        _id: item.id,
-        _raw: item
-      }));
-
-      const visitRows = visits.map((item) => {
-        const actionText = Array.isArray(item.actionNames) && item.actionNames.length
-          ? item.actionNames.join(' | ')
-          : item.folderAction || item.customSubject || '';
-        return {
-          'Data da Visita': brDate(item.visitDate),
-          'Data Visita': brDate(item.visitDate),
-          'Data do Registro': brDate(item.recordedAt),
-          Data: brDate(item.visitDate),
-          Supervisor: supervisorName(item, supervisors),
-          Escola: item.schoolName || schoolMap.get(item.schoolId)?.name || '',
-          Status: statusLabel(item),
-          Justificativa: item.justification || '',
-          'Motivo Operacional': item.operationalReason || '',
-          'Ações das Pastas': actionText,
-          'Ações': actionText,
-          'E-mail (Autor)': item.authorEmail || '',
-          Origem: item.visitType === 'direct' ? 'Registro direto' : 'Planejamento',
-          TipoOrigem: item.visitType === 'direct' ? 'Registro direto' : 'Planejamento',
-          _id: item.id,
-          _raw: item
-        };
-      });
-
-      const data = {
-        users,
-        supervisors,
-        schools,
-        agenda,
-        visits,
-        goalJustifications,
-        monthlyGoals,
-        visitCorrectionRequests,
-        agendaRows,
-        visitRows,
-        loadedAt: new Date(),
-        lastSyncAt: syncStartedAt
-      };
+      const data = composeGestorData({ users, supervisors, schools, agenda, visits, goalJustifications, monthlyGoals, visitCorrectionRequests });
       storeSharedData(data);
       return data;
     })();
