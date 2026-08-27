@@ -376,10 +376,11 @@ function backupValue(value) {
 
 export async function prepareOperationalSanitization() {
   await requireMasterAdmin();
-  const [agendaSnapshot, visitsSnapshot, justificationsSnapshot] = await Promise.all([
+  const [agendaSnapshot, visitsSnapshot, justificationsSnapshot, correctionsSnapshot] = await Promise.all([
     getDocs(collection(db, 'agenda')),
     getDocs(collection(db, 'visits')),
-    getDocs(collection(db, 'goalJustifications'))
+    getDocs(collection(db, 'goalJustifications')),
+    getDocs(collection(db, 'visitCorrectionRequests'))
   ]);
   const agendaIds = new Set(agendaSnapshot.docs.map((item) => item.id));
   const visitIds = new Set(visitsSnapshot.docs.map((item) => item.id));
@@ -392,23 +393,26 @@ export async function prepareOperationalSanitization() {
     agendaIds: [...agendaIds],
     visitIds: [...visitIds],
     justificationIds: relatedJustifications.map((item) => item.id),
+    correctionIds: correctionsSnapshot.docs.map((item) => item.id),
     backup: {
       schemaVersion: 1,
       generatedAt: new Date().toISOString(),
-      scope: ['agenda', 'visits', 'goalJustifications vinculadas'],
+      scope: ['agenda', 'visits', 'goalJustifications vinculadas', 'visitCorrectionRequests'],
       agenda: records(agendaSnapshot.docs),
       visits: records(visitsSnapshot.docs),
-      goalJustifications: records(relatedJustifications)
+      goalJustifications: records(relatedJustifications),
+      visitCorrectionRequests: records(correctionsSnapshot.docs)
     }
   };
 }
 
-export async function sanitizeOperationalTestData({ agendaIds = [], visitIds = [], justificationIds = [] } = {}) {
+export async function sanitizeOperationalTestData({ agendaIds = [], visitIds = [], justificationIds = [], correctionIds = [] } = {}) {
   await requireMasterAdmin();
   const targets = [
     ...agendaIds.map((id) => doc(db, 'agenda', id)),
     ...visitIds.map((id) => doc(db, 'visits', id)),
-    ...justificationIds.map((id) => doc(db, 'goalJustifications', id))
+    ...justificationIds.map((id) => doc(db, 'goalJustifications', id)),
+    ...correctionIds.map((id) => doc(db, 'visitCorrectionRequests', id))
   ];
   for (let index = 0; index < targets.length; index += 450) {
     const batch = writeBatch(db);
@@ -419,7 +423,8 @@ export async function sanitizeOperationalTestData({ agendaIds = [], visitIds = [
   return {
     agendaDeleted: agendaIds.length,
     visitsDeleted: visitIds.length,
-    justificationsDeleted: justificationIds.length
+    justificationsDeleted: justificationIds.length,
+    correctionsDeleted: correctionIds.length
   };
 }
 
@@ -456,17 +461,22 @@ export async function restoreOperationalBackup(backup, { replace = false } = {})
   const agenda = validateBackupRecords(backup.agenda, 'agenda');
   const visits = validateBackupRecords(backup.visits, 'visits');
   const goalJustifications = validateBackupRecords(backup.goalJustifications, 'goalJustifications');
+  // Backups anteriores a esta atualização não continham o histórico de
+  // correções. Eles continuam válidos e restauram essa coleção como vazia.
+  const visitCorrectionRequests = validateBackupRecords(backup.visitCorrectionRequests || [], 'visitCorrectionRequests');
   const records = [
     ...agenda.map((item) => ({ ...item, collectionName: 'agenda' })),
     ...visits.map((item) => ({ ...item, collectionName: 'visits' })),
-    ...goalJustifications.map((item) => ({ ...item, collectionName: 'goalJustifications' }))
+    ...goalJustifications.map((item) => ({ ...item, collectionName: 'goalJustifications' })),
+    ...visitCorrectionRequests.map((item) => ({ ...item, collectionName: 'visitCorrectionRequests' }))
   ];
 
   if (replace) {
     const snapshots = await Promise.all([
       getDocs(collection(db, 'agenda')),
       getDocs(collection(db, 'visits')),
-      getDocs(collection(db, 'goalJustifications'))
+      getDocs(collection(db, 'goalJustifications')),
+      getDocs(collection(db, 'visitCorrectionRequests'))
     ]);
     const currentAgendaIds = new Set(snapshots[0].docs.map((item) => item.id));
     const currentVisitIds = new Set(snapshots[1].docs.map((item) => item.id));
@@ -477,7 +487,8 @@ export async function restoreOperationalBackup(backup, { replace = false } = {})
     const targets = [
       ...snapshots[0].docs.map((item) => item.ref),
       ...snapshots[1].docs.map((item) => item.ref),
-      ...relatedJustifications.map((item) => item.ref)
+      ...relatedJustifications.map((item) => item.ref),
+      ...snapshots[3].docs.map((item) => item.ref)
     ];
     for (let index = 0; index < targets.length; index += 450) {
       const batch = writeBatch(db);
@@ -498,6 +509,7 @@ export async function restoreOperationalBackup(backup, { replace = false } = {})
     agendaRestored: agenda.length,
     visitsRestored: visits.length,
     justificationsRestored: goalJustifications.length,
+    correctionsRestored: visitCorrectionRequests.length,
     mode: replace ? 'replace' : 'merge'
   };
 }
@@ -827,6 +839,24 @@ export async function loadVisitCorrectionRequests() {
   await requireAdmin();
   const snapshot = await getDocs(collection(db, 'visitCorrectionRequests'));
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+export async function deleteVisitCorrectionRequest(requestId) {
+  await requireMasterAdmin();
+  const id = (requestId || '').toString().trim();
+  if (!id || id.includes('/')) {
+    throw Object.assign(new Error('INVALID_CORRECTION_ID'), { code: 'data/invalid-correction-id' });
+  }
+  const reference = doc(db, 'visitCorrectionRequests', id);
+  const snapshot = await getDoc(reference);
+  if (!snapshot.exists()) {
+    throw Object.assign(new Error('CORRECTION_NOT_FOUND'), { code: 'data/correction-not-found' });
+  }
+  const batch = writeBatch(db);
+  batch.delete(reference);
+  await batch.commit();
+  invalidateDataCache();
+  return { id, reviewStatus: snapshot.data().reviewStatus || 'pending' };
 }
 
 export async function reviewVisitCorrectionRequest(requestId, decision, reviewerNote = '') {

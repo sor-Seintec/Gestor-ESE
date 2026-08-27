@@ -2597,7 +2597,8 @@ html>body{padding:0}</style>
     const agenda=Array.isArray(backup?.agenda)?backup.agenda.length:0;
     const visits=Array.isArray(backup?.visits)?backup.visits.length:0;
     const justifications=Array.isArray(backup?.goalJustifications)?backup.goalJustifications.length:0;
-    return {agenda,visits,justifications};
+    const corrections=Array.isArray(backup?.visitCorrectionRequests)?backup.visitCorrectionRequests.length:0;
+    return {agenda,visits,justifications,corrections};
   }
   function validateSelectedBackup(backup){
     return Boolean(backup&&typeof backup==='object'&&Number(backup.schemaVersion)===1&&Array.isArray(backup.agenda)&&Array.isArray(backup.visits)&&Array.isArray(backup.goalJustifications));
@@ -2609,7 +2610,7 @@ html>body{padding:0}</style>
       const plan=await prepareOperationalSanitization();
       downloadBackupFile(plan.backup);
       const total=backupSummary(plan.backup);
-      status.textContent=`Backup gerado: ${total.agenda} agendamentos, ${total.visits} visitas e ${total.justifications} justificativas.`;
+      status.textContent=`Backup gerado: ${total.agenda} agendamentos, ${total.visits} visitas, ${total.justifications} justificativas e ${total.corrections} correções.`;
     }catch(error){status.textContent=dataErrorMessage(error)}finally{button.disabled=false}
   });
   byId('restoreOperationalBackupFile').addEventListener('change',async(event)=>{
@@ -2622,7 +2623,7 @@ html>body{padding:0}</style>
       if(!validateSelectedBackup(backup))throw new Error('INVALID_BACKUP');
       selectedOperationalBackup=backup;
       const total=backupSummary(backup),generated=backup.generatedAt?new Date(backup.generatedAt).toLocaleString('pt-BR'):'data não informada';
-      preview.textContent=`Backup de ${generated}: ${total.agenda} agendamentos, ${total.visits} visitas e ${total.justifications} justificativas.`;
+      preview.textContent=`Backup de ${generated}: ${total.agenda} agendamentos, ${total.visits} visitas, ${total.justifications} justificativas e ${total.corrections} correções.`;
       byId('restoreOperationalBackupButton').disabled=false;
     }catch(error){preview.textContent='Arquivo inválido. Selecione um JSON gerado pelo Gestor-ESE.';status.textContent='Nenhum dado foi alterado.'}
   });
@@ -2631,7 +2632,7 @@ html>body{padding:0}</style>
     const button=byId('restoreOperationalBackupButton'),status=byId('restoreOperationalBackupStatus');
     const replace=byId('restoreOperationalBackupMode').value==='replace';
     const total=backupSummary(selectedOperationalBackup);
-    const phrase=prompt(`RESTAURAÇÃO DO BACKUP\n\nArquivo selecionado:\n• ${total.agenda} agendamentos\n• ${total.visits} visitas\n• ${total.justifications} justificativas\n\nModo: ${replace?'SUBSTITUIR os dados operacionais atuais':'MESCLAR com os dados atuais'}\n\nDigite RESTAURAR BACKUP para confirmar:`);
+    const phrase=prompt(`RESTAURAÇÃO DO BACKUP\n\nArquivo selecionado:\n• ${total.agenda} agendamentos\n• ${total.visits} visitas\n• ${total.justifications} justificativas\n• ${total.corrections} solicitações de correção\n\nModo: ${replace?'SUBSTITUIR os dados operacionais atuais':'MESCLAR com os dados atuais'}\n\nDigite RESTAURAR BACKUP para confirmar:`);
     if(phrase!=='RESTAURAR BACKUP'){status.textContent='Restauração cancelada. Nenhum dado foi alterado.';return}
     button.disabled=true;status.textContent=replace?'Gerando backup preventivo dos dados atuais…':'Restaurando registros…';
     try{
@@ -2639,7 +2640,7 @@ html>body{padding:0}</style>
       status.textContent='Restaurando registros…';
       const result=await restoreOperationalBackup(selectedOperationalBackup,{replace});
       dataLoaded=false;window.loadPortalData?.();
-      status.textContent=`Restauração concluída: ${result.agendaRestored} agendamentos, ${result.visitsRestored} visitas e ${result.justificationsRestored} justificativas.`;
+      status.textContent=`Restauração concluída: ${result.agendaRestored} agendamentos, ${result.visitsRestored} visitas, ${result.justificationsRestored} justificativas e ${result.correctionsRestored} correções.`;
     }catch(error){status.textContent=error?.code==='backup/invalid-file'?'O arquivo não passou na validação. Nenhum dado foi restaurado.':dataErrorMessage(error)}finally{button.disabled=false}
   });
   byId('sanitizeOperationalDataButton').addEventListener('click',async()=>{
@@ -2648,12 +2649,12 @@ html>body{padding:0}</style>
     status.textContent='Contando os registros que serão removidos…';
     try{
       const plan=await prepareOperationalSanitization();
-      const agendaCount=plan.agendaIds.length,visitCount=plan.visitIds.length,justificationCount=plan.justificationIds.length;
-      if(!agendaCount&&!visitCount&&!justificationCount){
+      const agendaCount=plan.agendaIds.length,visitCount=plan.visitIds.length,justificationCount=plan.justificationIds.length,correctionCount=plan.correctionIds.length;
+      if(!agendaCount&&!visitCount&&!justificationCount&&!correctionCount){
         status.textContent='O banco operacional já está limpo.';
         return;
       }
-      const phrase=prompt(`SANITIZAÇÃO DO BANCO\n\nSerão removidos:\n• ${agendaCount} agendamentos\n• ${visitCount} visitas\n• ${justificationCount} justificativas vinculadas\n\nUsuários, supervisores, escolas, ações e metas serão preservados.\nUm backup JSON será baixado antes da exclusão.\n\nDigite LIMPAR DADOS DE TESTE para confirmar:`);
+      const phrase=prompt(`SANITIZAÇÃO DO BANCO\n\nSerão removidos:\n• ${agendaCount} agendamentos\n• ${visitCount} visitas\n• ${justificationCount} justificativas vinculadas\n• ${correctionCount} solicitações de correção\n\nUsuários, supervisores, escolas, ações e metas serão preservados.\nUm backup JSON será baixado antes da exclusão.\n\nDigite LIMPAR DADOS DE TESTE para confirmar:`);
       if(phrase!=='LIMPAR DADOS DE TESTE'){
         status.textContent='Sanitização cancelada. Nenhum dado foi removido.';
         return;
@@ -2664,7 +2665,7 @@ html>body{padding:0}</style>
       status.textContent='Backup gerado. Removendo os dados de teste…';
       const result=await sanitizeOperationalTestData(plan);
       await refreshRegistryData();
-      status.textContent=`Sanitização concluída: ${result.agendaDeleted} agendamentos, ${result.visitsDeleted} visitas e ${result.justificationsDeleted} justificativas removidos.`;
+      status.textContent=`Sanitização concluída: ${result.agendaDeleted} agendamentos, ${result.visitsDeleted} visitas, ${result.justificationsDeleted} justificativas e ${result.correctionsDeleted} correções removidos.`;
     }catch(error){
       status.textContent=dataErrorMessage(error);
     }finally{
