@@ -11,11 +11,13 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  query,
   runTransaction,
   serverTimestamp,
   setDoc,
   Timestamp,
   updateDoc,
+  where,
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-firestore.js';
 
@@ -821,9 +823,112 @@ async function optionalCollection(name) {
   }
 }
 
+function mergeChangedItems(current, snapshot) {
+  const map = new Map((current || []).map((item) => [item.id, item]));
+  snapshot.docs.forEach((item) => map.set(item.id, { id: item.id, ...item.data() }));
+  return [...map.values()].filter((item) => item.deleted !== true);
+}
+
+function rebuildGestorData(source) {
+  const users = source.users instanceof Map ? source.users : new Map(source.users || []);
+  const supervisors = source.supervisors instanceof Map ? source.supervisors : new Map(source.supervisors || []);
+  const schools = (source.schools || []).map((item) => ({ ...item, supervisorIds: schoolSupervisorIds(item) }));
+  const schoolMap = new Map(schools.map((item) => [item.id, item]));
+  const agenda = source.agenda || [];
+  const visits = source.visits || [];
+  const agendaRows = agenda.map((item) => ({
+    'Data Agendada': brDate(item.scheduledDate),
+    'Data da Agenda': brDate(item.scheduledDate),
+    Data: brDate(item.scheduledDate),
+    Supervisor: supervisorName(item, supervisors),
+    Escola: item.schoolName || schoolMap.get(item.schoolId)?.name || '',
+    Turno: item.shift || '',
+    Status: statusLabel(item),
+    _id: item.id,
+    _raw: item
+  }));
+  const visitRows = visits.map((item) => {
+    const actionText = Array.isArray(item.actionNames) && item.actionNames.length
+      ? item.actionNames.join(' | ')
+      : item.folderAction || item.customSubject || '';
+    return {
+      'Data da Visita': brDate(item.visitDate),
+      'Data Visita': brDate(item.visitDate),
+      'Data do Registro': brDate(item.recordedAt),
+      Data: brDate(item.visitDate),
+      Supervisor: supervisorName(item, supervisors),
+      Escola: item.schoolName || schoolMap.get(item.schoolId)?.name || '',
+      Status: statusLabel(item),
+      Justificativa: item.justification || '',
+      'Motivo Operacional': item.operationalReason || '',
+      'Ações das Pastas': actionText,
+      'Ações': actionText,
+      'E-mail (Autor)': item.authorEmail || '',
+      Origem: item.visitType === 'direct' ? 'Registro direto' : 'Planejamento',
+      TipoOrigem: item.visitType === 'direct' ? 'Registro direto' : 'Planejamento',
+      _id: item.id,
+      _raw: item
+    };
+  });
+  return { ...source, users, supervisors, schools, agenda, visits, agendaRows, visitRows, loadedAt: new Date(), lastSyncAt: Date.now() };
+}
+
+async function changedSince(name, since, { optional = false } = {}) {
+  try {
+    return await getDocs(query(collection(db, name), where('updatedAt', '>', Timestamp.fromMillis(since))));
+  } catch (error) {
+    if (optional && error?.code === 'permission-denied') return { docs: [] };
+    throw error;
+  }
+}
+
+async function refreshGestorDataIncrementally(cachedData) {
+  const syncStartedAt = Date.now();
+  const since = Math.max(0, Number(cachedData.lastSyncAt || cachedData.loadedAt?.getTime?.() || 0) - 60000);
+  if (!since) return null;
+  const [usersDelta, supervisorsDelta, schoolsDelta, agendaDelta, visitsDelta, justificationsDelta, goalsDelta, correctionsDelta] = await Promise.all([
+    changedSince('users', since),
+    changedSince('supervisors', since),
+    changedSince('schools', since),
+    changedSince('agenda', since),
+    changedSince('visits', since),
+    changedSince('goalJustifications', since, { optional: true }),
+    changedSince('monthlyGoals', since, { optional: true }),
+    changedSince('visitCorrectionRequests', since, { optional: true })
+  ]);
+  const users = new Map(cachedData.users);
+  usersDelta.docs.forEach((item) => users.set(item.id, { id: item.id, ...item.data() }));
+  const supervisors = new Map(cachedData.supervisors);
+  supervisorsDelta.docs.forEach((item) => supervisors.set(item.id, { id: item.id, ...item.data() }));
+  return { ...rebuildGestorData({
+    ...cachedData,
+    users,
+    supervisors,
+    schools: mergeChangedItems(cachedData.schools, schoolsDelta),
+    agenda: mergeChangedItems(cachedData.agenda, agendaDelta),
+    visits: mergeChangedItems(cachedData.visits, visitsDelta),
+    goalJustifications: mergeChangedItems(cachedData.goalJustifications, justificationsDelta),
+    monthlyGoals: mergeChangedItems(cachedData.monthlyGoals, goalsDelta),
+    visitCorrectionRequests: mergeChangedItems(cachedData.visitCorrectionRequests, correctionsDelta)
+  }), lastSyncAt: syncStartedAt };
+}
+
 export async function loadGestorData({ refresh = false } = {}) {
   await requireAdmin();
   const fallback = sharedDataCache();
+  if (refresh && fallback?.data && fallback.uid === auth.currentUser?.uid) {
+    try {
+      const incremental = await refreshGestorDataIncrementally(fallback.data);
+      if (incremental) {
+        invalidateDataCache();
+        storeSharedData(incremental);
+        dataPromise = Promise.resolve(incremental);
+        return incremental;
+      }
+    } catch (error) {
+      console.warn('A sincronização incremental falhou; será feita uma atualização completa.', error);
+    }
+  }
   if (refresh) invalidateDataCache({ discard: true });
   const shared = sharedDataCache();
   const sharedGeneration = shared?.generation || 0;
@@ -836,6 +941,7 @@ export async function loadGestorData({ refresh = false } = {}) {
   }
   if (!dataPromise) {
     dataPromise = (async () => {
+      const syncStartedAt = Date.now();
       const [userSnapshot, supervisorSnapshot, schoolSnapshot, agendaSnapshot, visitSnapshot, justificationSnapshot, monthlyGoalSnapshot, correctionSnapshot] = await Promise.all([
         getDocs(collection(db, 'users')),
         getDocs(collection(db, 'supervisors')),
@@ -907,7 +1013,8 @@ export async function loadGestorData({ refresh = false } = {}) {
         visitCorrectionRequests,
         agendaRows,
         visitRows,
-        loadedAt: new Date()
+        loadedAt: new Date(),
+        lastSyncAt: syncStartedAt
       };
       storeSharedData(data);
       return data;
