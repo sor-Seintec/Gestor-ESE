@@ -124,7 +124,10 @@ function cacheHost() {
 
 function sharedDataCache() {
   const memory = cacheHost()[DATA_CACHE_KEY] || null;
-  if (memory?.uid === auth.currentUser?.uid && memory.savedDay === localDayKey() && memory.expiresAt > Date.now()) return memory;
+  // Antes do login, memory?.uid e auth.currentUser?.uid são ambos undefined.
+  // Sem testar a existência de memory primeiro, a igualdade entre esses dois
+  // valores fazia o código tentar acessar savedDay em um objeto nulo.
+  if (memory && memory.uid === auth.currentUser?.uid && memory.savedDay === localDayKey() && memory.expiresAt > Date.now()) return memory;
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey(DATA_STORAGE_PREFIX)) || 'null');
     if (!parsed || parsed.uid !== auth.currentUser?.uid || parsed.savedDay !== localDayKey() || parsed.expiresAt <= Date.now()) return null;
