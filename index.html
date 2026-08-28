@@ -2161,7 +2161,7 @@ html>body{padding:0}</style>
     activateAdministratorAccess, activateSupervisorAccess, addSchoolSupervisor, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
     loadGestorData, loginAdmin, logoutAdmin, prepareOperationalSanitization, requireAdmin, restoreOperationalBackup, sanitizeOperationalTestData, setSchoolActive, setSupervisorActive,
     removeSchoolSupervisor
-  } from './firebase-gestor.js?v=20260828-access-fix-1';
+  } from './firebase-gestor.js?v=20260828-access-diagnostic-2';
   const loginScreen = document.getElementById('loginScreen');
   const loginMessage = document.getElementById('loginMessage');
   let dataLoaded = false;
@@ -2178,6 +2178,7 @@ html>body{padding:0}</style>
       const session = await loginAdmin(email, password);
       await activateSession(session);
     } catch (error) {
+      console.error('[Gestor-ESE] Falha ao autenticar ou montar a sessão administrativa:', error);
       loginMessage.textContent = authErrorMessage(error);
       loginScreen.hidden = false;
       loginScreen.style.display = 'flex';
@@ -2228,6 +2229,7 @@ html>body{padding:0}</style>
   try {
     await activateSession(await requireAdmin());
   } catch (error) {
+    console.error('[Gestor-ESE] Falha ao restaurar a sessão administrativa:', error);
     dataLoaded = false;
     loginScreen.hidden = false;
     loginScreen.style.display = 'flex';

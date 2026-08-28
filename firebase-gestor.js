@@ -182,6 +182,9 @@ export async function requireAdmin() {
     adminSessionPromise = (async () => {
       const user = auth.currentUser || await waitForAuthState();
       if (!user) throw Object.assign(new Error('AUTH_REQUIRED'), { code: 'auth/required' });
+      // Garante que uma sessão criada em outra máquina utilize um token atual,
+      // sem depender de credenciais que tenham ficado guardadas anteriormente.
+      await user.getIdToken(true);
       const shared = cacheHost()[ADMIN_CACHE_KEY];
       if (shared?.uid === user.uid && shared.expiresAt > Date.now()) {
         return { user, profile: shared.profile };
@@ -305,13 +308,17 @@ export function authErrorMessage(error) {
     'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
     'auth/network-request-failed': 'Não foi possível conectar ao Firebase.',
     'permission-denied': 'O login funcionou, mas as regras do Firestore impediram a leitura do perfil. Publique o arquivo firestore.rules atualizado.',
+    'firestore/permission-denied': 'O login funcionou, mas as regras do Firestore impediram a leitura do perfil. Publique o arquivo firestore.rules atualizado.',
     'resource-exhausted': 'A cota do Firebase foi excedida. Tente novamente após a renovação da cota.',
+    'firestore/resource-exhausted': 'A cota do Firebase foi excedida. Tente novamente após a renovação da cota.',
     'auth/required': 'Faça login para acessar o Gestor-ESE.',
     'access/admin-required': 'Esta conta não possui perfil de gestor.',
     'access/master-required': 'Somente o Administrador Master pode realizar este cadastro.',
     'access/profile-not-found': 'O perfil administrativo não foi encontrado.'
   };
-  return messages[error?.code] || 'Não foi possível validar o acesso administrativo.';
+  if (messages[error?.code]) return messages[error.code];
+  const technicalCode = (error?.code || error?.name || 'erro-desconhecido').toString();
+  return `Não foi possível validar o acesso administrativo. Código: ${technicalCode}.`;
 }
 
 function searchable(value) {
