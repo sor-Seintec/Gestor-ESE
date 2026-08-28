@@ -1,0 +1,246 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function activeUser() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.email == request.auth.token.email;
+    }
+
+    function isAdmin() {
+      return activeUser()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isMasterAdmin() {
+      return isAdmin()
+        && (
+          request.auth.token.email == 'desornit@prof.educacao.sp.gov.br'
+          || get(
+            /databases/$(database)/documents/users/$(request.auth.uid)
+          ).data.get('isMaster', false) == true
+        );
+    }
+
+    function isSupervisor() {
+      return activeUser()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'supervisor';
+    }
+
+    function ownsSupervisorProfile(supervisorId) {
+      return isSupervisor()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.supervisorId == supervisorId;
+    }
+
+    function schoolDataHasSupervisor(schoolData, supervisorId) {
+      return (schoolData.keys().hasAny(['supervisorIds'])
+          && supervisorId in schoolData.supervisorIds)
+        || (schoolData.keys().hasAny(['supervisorId'])
+          && schoolData.supervisorId == supervisorId);
+    }
+
+    function schoolBelongsToSupervisor(schoolId, supervisorId) {
+      return exists(/databases/$(database)/documents/schools/$(schoolId))
+        && get(/databases/$(database)/documents/schools/$(schoolId)).data.active == true
+        && schoolDataHasSupervisor(
+          get(/databases/$(database)/documents/schools/$(schoolId)).data,
+          supervisorId
+        );
+    }
+
+    function activeSchool(schoolId) {
+      return exists(/databases/$(database)/documents/schools/$(schoolId))
+        && get(/databases/$(database)/documents/schools/$(schoolId)).data.active == true;
+    }
+
+    function validVisitStatus(statusCode) {
+      return statusCode in ['completed', 'cancelled', 'postponed', 'justified'];
+    }
+
+    function validAgendaStatus(statusCode) {
+      return statusCode in ['scheduled', 'completed', 'cancelled', 'postponed', 'justified'];
+    }
+
+    match /users/{userId} {
+      // O usuário autenticado pode ler o próprio perfil. O portal valida
+      // active e role depois da leitura, evitando bloquear o login antes
+      // que essas informações possam ser verificadas.
+      allow get: if signedIn() && request.auth.uid == userId;
+
+      // Administradores ativos podem consultar a relação de usuários.
+      allow list: if isAdmin();
+
+      allow create, update, delete: if isMasterAdmin();
+    }
+
+    match /supervisors/{supervisorId} {
+      allow get: if isAdmin() || ownsSupervisorProfile(supervisorId);
+      allow list: if isAdmin();
+      allow create, update, delete: if isMasterAdmin();
+    }
+
+    // A meta mensal é registrada por período e supervisor. A meta semanal é
+    // derivada no portal, evitando dois valores que possam divergir.
+    match /monthlyGoals/{goalId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.supervisorId is string
+        && request.resource.data.period is string
+        && request.resource.data.monthlyGoal is int
+        && request.resource.data.monthlyGoal >= 0
+        && request.resource.data.monthlyGoal <= 999
+        && request.resource.data.updatedByUid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    match /schools/{schoolId} {
+      // A relação de escolas é institucional e pode ser consultada pelos
+      // usuários ativos. O planejamento continua filtrado pelo supervisor.
+      allow read: if activeUser();
+
+      // Cadastros, vínculos e desativações de escolas são exclusivos do Master.
+      allow create, update, delete: if isMasterAdmin();
+    }
+
+    match /visits/{visitId} {
+      allow read: if isAdmin()
+        || ownsSupervisorProfile(resource.data.supervisorId);
+
+      allow create: if isAdmin()
+        || (ownsSupervisorProfile(request.resource.data.supervisorId)
+          && request.resource.data.createdByUid == request.auth.uid
+          && request.resource.data.schemaVersion == 1
+          && validVisitStatus(request.resource.data.statusCode)
+          && activeSchool(request.resource.data.schoolId)
+          && (
+            (request.resource.data.visitType == 'planned'
+              && request.resource.data.assignedSupervisorId
+                == request.resource.data.supervisorId
+              && schoolBelongsToSupervisor(
+                request.resource.data.schoolId,
+                request.resource.data.supervisorId
+              ))
+            || request.resource.data.visitType == 'direct'
+          ));
+
+      allow update: if isAdmin()
+        || (ownsSupervisorProfile(resource.data.supervisorId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'visitDate',
+            'status',
+            'statusCode',
+            'justification',
+            'folderAction',
+            'updatedAt'
+          ]));
+
+      // Exclusão de histórico é uma operação de manutenção exclusiva do Master.
+      allow delete: if isMasterAdmin();
+    }
+
+    // Correções de status nunca alteram a visita diretamente pelo perfil do
+    // supervisor. A solicitação preserva o valor original até a análise da gestão.
+    match /visitCorrectionRequests/{requestId} {
+      allow read: if isAdmin()
+        || ownsSupervisorProfile(resource.data.supervisorId);
+
+      allow create: if isAdmin()
+        || (ownsSupervisorProfile(request.resource.data.supervisorId)
+          && request.resource.data.createdByUid == request.auth.uid
+          && request.resource.data.reviewStatus == 'pending'
+          && request.resource.data.schemaVersion == 1
+          && request.resource.data.visitId is string
+          && request.resource.data.reason is string
+          && request.resource.data.reason.size() >= 15
+          && request.resource.data.reason.size() <= 800
+          && validVisitStatus(request.resource.data.previousStatusCode)
+          && validVisitStatus(request.resource.data.requestedStatusCode)
+          && request.resource.data.previousStatusCode
+            != request.resource.data.requestedStatusCode
+          && exists(/databases/$(database)/documents/visits/$(request.resource.data.visitId))
+          && get(/databases/$(database)/documents/visits/$(request.resource.data.visitId)).data.supervisorId
+            == request.resource.data.supervisorId
+          && get(/databases/$(database)/documents/visits/$(request.resource.data.visitId)).data.statusCode
+            == request.resource.data.previousStatusCode);
+
+      allow update: if isAdmin();
+      allow delete: if isMasterAdmin();
+    }
+
+    match /agenda/{agendaId} {
+      allow read: if isAdmin()
+        || ownsSupervisorProfile(resource.data.supervisorId);
+
+      allow create: if isAdmin()
+        || (ownsSupervisorProfile(request.resource.data.supervisorId)
+          && request.resource.data.createdByUid == request.auth.uid
+          && request.resource.data.schemaVersion == 1
+          && request.resource.data.status == 'scheduled'
+          && schoolBelongsToSupervisor(
+            request.resource.data.schoolId,
+            request.resource.data.supervisorId
+          ));
+
+      allow update: if isAdmin()
+        || (ownsSupervisorProfile(resource.data.supervisorId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'scheduledDate',
+            'shift',
+            'status',
+            'updatedAt'
+          ])
+          && validAgendaStatus(request.resource.data.status));
+
+      // O Master pode fazer manutenção completa. Administradores e supervisores
+      // podem apagar somente planejamentos ainda sem resultado de visita.
+      allow delete: if isMasterAdmin()
+        || (isAdmin()
+          && resource.data.status == 'scheduled')
+        || (ownsSupervisorProfile(resource.data.supervisorId)
+          && resource.data.status == 'scheduled');
+    }
+
+    // Justificativas com possível impacto em metas ficam isoladas dos
+    // motivos operacionais de cancelamento e adiamento.
+    match /goalJustifications/{justificationId} {
+      allow read: if isAdmin()
+        || ownsSupervisorProfile(resource.data.supervisorId);
+
+      allow create: if isAdmin()
+        || (ownsSupervisorProfile(request.resource.data.supervisorId)
+          && request.resource.data.createdByUid == request.auth.uid
+          && request.resource.data.validationStatus == 'pending'
+          && request.resource.data.goalCreditRequested == 1
+          && request.resource.data.goalCreditApproved == 0
+          && request.resource.data.schemaVersion == 1
+          && activeSchool(request.resource.data.schoolId));
+
+      // Aprovação, rejeição e definição do crédito são feitas pelo
+      // módulo administrativo de justificativas do Gestor-ESE.
+      allow update: if isAdmin();
+      allow delete: if isMasterAdmin();
+    }
+
+    match /actions/{actionId} {
+      allow read: if activeUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /migrations/{migrationId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

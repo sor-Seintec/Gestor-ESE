@@ -922,7 +922,7 @@ html>body{padding:0}</style>
       <span class="ure-nav-label">Cadastros</span>
       <button type="button" class="ure-nav-item ure-master-only" id="openAdministratorRegistry" hidden><i data-lucide="shield-user" aria-hidden="true"></i><span>Administradores</span></button>
       <button type="button" class="ure-nav-item ure-master-only" id="openSupervisorRegistry" hidden><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
-      <button type="button" class="ure-nav-item" id="openSchoolRegistry"><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
+      <button type="button" class="ure-nav-item ure-master-only" id="openSchoolRegistry" hidden><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
       <span class="ure-nav-label ure-master-only" hidden>Sistema</span>
       <button type="button" class="ure-nav-item ure-master-only" id="openBackupRegistry" hidden><i data-lucide="database-backup" aria-hidden="true"></i><span>Backup e restauração</span></button>
@@ -2207,7 +2207,7 @@ html>body{padding:0}</style>
       : label.slice(0,2).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('userName').textContent = label;
-    const isMaster=(user.email||'').trim().toLowerCase()===MASTER_ADMIN_EMAIL;
+    const isMaster=profile.isMaster===true||(user.email||'').trim().toLowerCase()===MASTER_ADMIN_EMAIL;
     document.querySelectorAll('.ure-master-only').forEach((item)=>{item.hidden=!isMaster});
     document.getElementById('userRole').textContent = isMaster ? 'Administrador Master' : 'Administrador';
     document.getElementById('welcomeTitle').textContent = `Bem-vindo, ${parts[0]}.`;
