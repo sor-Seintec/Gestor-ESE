@@ -233,7 +233,17 @@ export async function loginAdmin(identifier, password) {
   invalidateDataCache({ discard: true });
   const email = administratorEmailFromLogin(identifier);
   await signInWithEmailAndPassword(auth, email, password);
-  return requireAdmin();
+  try {
+    return await requireAdmin();
+  } catch (error) {
+    // A autenticação e a autorização são etapas distintas. Se o perfil não
+    // puder ser validado, encerramos a sessão recém-criada para não deixar o
+    // navegador preso em um usuário autenticado, porém sem acesso ao portal.
+    adminSessionPromise = null;
+    delete cacheHost()[ADMIN_CACHE_KEY];
+    try { await signOut(auth); } catch (_) { /* preserva o erro original */ }
+    throw error;
+  }
 }
 
 export async function logoutAdmin() {
@@ -294,6 +304,8 @@ export function authErrorMessage(error) {
     'auth/invalid-login': 'Informe um usuário iniciado por adm, como admruivo.',
     'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
     'auth/network-request-failed': 'Não foi possível conectar ao Firebase.',
+    'permission-denied': 'O login funcionou, mas as regras do Firestore impediram a leitura do perfil. Publique o arquivo firestore.rules atualizado.',
+    'resource-exhausted': 'A cota do Firebase foi excedida. Tente novamente após a renovação da cota.',
     'auth/required': 'Faça login para acessar o Gestor-ESE.',
     'access/admin-required': 'Esta conta não possui perfil de gestor.',
     'access/master-required': 'Somente o Administrador Master pode realizar este cadastro.',
