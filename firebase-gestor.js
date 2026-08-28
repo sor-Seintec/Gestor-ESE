@@ -3,7 +3,9 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  setPersistence,
+  browserSessionPersistence
 } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js';
 import {
   collection,
@@ -32,6 +34,11 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Força a persistência por sessão para evitar bloqueios de rastreamento (Tracking Prevention)
+setPersistence(auth, browserSessionPersistence)
+  .catch((error) => console.warn('Aviso de persistência do Firebase:', error));
+
 export const db = getFirestore(app);
 export const MASTER_ADMIN_EMAIL = 'desornit@prof.educacao.sp.gov.br';
 const ACCESS_EMAIL_PREFIX = 'desornit+';
@@ -201,8 +208,7 @@ export async function requireAdmin() {
 
 export async function requireMasterAdmin() {
   const session = await requireAdmin();
-  const legacyMaster = (session.user.email || '').trim().toLowerCase() === MASTER_ADMIN_EMAIL;
-  if (session.profile.isMaster !== true && !legacyMaster) {
+  if ((session.user.email || '').trim().toLowerCase() !== MASTER_ADMIN_EMAIL) {
     throw Object.assign(new Error('MASTER_REQUIRED'), { code: 'access/master-required' });
   }
   return session;
@@ -638,8 +644,6 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
 
   const replacedProfiles = emailProfiles.filter((item) => item.id !== uid);
   const replacedUids = new Set(replacedProfiles.map((item) => item.id));
-  const preservedMasterAccess = existingUser?.isMaster === true
-    || replacedProfiles.some((item) => item.data().isMaster === true);
   const supervisorLinks = supervisorsSnapshot.docs.filter((item) => {
     const linkedUid = (item.data().authUid || '').toString().trim();
     return linkedUid === uid || replacedUids.has(linkedUid);
@@ -665,7 +669,6 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
     loginAlias: administratorLoginAlias(email),
     role: 'admin',
     active: true,
-    isMaster: preservedMasterAccess,
     mustChangePassword: true,
     schemaVersion: 1,
     createdByUid: session.user.uid,
@@ -680,14 +683,13 @@ export async function activateAdministratorAccess({ displayName, loginEmail, aut
     email,
     role: 'admin',
     active: true,
-    isMaster: preservedMasterAccess,
     replacedUids: [...replacedUids],
     supervisorLinksRemoved: supervisorLinks.map((item) => item.id)
   };
 }
 
 export async function createSchoolRecord({ name, supervisorId = null }) {
-  await requireMasterAdmin();
+  await requireAdmin();
   const schoolName = (name || '').trim();
   if (!schoolName) throw Object.assign(new Error('NAME_REQUIRED'), { code: 'data/name-required' });
   const snapshot = await getDocs(collection(db, 'schools'));
@@ -711,7 +713,7 @@ export async function createSchoolRecord({ name, supervisorId = null }) {
 }
 
 export async function addSchoolSupervisor(schoolId, supervisorId) {
-  await requireMasterAdmin();
+  await requireAdmin();
   if (!schoolId) throw Object.assign(new Error('SCHOOL_REQUIRED'), { code: 'data/school-required' });
   if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
   await runTransaction(db, async (transaction) => {
@@ -732,7 +734,7 @@ export async function addSchoolSupervisor(schoolId, supervisorId) {
 }
 
 export async function removeSchoolSupervisor(schoolId, supervisorId) {
-  await requireMasterAdmin();
+  await requireAdmin();
   if (!schoolId) throw Object.assign(new Error('SCHOOL_REQUIRED'), { code: 'data/school-required' });
   if (!supervisorId) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
   await runTransaction(db, async (transaction) => {
@@ -752,7 +754,7 @@ export async function removeSchoolSupervisor(schoolId, supervisorId) {
 }
 
 export async function setSchoolActive(schoolId, active) {
-  await requireMasterAdmin();
+  await requireAdmin();
   await updateDoc(doc(db, 'schools', schoolId), {
     active: active === true,
     updatedAt: serverTimestamp()
@@ -777,7 +779,7 @@ export function dataErrorMessage(error) {
     'data/uid-admin': 'Este UID pertence a uma conta administrativa e não pode ser alterado.',
     'data/uid-in-use': 'Este UID já está vinculado a outro usuário ou supervisor.',
     'data/current-admin-replacement': 'A conta administrativa usada nesta sessão não pode ser substituída. Entre com outro administrador para realizar essa troca.',
-    'access/master-required': 'Somente um Administrador Master pode realizar esta alteração.',
+    'access/master-required': 'Somente desornit@prof.educacao.sp.gov.br pode cadastrar administradores e supervisores.',
     'permission-denied': 'O Firebase não autorizou esta alteração.'
   };
   return messages[error?.code] || 'Não foi possível salvar a alteração.';
