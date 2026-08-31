@@ -299,12 +299,15 @@
     #ure-sharepoint-dialog .sp-head small { font-size:10px; font-weight:700; letter-spacing:1.2px; }
     #ure-sharepoint-dialog h2 { margin:5px 0 8px; font-size:22px; }
     #ure-sharepoint-dialog p { margin:0; font-size:13px; line-height:1.5; }
-    #ure-sharepoint-dialog .sp-close { flex-shrink:0; width:34px; height:34px; border:0; border-radius:10px; background:var(--theme-light, #eef5f9); color:inherit; font-size:24px; cursor:pointer; }
+    #ure-sharepoint-dialog .sp-close { flex-shrink:0; width:34px; height:34px; border:0; border-radius:10px; background:transparent; color:#dc2626; font-size:28px; font-weight:800; line-height:1; cursor:pointer; user-select:none; box-shadow:none; }
+    #ure-sharepoint-dialog .sp-close:hover { color:#b91c1c; background:transparent; }
     #ure-sharepoint-dialog .sp-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:14px; padding:24px; }
     #ure-sharepoint-dialog .sp-link { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:20px 12px; border:1px solid #dce7ef; border-radius:14px; text-align:center; text-decoration:none; color:inherit; font-size:13px; font-weight:600; line-height:1.4; overflow-wrap:anywhere; transition:transform .18s,box-shadow .18s; }
     #ure-sharepoint-dialog .sp-link:hover { transform:translateY(-3px); background:var(--theme-light, #f1f7fa); box-shadow:0 7px 20px #30577120; }
     #ure-sharepoint-dialog .sp-link svg { width:42px; height:42px; }
     #ure-sharepoint-dialog :focus-visible { outline:3px solid var(--theme-dark, #487f9f); outline-offset:3px; }
+    #ure-sharepoint-dialog .sp-close:focus-visible { outline:2px solid #dc2626; background:transparent; }
+    #ure-sharepoint-title:focus { outline:none; }
     @media (max-width:480px) { #ure-sharepoint-dialog .sp-grid { grid-template-columns:repeat(2,minmax(0,1fr)); padding:16px; gap:10px; } #ure-sharepoint-dialog .sp-head { padding:18px; } }
     @media (prefers-reduced-motion:reduce) { #ure-sharepoint-dialog .sp-link { transition:none; transform:none; } }
   `;
@@ -314,6 +317,9 @@
   dialog.setAttribute('aria-labelledby','ure-sharepoint-title');
   dialog.innerHTML = '<header class="sp-head"><div><small>SHAREPOINT</small><h2 id="ure-sharepoint-title"></h2><p>Selecione um documento ou pasta. O conteúdo abre em uma nova aba e pode solicitar seu acesso institucional.</p></div><button type="button" class="sp-close" aria-label="Fechar grupo">×</button></header><div class="sp-grid"></div>';
   root.append(dialog);
+  // O título recebe o foco inicial; o botão mantém indicação de foco pelo teclado.
+  dialog.querySelector('h2').setAttribute('tabindex', '-1');
+  dialog.querySelector('h2').setAttribute('autofocus', '');
   const grid = dialog.querySelector('.sp-grid');
   dialog.querySelector('.sp-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => {
@@ -355,4 +361,3 @@
     nav.append(button);
   });
 })();
-
