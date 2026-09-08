@@ -127,7 +127,8 @@ function sharedDataCache() {
   // Antes do login, memory?.uid e auth.currentUser?.uid são ambos undefined.
   // Sem testar a existência de memory primeiro, a igualdade entre esses dois
   // valores fazia o código tentar acessar savedDay em um objeto nulo.
-  if (memory && memory.uid === auth.currentUser?.uid && memory.savedDay === localDayKey() && memory.expiresAt > Date.now()) return memory;
+  if (memory && memory.uid === auth.currentUser?.uid && memory.savedDay === localDayKey()
+    && (memory.data === null || memory.expiresAt > Date.now())) return memory;
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey(DATA_STORAGE_PREFIX)) || 'null');
     if (!parsed || parsed.uid !== auth.currentUser?.uid || parsed.savedDay !== localDayKey() || parsed.expiresAt <= Date.now()) return null;
@@ -161,7 +162,8 @@ function invalidateDataCache({ discard = false } = {}) {
   dataPromise = undefined;
   const generation = (sharedDataCache()?.generation || 0) + 1;
   dataGeneration = generation;
-  cacheHost()[DATA_CACHE_KEY] = { generation, uid: auth.currentUser?.uid || '', data: null, expiresAt: 0 };
+  // Mantém a geração compartilhada e impede restaurar do disco os dados invalidados.
+  cacheHost()[DATA_CACHE_KEY] = { generation, uid: auth.currentUser?.uid || '', savedDay: localDayKey(), data: null, expiresAt: 0 };
   if (discard) {
     try { localStorage.removeItem(storageKey(DATA_STORAGE_PREFIX)); } catch (_) { /* sem impacto funcional */ }
   }
@@ -288,7 +290,7 @@ export async function saveMonthlyGoals(period, goals = []) {
     }, { merge: true });
   });
   await batch.commit();
-  invalidateDataCache();
+  invalidateDataCache({ discard: true });
 }
 
 export async function resetMonthlyGoals(period, supervisorIds = []) {
@@ -301,7 +303,7 @@ export async function resetMonthlyGoals(period, supervisorIds = []) {
   const batch = writeBatch(db);
   ids.forEach((supervisorId) => batch.delete(doc(db, 'monthlyGoals', `${period}_${supervisorId}`)));
   await batch.commit();
-  invalidateDataCache();
+  invalidateDataCache({ discard: true });
 }
 
 export function authErrorMessage(error) {
