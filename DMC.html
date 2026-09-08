@@ -78,6 +78,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
 @media(max-width:850px){body{padding:12px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.content-panel{overflow:auto}table{min-width:1000px}}
 @media(max-width:560px){.kpi-grid{grid-template-columns:1fr}.filters-panel{padding:14px}.filter-controls{display:grid;grid-template-columns:1fr}.filter-group{justify-content:space-between}.filter-group select{min-width:160px}}
 </style>
+<script src="./goal-rules.js"></script>
 </head>
 <body>
 
@@ -124,7 +125,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
       </tr></thead>
       <tbody id="tabela-body"><tr><td colspan="7" class="loading">Sincronizando com a Nuvem... <i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
     </table>
-    <div class="note"><i class="fa-solid fa-circle-info"></i> A meta mensal é carregada do Firebase. A meta semanal é calculada automaticamente dividindo a meta mensal em quatro semanas e arredondando para uma visita inteira.</div>
+    <div class="note"><i class="fa-solid fa-circle-info"></i> A meta mensal segue o ajuste salvo em Metas; sem ajuste, usa a referência do cadastro ou do planejamento. A meta semanal divide esse valor pelas semanas do mês (domingo a sábado, incluindo semanas parciais), arredondando para cima por supervisor.</div>
   </section>
 </div>
 
@@ -143,11 +144,12 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
 
 <script>
 
-    const META_PADRAO = { semanal: 3, mensal: 12 };
+    const META_PADRAO = { semanal: 0, mensal: 0 };
     
     let dadosNuvemGlobais = [];
     let metasNuvemGlobais = {};
     let metasMensaisGlobais = new Map();
+    let planejamentoGlobal = [];
     const LEGACY_GOAL_KEY = 'gestor-ese-metas-provisorias-v1';
     const fold = value => (value || '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -168,15 +170,20 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         const periodo = periodoDaMeta();
         const salva = cadastro.id ? metasMensaisGlobais.get(`${periodo}|${cadastro.id}`) : undefined;
         const anterior = metasAnteriores()[`${periodo}|${nome}`];
+        const planejadas = planejamentoGlobal.filter(row => {
+            const date = new Date(row['Data Agendada']);
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            return key === periodo && fold(row.Supervisor) === fold(nome);
+        }).length;
         const mensal = salva !== undefined
             ? Number(salva)
             : anterior !== undefined
               ? Number(anterior)
-              : Number(cadastro.mensal ?? META_PADRAO.mensal);
+              : Number(cadastro.mensal ?? planejadas);
         return {
             id: cadastro.id || '',
             mensal: Number.isFinite(mensal) ? mensal : META_PADRAO.mensal,
-            semanal: Math.ceil((Number.isFinite(mensal) ? mensal : META_PADRAO.mensal) / 4)
+            semanal: weeklyGoal(mensal, periodo)
         };
     }
 
@@ -231,9 +238,10 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
       try {
         const payload = await window.getGestorFirebaseData({refresh:forceRefresh});
         const dadosVistorias = payload.plannedVisitRows;
+        planejamentoGlobal = payload.agendaRows;
         const metasNuvem = Object.fromEntries([...payload.supervisors.values()].map(item => [fold(item.displayName || item.id), {
           id: item.id,
-          mensal: Number(item.monthlyGoal ?? META_PADRAO.mensal)
+          mensal: item.monthlyGoal
         }]));
         dadosNuvemGlobais = dadosVistorias;
         metasNuvemGlobais = metasNuvem;
@@ -496,7 +504,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     document.getElementById('adminSelectSup').addEventListener('change', preencherFormularioMeta);
     document.getElementById('adminMetaMensal').addEventListener('input', event => {
         const mensal = Math.max(0, Number(event.target.value) || 0);
-        document.getElementById('adminMetaSemanal').value = Math.ceil(mensal / 4);
+        document.getElementById('adminMetaSemanal').value = weeklyGoal(mensal, periodoDaMeta());
     });
 
     document.getElementById('formMetas').addEventListener('submit', async function(e) {
