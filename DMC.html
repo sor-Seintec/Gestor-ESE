@@ -101,7 +101,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
 
   <section class="kpi-grid">
     <div class="kpi-card kpi-blue"><span class="kpi-title">Meta do mês</span><div class="kpi-value" id="kpi-meta-mensal">0</div><div class="kpi-sub">visitas previstas</div><div class="kpi-icon"><i class="fa-solid fa-bullseye"></i></div><div class="mini-progress"><i id="kpiMonthBar" style="width:0%"></i></div></div>
-    <div class="kpi-card kpi-green"><span class="kpi-title">Realizado no mês</span><div class="kpi-value" id="kpi-total-visitas">0</div><div class="kpi-sub">visitas realizadas</div><div class="kpi-icon" style="background:var(--green-soft);color:var(--green)"><i class="fa-solid fa-chart-line"></i></div></div>
+    <div class="kpi-card kpi-green"><span class="kpi-title">Realizado no mês</span><div class="kpi-value" id="kpi-total-visitas">0</div><div class="kpi-sub">visitas realizadas do planejamento</div><div class="kpi-icon" style="background:var(--green-soft);color:var(--green)"><i class="fa-solid fa-chart-line"></i></div></div>
     <div class="kpi-card kpi-orange"><span class="kpi-title">Meta da semana</span><div class="kpi-value" id="kpi-meta-semana">0</div><div class="kpi-sub">meta semanal total</div><div class="kpi-icon" style="background:var(--orange-soft);color:#ea580c"><i class="fa-regular fa-calendar-check"></i></div><div class="progress-meta"><span id="weekMetaLabel">0 / 0</span><strong id="weekPercent">0%</strong></div><div class="mini-progress"><i id="weekBar" style="width:0%;background:var(--orange)"></i></div></div>
     <div class="kpi-card kpi-green"><span class="kpi-title">Realizado na semana</span><div class="kpi-value" id="kpi-real-semana">0</div><div class="kpi-sub">visitas na semana atual</div><div class="kpi-icon" style="background:var(--green-soft);color:var(--green)"><i class="fa-solid fa-check"></i></div></div>
     <div class="kpi-card kpi-blue"><span class="kpi-title">Desempenho mensal</span><div class="kpi-value" id="kpi-desempenho">0%</div><div class="kpi-sub">da meta atingida</div><div class="kpi-icon"><i class="fa-solid fa-gauge-high"></i></div></div>
@@ -230,7 +230,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     async function carregarPanoramaFirebase(forceRefresh = false) {
       try {
         const payload = await window.getGestorFirebaseData({refresh:forceRefresh});
-        const dadosVistorias = payload.visitRows;
+        const dadosVistorias = payload.plannedVisitRows;
         const metasNuvem = Object.fromEntries([...payload.supervisors.values()].map(item => [fold(item.displayName || item.id), {
           id: item.id,
           mensal: Number(item.monthlyGoal ?? META_PADRAO.mensal)
@@ -239,7 +239,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         metasNuvemGlobais = metasNuvem;
         metasMensaisGlobais = new Map((payload.monthlyGoals || []).map(item => [`${item.period}|${item.supervisorId}`, Number(item.monthlyGoal)]));
         
-        const anosSet = new Set();
+        const anosSet = new Set([new Date().getFullYear()]);
         const supSet = new Set();
         
         dadosVistorias.forEach(linha => {
@@ -296,6 +296,17 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
 
         const stats = {};
         let totalRealizadas = 0, totalPendentes = 0;
+
+        // A meta permanece mesmo quando o supervisor ainda não realizou planejamento.
+        Array.from(selectSup.options).forEach(option => {
+            const sup = option.value;
+            if (sup === 'todos' || (filtroSup !== 'todos' && sup !== filtroSup)) return;
+            stats[sup] = {
+                nome: sup, totalGeral: 0, concluidasTotais: 0, realizadasSemana: 0,
+                pendentesTotais: 0, ultimaVisita: null, escolasSemana: [],
+                justificativasMensal: [], justificativasSemana: []
+            };
+        });
 
         dadosFiltrados.forEach(linha => {
             const sup = linha['Supervisor'];

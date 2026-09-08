@@ -75,9 +75,9 @@ else queueMicrotask(() => decorateCloudSyncButton());
 let adminSessionPromise;
 let dataPromise;
 let dataGeneration = -1;
-const DATA_CACHE_KEY = '__GESTOR_ESE_FIREBASE_DATA_CACHE_V1__';
+const DATA_CACHE_KEY = '__GESTOR_ESE_FIREBASE_DATA_CACHE_V2__';
 const ADMIN_CACHE_KEY = '__GESTOR_ESE_ADMIN_SESSION_CACHE_V1__';
-const DATA_STORAGE_PREFIX = 'gestor-ese-daily-cache-v2';
+const DATA_STORAGE_PREFIX = 'gestor-ese-daily-cache-v3';
 
 function localDayKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -854,6 +854,9 @@ function mergeSnapshotIntoList(current, snapshot) {
 }
 
 function composeGestorData({ users, supervisors, schools, agenda, visits, goalJustifications, monthlyGoals, visitCorrectionRequests }, syncedAtMs = Date.now()) {
+  // Registros antigos sem visitType já eram tratados como planejamento.
+  // Particulares e origens desconhecidas não pertencem aos quadros do Gestor.
+  visits = visits.filter((item) => !item.visitType || ['planned', 'direct'].includes(item.visitType));
   const normalizedSchools = schools.map((school) => ({ ...school, supervisorIds: schoolSupervisorIds(school) }));
   const schoolMap = new Map(normalizedSchools.map((item) => [item.id, item]));
 
@@ -904,6 +907,7 @@ function composeGestorData({ users, supervisors, schools, agenda, visits, goalJu
     visitCorrectionRequests,
     agendaRows,
     visitRows,
+    plannedVisitRows: visitRows.filter((row) => row._raw.visitType !== 'direct'),
     syncedAtMs,
     loadedAt: new Date()
   };
