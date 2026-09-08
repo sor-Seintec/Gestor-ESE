@@ -26,7 +26,7 @@ O Gestor antigo e o Supervisor antigo, com `_` no nome, não são alterados por 
 
 - Os quadros, histórico e buscas do Gestor consideram planejamento (`planned`) e registros de escolas estaduais (`direct`). Visitas particulares (`private`) não entram em `visits` nem em `visitRows` fornecidos aos quadros.
 - O panorama mensal (`DMC.html`, botão “Ver panorama mensal”) usa `plannedVisitRows`. Somente registros do planejamento com status **Realizada** contam para o realizado mensal/semanal e cumprimento das metas. Adiamentos, cancelamentos e justificativas não somam visitas realizadas.
-- Supervisores sem visitas do planejamento continuam no panorama com realizado zero e sua meta configurada.
+- O panorama mostra somente supervisores com registros de visitas do planejamento no período filtrado. Sem registros, a tabela apresenta uma mensagem e os indicadores ficam zerados; metas de supervisores sem registros não entram nos totais. Registros cancelados, adiados ou justificados continuam visíveis, mas não contam como realizados.
 - Registros antigos sem `visitType` mantêm a classificação anterior de planejamento. Os demais quadros continuam considerando também os registros estaduais avulsos.
 - O filtro é de exibição e contagem: não exclui registros no Firebase nem altera o backup operacional.
 

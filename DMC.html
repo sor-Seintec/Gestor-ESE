@@ -297,17 +297,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         const stats = {};
         let totalRealizadas = 0, totalPendentes = 0;
 
-        // A meta permanece mesmo quando o supervisor ainda não realizou planejamento.
-        Array.from(selectSup.options).forEach(option => {
-            const sup = option.value;
-            if (sup === 'todos' || (filtroSup !== 'todos' && sup !== filtroSup)) return;
-            stats[sup] = {
-                nome: sup, totalGeral: 0, concluidasTotais: 0, realizadasSemana: 0,
-                pendentesTotais: 0, ultimaVisita: null, escolasSemana: [],
-                justificativasMensal: [], justificativasSemana: []
-            };
-        });
-
+        // Exibe supervisores e soma suas metas somente quando há registros no período.
         dadosFiltrados.forEach(linha => {
             const sup = linha['Supervisor'];
             const status = linha['Status'];
@@ -378,7 +368,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         tbody.innerHTML = '';
 
         if (!lista.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="loading">Nenhuma visita encontrada para estes filtros.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="loading">Nenhum registro de visita do planejamento encontrado para este período e supervisor.</td></tr>';
             return;
         }
 
