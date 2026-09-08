@@ -922,7 +922,6 @@ html>body{padding:0}</style>
       <span class="ure-nav-label">Cadastros</span>
       <button type="button" class="ure-nav-item ure-master-only" id="openAdministratorRegistry" hidden><i data-lucide="shield-user" aria-hidden="true"></i><span>Administradores</span></button>
       <button type="button" class="ure-nav-item ure-master-only" id="openSupervisorRegistry" hidden><i data-lucide="user-round" aria-hidden="true"></i><span>Supervisores</span></button>
-      <button type="button" class="ure-nav-item ure-master-only" id="openSchoolRegistry" hidden><i data-lucide="school" aria-hidden="true"></i><span>Escolas</span></button>
       <button type="button" class="ure-nav-item" data-url="meta.html?abrir=metas"><i data-lucide="target" aria-hidden="true"></i><span>Metas</span></button>
       <span class="ure-nav-label ure-master-only" hidden>Sistema</span>
       <button type="button" class="ure-nav-item ure-master-only" id="openBackupRegistry" hidden><i data-lucide="database-backup" aria-hidden="true"></i><span>Backup e restauração</span></button>
@@ -2517,7 +2516,7 @@ html>body{padding:0}</style>
 
   async function openRegistry(id) {
     const modal = byId(id);
-    const sourceByModal={administratorRegistryModal:'openAdministratorRegistry',supervisorRegistryModal:'openSupervisorRegistry',schoolRegistryModal:'openSchoolRegistry',backupRegistryModal:'openBackupRegistry'};
+    const sourceByModal={administratorRegistryModal:'openAdministratorRegistry',supervisorRegistryModal:'openSupervisorRegistry',backupRegistryModal:'openBackupRegistry'};
     const source = byId(sourceByModal[id]);
     if (id === 'administratorRegistryModal') {
       registry.pendingAdministrator=null;
@@ -2558,7 +2557,6 @@ html>body{padding:0}</style>
 
   byId('openAdministratorRegistry').addEventListener('click',()=>openRegistry('administratorRegistryModal'));
   byId('openSupervisorRegistry').addEventListener('click',()=>openRegistry('supervisorRegistryModal'));
-  byId('openSchoolRegistry').addEventListener('click',()=>openRegistry('schoolRegistryModal'));
   byId('openBackupRegistry').addEventListener('click',()=>openRegistry('backupRegistryModal'));
   document.querySelectorAll('[data-admin-close]').forEach((button)=>button.addEventListener('click',()=>closeRegistry(button.dataset.adminClose)));
   document.addEventListener('keydown',(event)=>{if(event.key==='Escape')document.querySelectorAll('.ure-admin-modal:not([hidden])').forEach((item)=>closeRegistry(item.id))});

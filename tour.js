@@ -74,7 +74,6 @@
       {selector:'.ure-nav',title:'Navegação do portal',text:'Use estes atalhos para acessar cadastros, metas, correções de status, localização das escolas e a Equipe ESE.'},
       {selector:'#openAdministratorRegistry',title:'Administradores',text:'Somente o administrador master visualiza esta opção e pode preparar novos acessos administrativos.',tip:'Outros administradores não podem cadastrar administradores nem supervisores.'},
       {selector:'#openSupervisorRegistry',title:'Supervisores',text:'O administrador master prepara supervisores, vincula o perfil ao acesso e organiza as escolas acompanhadas.'},
-      {selector:'#openSchoolRegistry',title:'Cadastro de escolas',text:'Cadastre escolas e gerencie os vínculos com um ou mais supervisores sem substituir vínculos existentes.'},
       {selector:'.ure-user',title:'Conta conectada',text:'Confira o nome e o perfil atual. O ícone de saída encerra o acesso com segurança.',tip:'Sempre saia do portal ao terminar o trabalho em computadores compartilhados.'},
       {selector:'.ure-topbar',title:'Visão geral',text:'Esta é a página inicial da gestão. Aqui você acompanha os principais números e acessa rapidamente todas as análises.'},
       {selector:'#searchOpenButton',title:'Busca em tempo real',text:'Pesquise registros por supervisor, escola, status, ação ou autor. A consulta também pode ser aberta com Ctrl + K.'},
