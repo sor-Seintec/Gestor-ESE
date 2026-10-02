@@ -1074,8 +1074,8 @@ html>body{padding:0}</style>
     </div>
     <div class="ure-search-results">
       <table>
-        <thead><tr><th>Data</th><th>Origem</th><th>Supervisor</th><th>Escola</th><th>Status</th><th>Ações/Justificativa</th><th>Autor</th></tr></thead>
-        <tbody id="globalSearchBody"><tr><td colspan="7" class="ure-search-empty">Abra a busca para consultar os registros.</td></tr></tbody>
+        <thead><tr><th>Data</th><th>Origem</th><th>Supervisor</th><th>Escola</th><th>Status</th><th>Ações/Justificativa</th><th>Autor</th><th>Ação</th></tr></thead>
+        <tbody id="globalSearchBody"><tr><td colspan="8" class="ure-search-empty">Abra a busca para consultar os registros.</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -1584,6 +1584,12 @@ html>body{padding:0}</style>
   .ure-search-results td { max-width:290px; padding:12px 13px; border-bottom:1px solid #edf1f3; color:#354e5e; font-weight:500; vertical-align:top; overflow-wrap:anywhere; }
   .ure-search-results tbody tr:hover td { background:#f5f9fb; }
   .ure-search-results td:nth-child(3),.ure-search-results td:nth-child(4) { color:#1d3a4e; font-weight:700; }
+  .ure-visit-maintenance { min-height:34px; padding:0 10px; border:1px solid #e7bcbc; border-radius:9px; background:#fff7f7; color:#a43e3e; cursor:pointer; font:750 12px/1 inherit; white-space:nowrap; }
+  .ure-visit-maintenance:hover { background:#fbe9e9; }
+  .ure-visit-maintenance.is-restore { border-color:#b8ddc7; background:#f2faf5; color:#28734b; }
+  .ure-visit-maintenance.is-restore:hover { background:#e5f5ec; }
+  .ure-visit-maintenance:disabled { cursor:wait; opacity:.55; }
+  .ure-search-void-note { display:block; max-width:190px; margin-top:5px; color:#7b6870; font-size:10px; line-height:1.35; }
   .ure-search-empty { height:220px; text-align:center; color:#6b7e8a !important; vertical-align:middle !important; }
   .ure-search-badge { display:inline-flex; align-items:center; padding:4px 9px; border-radius:999px; background:#e9eff3; color:#4e6675; font-size:11px; font-weight:750; white-space:nowrap; }
   .ure-search-badge.is-done { background:#e1f1e8; color:#28734b; }
@@ -2029,7 +2035,13 @@ html>body{padding:0}</style>
       const date = parsePortalDate(value);
       return date ? new Intl.DateTimeFormat('pt-BR').format(date) : normalize(value);
     };
+    const formatSearchDateTime = (value) => {
+      if (!value) return '';
+      const date = parsePortalDate(value);
+      return date ? new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(date) : '';
+    };
     const mapSearchRecord = (row) => ({
+      id: row._id || '',
       date: row['Data da Visita'] || row['Data Visita'] || row.Data || row['Data do Registro'] || '',
       origin: row.TipoOrigem || row.Origem || 'Oficial',
       supervisor: row.Supervisor || '',
@@ -2038,12 +2050,17 @@ html>body{padding:0}</style>
       justification: row.Justificativa || '',
       actions: row['Ações das Pastas'] || row['Ações'] || '',
       email: row['E-mail (Autor)'] || row['Email Autor'] || '-',
+      visitType: row._raw?.visitType || '',
+      isVoided: row._raw?.isVoided === true || (row._raw?.isVoided !== false && row._raw?.voidedAt != null),
+      voidReason: row._raw?.voidReason || '',
+      voidedAt: row._raw?.voidedAt || null,
+      voidedByEmail: row._raw?.voidedByEmail || '',
       searchText: normalizeSearchText(Object.values(row).join(' '))
     });
     const statusClass = (status) => {
       const value = normalizeSearchText(status);
       if (value.includes('realizada') || value.includes('visitado')) return 'is-done';
-      if (value.includes('cancelada')) return 'is-cancelled';
+      if (value.includes('cancelada') || value.includes('anulada')) return 'is-cancelled';
       if (value.includes('adiada')) return 'is-postponed';
       if (value.includes('justificada')) return 'is-justified';
       return '';
@@ -2064,7 +2081,7 @@ html>body{padding:0}</style>
       if (!searchResults.length) {
         const row = document.createElement('tr');
         const cell = addSearchCell(row, 'Nenhum registro contém o conteúdo pesquisado.', 'ure-search-empty');
-        cell.colSpan = 7;
+        cell.colSpan = 8;
         searchBody.appendChild(row);
         searchLimit.textContent = '';
         return;
@@ -2085,6 +2102,27 @@ html>body{padding:0}</style>
         row.appendChild(statusCell);
         addSearchCell(row, record.actions || record.justification);
         addSearchCell(row, record.email);
+        const actionCell = document.createElement('td');
+        if (window.gestorCanVoidVisits === true && record.visitType === 'direct') {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `ure-visit-maintenance${record.isVoided ? ' is-restore' : ''}`;
+          button.dataset.visitAction = record.isVoided ? 'restore' : 'void';
+          button.dataset.visitId = record.id;
+          button.textContent = record.isVoided ? 'Reativar' : 'Anular';
+          button.setAttribute('aria-label', `${record.isVoided ? 'Reativar' : 'Anular'} registro direto de ${record.school}, ${record.date}`);
+          actionCell.appendChild(button);
+          if (record.isVoided && record.voidReason) {
+            const note = document.createElement('small');
+            note.className = 'ure-search-void-note';
+            const when = formatSearchDateTime(record.voidedAt);
+            note.textContent = `Anulado${when ? ` em ${when}` : ''}${record.voidedByEmail ? ` por ${record.voidedByEmail}` : ''}. Motivo: ${record.voidReason}`;
+            actionCell.appendChild(note);
+          }
+        } else {
+          actionCell.textContent = '—';
+        }
+        row.appendChild(actionCell);
         fragment.appendChild(row);
       });
       searchBody.appendChild(fragment);
@@ -2092,13 +2130,15 @@ html>body{padding:0}</style>
     }
     async function fetchSearchRows() {
       const data = await window.getGestorFirebaseData();
-      return data.visitRows.map(mapSearchRecord).sort((a,b) => (parsePortalDate(b.date)?.getTime() || 0) - (parsePortalDate(a.date)?.getTime() || 0));
+      return [...data.visitRows, ...(data.voidedVisitRows || [])]
+        .map(mapSearchRecord)
+        .sort((a,b) => (parsePortalDate(b.date)?.getTime() || 0) - (parsePortalDate(a.date)?.getTime() || 0));
     }
     async function refreshSearch() {
       searchStatus.textContent = 'Consultando o banco em tempo real…';
       searchLimit.textContent = '';
       searchExport.disabled = true;
-      searchBody.innerHTML = '<tr><td colspan="7" class="ure-search-empty">Carregando registros…</td></tr>';
+      searchBody.innerHTML = '<tr><td colspan="8" class="ure-search-empty">Carregando registros…</td></tr>';
       try {
         searchRows = await fetchSearchRows();
         renderSearchResults();
@@ -2107,7 +2147,7 @@ html>body{padding:0}</style>
         searchRows = [];
         searchResults = [];
         searchStatus.textContent = 'Não foi possível consultar o banco.';
-        searchBody.innerHTML = '<tr><td colspan="7" class="ure-search-empty">Verifique a conexão e tente novamente.</td></tr>';
+        searchBody.innerHTML = '<tr><td colspan="8" class="ure-search-empty">Verifique a conexão e tente novamente.</td></tr>';
       }
     }
     async function openSearchModal() {
@@ -2124,10 +2164,10 @@ html>body{padding:0}</style>
     const csvValue = (value) => `"${normalize(value).replace(/"/g,'""').replace(/[\r\n]+/g,' ')}"`;
     function exportSearchResults() {
       if (!searchResults.length) return;
-      const header = ['Data','Origem','Supervisor','Escola','Status','Ações/Justificativa','Autor'];
+      const header = ['Data','Origem','Supervisor','Escola','Status','Ações/Justificativa','Autor','Motivo da anulação'];
       const lines = searchResults.map((record) => [
         formatSearchDate(record.date),record.origin,record.supervisor,record.school,record.status,
-        record.actions || record.justification,record.email
+        record.actions || record.justification,record.email,record.voidReason
       ].map(csvValue).join(';'));
       const blob = new Blob([`\uFEFF${header.map(csvValue).join(';')}\n${lines.join('\n')}`], {type:'text/csv;charset=utf-8;'});
       const url = URL.createObjectURL(blob);
@@ -2140,6 +2180,45 @@ html>body{padding:0}</style>
     document.getElementById('searchOpenButton').addEventListener('click', openSearchModal);
     document.querySelectorAll('[data-search-close]').forEach((element) => element.addEventListener('click', closeSearchModal));
     document.getElementById('globalSearchButton').addEventListener('click', renderSearchResults);
+    searchBody.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-visit-action]');
+      if (!button || window.gestorCanVoidVisits !== true) return;
+      const record = searchResults.find((item) => item.id === button.dataset.visitId);
+      if (!record || record.visitType !== 'direct') return;
+      const identity = `Data: ${formatSearchDate(record.date)}\nSupervisor: ${record.supervisor}\nEscola: ${record.school}\nAção: ${record.actions || 'Não informada'}\nAutor: ${record.email}\nID do registro: ${record.id}`;
+      const isRestore = button.dataset.visitAction === 'restore';
+      try {
+        button.disabled = true;
+        if (isRestore) {
+          if (!window.confirm(`REATIVAR ESTE REGISTRO DIRETO?\n\n${identity}\n\nEle voltará aos indicadores e relatórios.`)) return;
+          await window.restoreGestorDirectVisit(record.id);
+        } else {
+          const reason = window.prompt(`Informe o motivo da anulação (mínimo 5 caracteres).\n\n${identity}`, '');
+          if (reason === null) return;
+          if (reason.trim().length < 5) {
+            window.alert('Informe um motivo com pelo menos 5 caracteres.');
+            return;
+          }
+          if (!window.confirm(`CONFIRME A ANULAÇÃO DESTE REGISTRO DIRETO\n\n${identity}\n\nMotivo: ${reason.trim()}\n\nO documento ficará guardado para auditoria e poderá ser reativado.`)) return;
+          await window.voidGestorDirectVisit(record.id, reason.trim());
+        }
+        await window.loadPortalData?.(true);
+        await refreshSearch();
+        searchStatus.textContent = isRestore
+          ? 'Registro reativado; ele voltou aos indicadores.'
+          : 'Registro anulado; foi retirado dos indicadores e mantido para auditoria.';
+      } catch (error) {
+        console.error('Falha na manutenção do registro direto:', error);
+        const message = error?.code === 'access/master-required'
+          ? 'Apenas Administrador Master pode anular ou reativar registros.'
+          : String(error?.code || '').includes('permission-denied')
+            ? 'O Firebase não autorizou a alteração. Confira as regras do Firestore para atualização por Administrador Master.'
+            : 'Não foi possível concluir a manutenção. Atualize os dados e tente novamente.';
+        window.alert(message);
+      } finally {
+        if (button.isConnected) button.disabled = false;
+      }
+    });
     searchExport.addEventListener('click', exportSearchResults);
     searchInput.addEventListener('input', () => {
       window.clearTimeout(searchTimer);
@@ -2160,8 +2239,8 @@ html>body{padding:0}</style>
   import {
     activateAdministratorAccess, activateSupervisorAccess, addSchoolSupervisor, auth, authErrorMessage, createSchoolRecord, createSupervisorProfile, dataErrorMessage, MASTER_ADMIN_EMAIL,
     loadGestorData, loginAdmin, logoutAdmin, prepareOperationalSanitization, requireAdmin, restoreOperationalBackup, sanitizeOperationalTestData, setSchoolActive, setSupervisorActive,
-    removeSchoolSupervisor
-  } from './firebase-gestor.js?v=20260828-access-fix-3';
+    removeSchoolSupervisor, restoreDirectVisit, voidDirectVisit
+  } from './firebase-gestor.js?v=20261001-direct-visit-voiding';
   const loginScreen = document.getElementById('loginScreen');
   const loginMessage = document.getElementById('loginMessage');
   let dataLoaded = false;
@@ -2192,6 +2271,7 @@ html>body{padding:0}</style>
   document.getElementById('btnLogout').addEventListener('click', async () => {
     if (window.confirm('Deseja sair do Portal URE?')) {
       await logoutAdmin();
+      window.gestorCanVoidVisits = false;
       dataLoaded = false;
       loginScreen.hidden = false;
       loginScreen.style.display = 'flex';
@@ -2209,6 +2289,7 @@ html>body{padding:0}</style>
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('userName').textContent = label;
     const isMaster=profile.isMaster===true||(user.email||'').trim().toLowerCase()===MASTER_ADMIN_EMAIL;
+    window.gestorCanVoidVisits=isMaster;
     document.querySelectorAll('.ure-master-only').forEach((item)=>{item.hidden=!isMaster});
     document.getElementById('userRole').textContent = isMaster ? 'Administrador Master' : 'Administrador';
     document.getElementById('welcomeTitle').textContent = `Bem-vindo, ${parts[0]}.`;
@@ -2219,6 +2300,8 @@ html>body{padding:0}</style>
   }
 
   window.getGestorFirebaseData = loadGestorData;
+  window.voidGestorDirectVisit = voidDirectVisit;
+  window.restoreGestorDirectVisit = restoreDirectVisit;
   document.getElementById('refreshButton')?.addEventListener('click', async () => {
     const button = document.getElementById('refreshButton');
     button.disabled = true;

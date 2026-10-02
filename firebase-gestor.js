@@ -6,6 +6,7 @@ import {
   signOut
 } from 'https://www.gstatic.com/firebasejs/12.17.0/firebase-auth.js';
 import {
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -855,10 +856,16 @@ function mergeSnapshotIntoList(current, snapshot) {
   return [...merged.values()];
 }
 
+function isVoidedVisit(item) {
+  return item?.isVoided === true || (item?.isVoided !== false && item?.voidedAt != null);
+}
+
 function composeGestorData({ users, supervisors, schools, agenda, visits, goalJustifications, monthlyGoals, visitCorrectionRequests }, syncedAtMs = Date.now()) {
   // Registros antigos sem visitType já eram tratados como planejamento.
   // Particulares e origens desconhecidas não pertencem aos quadros do Gestor.
-  visits = visits.filter((item) => !item.visitType || ['planned', 'direct'].includes(item.visitType));
+  const allVisits = visits.filter((item) => !item.visitType || ['planned', 'direct'].includes(item.visitType));
+  const voidedVisits = allVisits.filter(isVoidedVisit);
+  visits = allVisits.filter((item) => !isVoidedVisit(item));
   const normalizedSchools = schools.map((school) => ({ ...school, supervisorIds: schoolSupervisorIds(school) }));
   const schoolMap = new Map(normalizedSchools.map((item) => [item.id, item]));
 
@@ -874,7 +881,7 @@ function composeGestorData({ users, supervisors, schools, agenda, visits, goalJu
     _raw: item
   }));
 
-  const visitRows = visits.map((item) => {
+  const mapVisitRow = (item) => {
     const actionText = Array.isArray(item.actionNames) && item.actionNames.length
       ? item.actionNames.join(' | ')
       : item.folderAction || item.customSubject || '';
@@ -885,9 +892,10 @@ function composeGestorData({ users, supervisors, schools, agenda, visits, goalJu
       Data: brDate(item.visitDate),
       Supervisor: supervisorName(item, supervisors),
       Escola: item.schoolName || schoolMap.get(item.schoolId)?.name || '',
-      Status: statusLabel(item),
+      Status: isVoidedVisit(item) ? 'Anulada' : statusLabel(item),
       Justificativa: item.justification || '',
       'Motivo Operacional': item.operationalReason || '',
+      'Motivo da anulação': item.voidReason || '',
       'Ações das Pastas': actionText,
       'Ações': actionText,
       'E-mail (Autor)': item.authorEmail || '',
@@ -896,7 +904,9 @@ function composeGestorData({ users, supervisors, schools, agenda, visits, goalJu
       _id: item.id,
       _raw: item
     };
-  });
+  };
+  const visitRows = visits.map(mapVisitRow);
+  const voidedVisitRows = voidedVisits.map(mapVisitRow);
 
   return {
     users,
@@ -904,11 +914,13 @@ function composeGestorData({ users, supervisors, schools, agenda, visits, goalJu
     schools: normalizedSchools,
     agenda,
     visits,
+    allVisits,
     goalJustifications,
     monthlyGoals,
     visitCorrectionRequests,
     agendaRows,
     visitRows,
+    voidedVisitRows,
     plannedVisitRows: visitRows.filter((row) => row._raw.visitType !== 'direct'),
     syncedAtMs,
     loadedAt: new Date()
@@ -947,7 +959,7 @@ async function loadIncrementalGestorData(current) {
     supervisors: mergeSnapshotIntoMap(current.supervisors, supervisorSnapshot),
     schools: mergeSnapshotIntoList(current.schools, schoolSnapshot),
     agenda: mergeSnapshotIntoList(current.agenda, agendaSnapshot),
-    visits: mergeSnapshotIntoList(current.visits, visitSnapshot),
+    visits: mergeSnapshotIntoList(current.allVisits || current.visits, visitSnapshot),
     goalJustifications: mergeSnapshotIntoList(current.goalJustifications, justificationSnapshot),
     monthlyGoals: mergeSnapshotIntoList(current.monthlyGoals, monthlyGoalSnapshot),
     visitCorrectionRequests: mergeSnapshotIntoList(current.visitCorrectionRequests, correctionSnapshot)
@@ -1034,6 +1046,87 @@ const correctionStatusLabels = {
 export async function loadVisitCorrectionRequests({ refresh = false } = {}) {
   const data = await loadGestorData({ refresh });
   return data.visitCorrectionRequests || [];
+}
+
+export async function voidDirectVisit(visitId, reason) {
+  const session = await requireMasterAdmin();
+  const id = (visitId || '').toString().trim();
+  const normalizedReason = (reason || '').toString().trim();
+  if (!id || id.includes('/')) {
+    throw Object.assign(new Error('INVALID_VISIT_ID'), { code: 'data/invalid-visit-id' });
+  }
+  if (normalizedReason.length < 5 || normalizedReason.length > 500) {
+    throw Object.assign(new Error('VOID_REASON_REQUIRED'), { code: 'data/void-reason-required' });
+  }
+
+  await runTransaction(db, async (transaction) => {
+    const reference = doc(db, 'visits', id);
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists()) throw Object.assign(new Error('VISIT_NOT_FOUND'), { code: 'data/visit-not-found' });
+    const visit = snapshot.data();
+    if (visit.visitType !== 'direct') {
+      throw Object.assign(new Error('DIRECT_VISIT_REQUIRED'), { code: 'data/direct-visit-required' });
+    }
+    if (isVoidedVisit(visit)) {
+      throw Object.assign(new Error('VISIT_ALREADY_VOIDED'), { code: 'data/visit-already-voided' });
+    }
+    transaction.update(reference, {
+      isVoided: true,
+      voidReason: normalizedReason,
+      voidedAt: serverTimestamp(),
+      voidedByUid: session.user.uid,
+      voidedByEmail: session.user.email || '',
+      maintenanceHistory: arrayUnion({
+        action: 'void',
+        reason: normalizedReason,
+        actorUid: session.user.uid,
+        actorEmail: session.user.email || '',
+        occurredAt: Timestamp.now()
+      }),
+      updatedAt: serverTimestamp()
+    });
+  });
+
+  clearGestorDataCache();
+  return { id, isVoided: true };
+}
+
+export async function restoreDirectVisit(visitId) {
+  const session = await requireMasterAdmin();
+  const id = (visitId || '').toString().trim();
+  if (!id || id.includes('/')) {
+    throw Object.assign(new Error('INVALID_VISIT_ID'), { code: 'data/invalid-visit-id' });
+  }
+
+  await runTransaction(db, async (transaction) => {
+    const reference = doc(db, 'visits', id);
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists()) throw Object.assign(new Error('VISIT_NOT_FOUND'), { code: 'data/visit-not-found' });
+    const visit = snapshot.data();
+    if (visit.visitType !== 'direct') {
+      throw Object.assign(new Error('DIRECT_VISIT_REQUIRED'), { code: 'data/direct-visit-required' });
+    }
+    if (!isVoidedVisit(visit)) {
+      throw Object.assign(new Error('VISIT_NOT_VOIDED'), { code: 'data/visit-not-voided' });
+    }
+    transaction.update(reference, {
+      isVoided: false,
+      restoredAt: serverTimestamp(),
+      restoredByUid: session.user.uid,
+      restoredByEmail: session.user.email || '',
+      maintenanceHistory: arrayUnion({
+        action: 'restore',
+        reason: '',
+        actorUid: session.user.uid,
+        actorEmail: session.user.email || '',
+        occurredAt: Timestamp.now()
+      }),
+      updatedAt: serverTimestamp()
+    });
+  });
+
+  clearGestorDataCache();
+  return { id, isVoided: false };
 }
 
 export async function deleteVisitCorrectionRequest(requestId) {

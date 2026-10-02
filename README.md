@@ -30,6 +30,13 @@ O Gestor antigo e o Supervisor antigo, com `_` no nome, não são alterados por 
 - Registros antigos sem `visitType` mantêm a classificação anterior de planejamento. Os demais quadros continuam considerando também os registros estaduais avulsos.
 - O filtro é de exibição e contagem: não exclui registros no Firebase nem altera o backup operacional.
 
+### Manutenção de registros diretos
+
+- Na busca geral do `index.html`, Administradores Master podem anular somente registros diretos (`visitType: "direct"`). A ação mostra data, supervisor, escola, atividade, autor e ID para conferência, exige motivo e uma segunda confirmação.
+- A anulação é reversível: o documento permanece em `visits` com `isVoided`, motivo, data e usuário responsável. `maintenanceHistory` guarda cada anulação e reativação. Registros anulados deixam de entrar nos indicadores e relatórios operacionais; a busca os mostra como **Anulada** e permite reativá-los.
+- A operação usa transação e verifica novamente no Firestore que o documento existe, é direto e ainda não foi anulado. Não há exclusão física pelo Gestor.
+- As regras publicadas do Firestore precisam permitir que Administrador Master atualize documentos em `visits`. Este ZIP não contém o arquivo de regras; confira as regras publicadas antes da implantação.
+
 Teste de regressão: `node tests/metric-counting.cjs`.
 
 - `index.html`: login, indicadores da página inicial e busca geral;
