@@ -41,13 +41,13 @@
       </div>
     </header>
     <section class="summary" aria-label="Resumo do mês">
-      <article class="summary-card"><div class="summary-icon" aria-hidden="true">♟</div><div class="summary-copy"><strong id="supervisorCount">—</strong><span>Supervisores no mês</span></div></article>
+      <article class="summary-card"><div class="summary-icon" aria-hidden="true">♟</div><div class="summary-copy"><strong id="supervisorCount">—</strong><span>Supervisores ativos no painel</span></div></article>
       <article class="summary-card"><div class="summary-icon" aria-hidden="true">◉</div><div class="summary-copy"><strong id="averageRate">—</strong><span>Desempenho do mês</span></div></article>
       <article class="summary-card"><div class="summary-icon" aria-hidden="true">◎</div><div class="summary-copy"><strong id="aboveTarget">—</strong><span>Acima da meta</span></div></article>
     </section>
     <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><button class="tool-btn" id="refreshButton" type="button" title="Consultar o Firebase agora"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 7.45 10.9h-2.16A6 6 0 1 1 17.4 9h-3.2l4.5 4.5L23 9h-3.5A8 8 0 0 0 12 4Zm-1 4v5l4 2.4 1-1.65-3-1.75V8Z"/></svg>Atualizar</button><button class="tool-btn" id="logoutButton" type="button">Sair</button></div></div>
     <section class="cards" id="cards" aria-live="polite"></section>
-    <p class="footnote">Cada cartão mostra somente visitas realizadas do planejamento no mês escolhido, do dia 1 ao último dia. Os dados não atualizam sozinhos; use Atualizar para buscar mudanças.</p>
+    <p class="footnote">Todos os supervisores ativos aparecem, inclusive com zero visita. Cada cartão conta somente visitas realizadas do planejamento no mês escolhido. Use Atualizar para buscar mudanças.</p>
   </main>
   <section class="login-screen" id="loginScreen" hidden>
     <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
@@ -59,7 +59,7 @@
     const $ = (id) => document.getElementById(id);
     const fold = (value) => (value ?? '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ');
     const norm = (value) => (value ?? '').toString().trim();
-    const excludedTestUsers = ['ruivo', 'fernanda furian amorim', 'vinicius'];
+    const excludedTestUsers = ['ruivo', 'vinicius'];
     const photoMatches = [
       { aliases: ['bruno takami fujiwara', 'bruno'], file: 'caricatura_001.png' },
       { aliases: ['kelly lesia taraborelli veneri', 'kelly'], file: 'caricatura_002.png' },
@@ -180,11 +180,13 @@
     }
     function buildStats(data, period) {
       const profiles = [...(data.supervisors || new Map()).values()];
-      const profilesByName = new Map(profiles.map((item) => [fold(item.displayName || item.id), item]));
-      const excludedIds = new Set(profiles.filter((item) => isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email)).map((item) => item.id));
+      const activeProfiles = profiles.filter((item) => item.active !== false && item.isActive !== false && !isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email));
+      const profilesByName = new Map(activeProfiles.map((item) => [fold(item.displayName || item.id), item]));
+      const activeIds = new Set(activeProfiles.map((item) => item.id));
       const allowedRow = (row, name) => {
         const supervisorId = row._raw?.supervisorId || row.supervisorId || row.supervisorID || row.uid || row.authUid;
-        return !isTestSupervisor(name, supervisorId, row.loginAlias) && !excludedIds.has(supervisorId);
+        if (isTestSupervisor(name, supervisorId, row.loginAlias)) return false;
+        return supervisorId ? activeIds.has(supervisorId) : profilesByName.has(fold(name));
       };
       const plannedByName = new Map();
       (data.agendaRows || []).forEach((row) => {
@@ -203,6 +205,7 @@
         if (!stats.has(name)) stats.set(name, { name, actual: 0, lastVisit: null, hasJustification: false });
         return stats.get(name);
       };
+      activeProfiles.forEach((profile) => ensure(profile.displayName || profile.name || profile.id));
       visits.forEach((item) => {
         const stat = ensure(item.name);
         if (item.row.Status === 'Realizada') stat.actual += 1;
