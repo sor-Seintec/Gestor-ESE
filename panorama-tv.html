@@ -15,6 +15,8 @@
     .cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.card{position:relative;min-width:0;min-height:182px;padding:13px 14px 12px;border:1px solid rgba(255,255,255,.92);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(249,252,255,.84));box-shadow:0 8px 20px rgba(37,77,136,.08);overflow:hidden}.card.top-rank{border-color:#ffe8a7;box-shadow:0 0 0 2px rgba(255,205,67,.12),0 9px 25px rgba(64,88,125,.1)}.card-head{display:grid;grid-template-columns:39px 55px minmax(0,1fr);gap:8px;align-items:center;min-height:56px}.rank{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;background:#e2efff;color:#24559c;font-size:20px;font-weight:900}.rank.gold{background:#fff0bc;color:#ba8200}.rank.silver{background:#e4edf6;color:#7489a0}.rank.bronze{background:#ffeadb;color:#bd683a}.avatar{width:54px;height:54px;display:grid;place-items:center;overflow:hidden;border:2px solid #fff;border-radius:50%;background:linear-gradient(135deg,#d9e8ff,#f0f5ff);box-shadow:0 2px 9px rgba(42,79,135,.16);color:#315c9d;font-size:17px;font-weight:850}.avatar img{width:100%;height:100%;object-fit:cover}.person{min-width:0;font-size:clamp(11px,.81vw,15px);line-height:1.2;font-weight:850;overflow-wrap:anywhere}.monthly{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:10px 0 7px}.percent{font-size:clamp(23px,1.8vw,33px);line-height:1;font-weight:930;letter-spacing:-.045em}.count{padding-bottom:2px;color:#203869;font-size:clamp(12px,.95vw,16px);font-weight:850;white-space:nowrap}.meter{height:8px;border-radius:99px;background:#dce7f2;overflow:hidden}.meter span{display:block;height:100%;width:var(--fill);border-radius:inherit;background:var(--meter,#0ab86a)}.targets{display:flex;justify-content:space-between;gap:8px;margin-top:5px;color:#7487a6;font-size:10px;font-weight:650}.week{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:9px;padding-top:8px;border-top:1px solid #e8eef6;color:#526b91;font-size:10px;font-weight:750}.week strong{color:#1b3768;font-size:11px}.badge{display:flex;align-items:center;justify-content:center;gap:6px;min-height:27px;margin-top:8px;padding:4px 8px;border-radius:999px;background:#daf8e9;color:#078950;font-size:10px;font-weight:900;letter-spacing:.015em}.badge::before{content:"↑";width:17px;height:17px;display:grid;place-items:center;border-radius:50%;background:#08b96a;color:#fff;font-size:13px}.badge.blue{background:#e0efff;color:#1769d0}.badge.blue::before{content:"◷";background:#3789ec;font-size:10px}.badge.amber{background:#fff0cd;color:#b66a00}.badge.amber::before{content:"!";background:#e99a13}.badge.gray{background:#edf1f5;color:#66788f}.badge.gray::before{content:"—";background:#8494a9}.last{position:absolute;right:14px;top:14px;color:#8090a9;font-size:9px;font-weight:650}.empty{grid-column:1/-1;padding:42px;border:1px dashed #b9cee8;border-radius:20px;background:#ffffff9c;color:#5c7194;text-align:center;font-weight:700}.footnote{margin:12px 3px 0;color:#7586a3;font-size:10px;text-align:center}
     .login-screen{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:20px;background:rgba(18,43,83,.22);backdrop-filter:blur(6px)}.login-card{width:min(420px,100%);padding:30px;border:1px solid #dce8f6;border-radius:22px;background:#fff;box-shadow:0 25px 90px #23446b3b}.login-card h2{margin:0 0 4px;font-size:24px}.login-card p{margin:0 0 20px;color:#6e7f9d;font-size:13px}.login-card label{display:block;margin:13px 0 5px;color:#4f678e;font-size:12px;font-weight:800}.login-card input{width:100%;height:44px;padding:0 12px;border:1px solid #cfdeef;border-radius:10px;outline:none}.login-card input:focus{border-color:#4282ed;box-shadow:0 0 0 3px #4083ed1c}.login-card button{width:100%;height:44px;margin-top:17px;border:0;border-radius:10px;background:#3478f6;color:#fff;font-weight:850}.login-message{min-height:18px;margin-top:10px!important;color:#b42318!important;font-size:12px!important}.page-error{margin:10vh auto;padding:26px;border:1px solid #fecaca;border-radius:16px;background:#fff;color:#9c2525;max-width:760px;text-align:center;font-weight:750}
     @media(max-width:1450px){.cards{grid-template-columns:repeat(5,minmax(0,1fr))}.page{padding:20px}.card{min-height:178px}.masthead h1{font-size:clamp(27px,2.8vw,42px)}}@media(max-width:1120px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.summary-card{padding:13px}.card{min-height:178px}}@media(max-width:820px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.masthead{align-items:flex-start}.period{padding:10px;font-size:13px}.title{gap:10px}.brand-icon{width:44px;height:44px;border-radius:14px;font-size:23px}.summary{gap:8px}.summary-card{gap:8px;padding:10px}.summary-icon{width:37px;height:37px;font-size:19px}}@media(max-width:560px){.page{padding:13px}.masthead{flex-direction:column}.period{align-self:flex-start}.summary{grid-template-columns:1fr}.summary-card{min-height:67px}.summary-icon{width:42px;height:42px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card{padding:10px;min-height:166px;border-radius:15px}.card-head{grid-template-columns:32px 43px minmax(0,1fr);gap:6px}.rank{width:32px;height:32px;font-size:16px}.avatar{width:42px;height:42px}.person{font-size:11px}.last{top:7px;right:9px;font-size:8px}.percent{font-size:24px}.targets{font-size:9px}.week{font-size:9px}.week strong{font-size:10px}.badge{font-size:9px}}
+    .month-control{position:relative;display:flex;align-items:center;gap:8px;flex:none}.month-step{width:35px;height:48px;border:1px solid #d8e5f4;border-radius:13px;background:#fff;color:#345f99;font-size:29px;line-height:1;box-shadow:var(--shadow)}.month-step:hover,.month-step:focus-visible{border-color:#78a9ef;color:#174d98}.month-card{--campaign-primary:#eef3fb;--campaign-secondary:#dce9f8;display:flex;align-items:center;gap:12px;width:min(360px,40vw);min-height:88px;padding:11px 14px;border:1px solid var(--campaign-primary);border-radius:18px;background:linear-gradient(116deg,#fff 38%,var(--campaign-secondary));color:#142c59;text-align:left;box-shadow:var(--shadow)}.month-card:hover,.month-card:focus-visible{box-shadow:0 0 0 3px #8badde55,var(--shadow)}.month-art{display:grid;place-items:center;flex:none;width:57px;height:57px;border-radius:15px;background:var(--campaign-primary);color:#273660}.month-art svg{width:35px;height:35px}.month-copy{display:flex;flex-direction:column;min-width:0;line-height:1.2}.month-overline{font-size:9px;letter-spacing:.11em;font-weight:900;color:#52739f}.month-copy strong{margin:2px 0;font-size:21px;font-weight:900;letter-spacing:-.025em;text-transform:capitalize}.month-copy>span:last-of-type{font-size:11px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.month-copy small{margin-top:3px;font-size:10px;color:#597095;font-weight:700}.month-chevron{margin-left:auto;font-size:24px;color:#3b64a2}.month-picker{position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:min(520px,calc(100vw - 26px));padding:15px;border:1px solid #d9e5f4;border-radius:20px;background:#fff;box-shadow:0 24px 65px #253c6a38}.month-picker-head{display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:12px;color:#18315f;font-size:18px}.month-picker-head button{width:34px;height:34px;border:1px solid #dce7f5;border-radius:10px;background:#f5f9fe;color:#2865ae;font-size:23px}.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.month-option{--tile-primary:#d7e9ff;--tile-secondary:#eff6ff;display:flex;flex-direction:column;justify-content:space-between;gap:5px;min-height:118px;padding:10px;border:1px solid #dce6f4;border-radius:13px;background:linear-gradient(150deg,#fff 45%,var(--tile-secondary));text-align:left;color:#18315f}.month-option:hover,.month-option:focus-visible{border-color:#6f9fdc;transform:translateY(-2px)}.month-option.is-selected{outline:2px solid #3478f6;outline-offset:1px}.month-option svg{width:28px;height:28px;color:var(--tile-primary);filter:drop-shadow(0 1px 1px #46618444)}.month-option strong{font-size:13px}.month-option small{font-size:9px;line-height:1.25;color:#61799d}.month-swatch{display:flex;gap:3px}.month-swatch i{display:block;width:19px;height:8px;border:1px solid #b5c4d755;border-radius:99px;background:var(--swatch)}.month-picker p{margin:10px 2px 0;color:#687d9e;font-size:11px;line-height:1.35}
+    @media(max-width:820px){.month-card{width:min(340px,45vw)}}@media(max-width:560px){.month-control{align-self:stretch}.month-card{width:100%;min-height:76px}.month-art{width:48px;height:48px}.month-copy strong{font-size:18px}.month-picker{right:-2px}.month-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.month-option{min-height:106px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
   </style>
 </head>
@@ -22,16 +24,29 @@
   <main class="page" id="dashboard" hidden>
     <header class="masthead">
       <div class="title"><div class="brand-icon" aria-hidden="true">▥</div><div><div class="eyebrow">Portal URE Sorocaba</div><h1>Ranking de desempenho dos supervisores</h1><div class="subtitle">Panorama mensal • resultados atualizados do sistema</div></div></div>
-      <div class="period" aria-label="Período do panorama"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input id="monthFilter" type="month" aria-label="Selecionar mês do panorama"><select id="weekFilter" aria-label="Selecionar semana"></select></div>
+      <div class="month-control" id="monthControl">
+        <button class="month-step" id="previousMonth" type="button" aria-label="Mês anterior">‹</button>
+        <button class="month-card" id="monthPickerButton" type="button" aria-label="Escolher mês" aria-expanded="false" aria-controls="monthPicker">
+          <span class="month-art" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7c-8 0-13 6-10 13 2 5 7 9 10 13 3-4 8-8 10-13 3-7-2-13-10-13Z" stroke="currentColor" stroke-width="3.2"/><path d="M18 27 10 42h8l6-9m6-6 8 15h-8l-6-9" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/></svg></span>
+          <span class="month-copy"><span class="month-overline">PANORAMA MENSAL</span><strong id="monthTitle">Selecione o mês</strong><span id="monthCampaign"></span><small id="monthRange"></small></span>
+          <span class="month-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <button class="month-step" id="nextMonth" type="button" aria-label="Próximo mês">›</button>
+        <div class="month-picker" id="monthPicker" hidden>
+          <div class="month-picker-head"><button id="previousYear" type="button" aria-label="Ano anterior">‹</button><strong id="pickerYear"></strong><button id="nextYear" type="button" aria-label="Próximo ano">›</button></div>
+          <div class="month-grid" id="monthGrid" role="group" aria-label="Meses do ano"></div>
+          <p>Toque em um mês para mostrar todas as visitas realizadas do dia 1 até o último dia.</p>
+        </div>
+      </div>
     </header>
     <section class="summary" aria-label="Resumo do mês">
-      <article class="summary-card"><div class="summary-icon" aria-hidden="true">♟</div><div class="summary-copy"><strong id="supervisorCount">—</strong><span>Supervisores ativos</span></div></article>
-      <article class="summary-card"><div class="summary-icon" aria-hidden="true">◉</div><div class="summary-copy"><strong id="averageRate">—</strong><span>Média de desempenho</span></div></article>
+      <article class="summary-card"><div class="summary-icon" aria-hidden="true">♟</div><div class="summary-copy"><strong id="supervisorCount">—</strong><span>Supervisores no mês</span></div></article>
+      <article class="summary-card"><div class="summary-icon" aria-hidden="true">◉</div><div class="summary-copy"><strong id="averageRate">—</strong><span>Desempenho do mês</span></div></article>
       <article class="summary-card"><div class="summary-icon" aria-hidden="true">◎</div><div class="summary-copy"><strong id="aboveTarget">—</strong><span>Acima da meta</span></div></article>
     </section>
     <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><button class="tool-btn" id="refreshButton" type="button" title="Consultar o Firebase agora"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 7.45 10.9h-2.16A6 6 0 1 1 17.4 9h-3.2l4.5 4.5L23 9h-3.5A8 8 0 0 0 12 4Zm-1 4v5l4 2.4 1-1.65-3-1.75V8Z"/></svg>Atualizar</button><button class="tool-btn" id="logoutButton" type="button">Sair</button></div></div>
     <section class="cards" id="cards" aria-live="polite"></section>
-    <p class="footnote">Meta semanal calculada como no painel Metas: meta mensal dividida pelas semanas do mês (domingo a sábado, incluindo semanas parciais). Os dados não atualizam sozinhos; use Atualizar para buscar mudanças.</p>
+    <p class="footnote">Cada cartão mostra somente as visitas do mês escolhido, do dia 1 ao último dia. Os dados não atualizam sozinhos; use Atualizar para buscar mudanças.</p>
   </main>
   <section class="login-screen" id="loginScreen" hidden>
     <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
@@ -70,31 +85,40 @@
       { aliases: ['silmara aparecida lopes'], file: 'silmara-aparecida-lopes.png' }
     ];
     const goalKey = 'gestor-ese-metas-provisorias-v1';
+    const campaigns = [
+      { month: 'Janeiro', colors: ['#f7f8ff', '#9864cc'], title: 'Janeiro Branco e Roxo', subject: 'Saúde mental · Hanseníase' },
+      { month: 'Fevereiro', colors: ['#8e51ca', '#ff9c3c'], title: 'Fevereiro Roxo e Laranja', subject: 'Lúpus, fibromialgia, Alzheimer · Leucemia' },
+      { month: 'Março', colors: ['#1d3e75', '#c6a4e8'], title: 'Março Azul-marinho e Lilás', subject: 'Câncer colorretal · Câncer do colo do útero' },
+      { month: 'Abril', colors: ['#4999e8', '#50b47b'], title: 'Abril Azul e Verde', subject: 'Autismo · Segurança no trabalho' },
+      { month: 'Maio', colors: ['#ffcd36'], title: 'Maio Amarelo', subject: 'Segurança no trânsito' },
+      { month: 'Junho', colors: ['#e6575e', '#f6a44e'], title: 'Junho Vermelho e Laranja', subject: 'Doação de sangue · Anemia e leucemia' },
+      { month: 'Julho', colors: ['#f3c435', '#57b487'], title: 'Julho Amarelo e Verde', subject: 'Hepatites virais · Câncer de cabeça e pescoço' },
+      { month: 'Agosto', colors: ['#d4a937', '#f4a653'], title: 'Agosto Dourado e Laranja', subject: 'Aleitamento materno · Esclerose múltipla' },
+      { month: 'Setembro', colors: ['#f7ca38', '#53b881'], title: 'Setembro Amarelo e Verde', subject: 'Prevenção ao suicídio · Doação de órgãos' },
+      { month: 'Outubro', colors: ['#f4a5c2'], title: 'Outubro Rosa', subject: 'Conscientização sobre o câncer de mama' },
+      { month: 'Novembro', colors: ['#6d9ee8', '#d8ad52'], title: 'Novembro Azul e Dourado', subject: 'Câncer de próstata · Câncer infanto-juvenil' },
+      { month: 'Dezembro', colors: ['#e95859', '#f5a348'], title: 'Dezembro Vermelho e Laranja', subject: 'HIV/AIDS · Câncer de pele' }
+    ];
     let usedLocalFallback = false;
     let cachedData = null;
+    let selectedPeriod = '';
+    let pickerYear = new Date().getFullYear();
 
     function parseDate(value) {
       if (!value) return null;
       if (typeof value?.toDate === 'function') return value.toDate();
-      if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
       const text = norm(value);
       const brDate = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (brDate) return new Date(Number(brDate[3]), Number(brDate[2]) - 1, Number(brDate[1]));
-      // Datas de visita são dias de calendário; não converter o prefixo ISO
-      // por UTC, pois isso pode deslocar o dia/mês no fuso local da TV.
-      const isoDate = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
-      if (isoDate) return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
       const date = new Date(text);
       return Number.isNaN(date.getTime()) ? null : date;
     }
     function visitDate(row) {
-      // Para o realizado, considerar a data efetiva da visita, não a data de
-      // gravação nem a data planejada (que podem pertencer a outro mês).
-      return parseDate(row['Data da Visita'] || row['Data Visita'] || row.Data);
+      return parseDate(row['Data da Visita'] || row['Data Visita'] || row.Data || row['Data do Registro'] || row['Data Agendada']);
     }
     function statusType(value) {
       const status = fold(value);
-      if (status.includes('realizada') || status.includes('visitad')) return 'visited';
+      if (status.includes('realizada') || status.includes('visitado')) return 'visited';
       if (status.includes('justific')) return 'justified';
       if (status.includes('adiada')) return 'postponed';
       if (status.includes('cancelada')) return 'cancelled';
@@ -125,130 +149,131 @@
     function isInSelectedMonth(date, period) {
       if (!date || !/^\d{4}-\d{2}$/.test(period)) return false;
       const [year, month] = period.split('-').map(Number);
-      const start = new Date(year, month - 1, 1);
-      const endExclusive = new Date(year, month, 1);
-      return date >= start && date < endExclusive;
+      return date.getFullYear() === year && date.getMonth() === month - 1;
     }
-    function weeksInMonth(period) {
+    function setMonthPeriod(period) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(period)) return;
+      selectedPeriod = period;
       const [year, month] = period.split('-').map(Number);
-      return Math.ceil((new Date(year, month - 1, 1).getDay() + new Date(year, month, 0).getDate()) / 7);
+      const campaign = campaigns[month - 1];
+      const lastDay = new Date(year, month, 0).getDate();
+      $('monthTitle').textContent = `${campaign.month} de ${year}`;
+      $('monthPickerButton').setAttribute('aria-label', `Escolher mês; atual: ${campaign.month} de ${year}`);
+      $('monthCampaign').textContent = campaign.title;
+      $('monthRange').textContent = `Visitas de 1 a ${lastDay} de ${campaign.month.toLowerCase()}`;
+      $('monthPickerButton').style.setProperty('--campaign-primary', campaign.colors[0]);
+      $('monthPickerButton').style.setProperty('--campaign-secondary', campaign.colors[1] || `color-mix(in srgb, ${campaign.colors[0]} 24%, white)`);
+      pickerYear = year;
+      renderMonthPicker();
+      if (cachedData) render(cachedData);
     }
-    function weeklyGoal(monthly, period) { return Math.ceil(Math.max(0, Number(monthly) || 0) / weeksInMonth(period)); }
-    function selectedWeekRange(period, weekNumber) {
-      const [year, month] = period.split('-').map(Number);
-      const start = new Date(year, month - 1, 1);
-      start.setDate(start.getDate() - start.getDay() + (weekNumber - 1) * 7);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 6);
-      return { start, end };
+    function changeMonth(offset) {
+      const [year, month] = selectedPeriod.split('-').map(Number);
+      setMonthPeriod(monthKey(new Date(year, month - 1 + offset, 1)));
+      closeMonthPicker();
     }
-    function currentWeekNumber(date) {
-      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-      return Math.floor((date.getDate() - 1 + firstDay) / 7) + 1;
-    }
-    function defaultWeekNumber(period) {
-      const now = new Date();
-      const current = monthKey(now);
-      if (period === current) return currentWeekNumber(now);
-      return period < current ? weeksInMonth(period) : 1;
-    }
-    function setWeekOptions(period, selected = defaultWeekNumber(period)) {
-      const select = $('weekFilter');
-      const total = weeksInMonth(period);
-      select.replaceChildren();
-      for (let week = 1; week <= total; week += 1) {
-        const option = document.createElement('option');
-        option.value = String(week);
-        option.textContent = `Semana ${week}`;
-        option.selected = week === Math.min(Math.max(Number(selected) || 1, 1), total);
-        select.appendChild(option);
-      }
-    }
-    function initializePeriodControls() {
-      const current = monthKey(new Date());
-      $('monthFilter').value = current;
-      setWeekOptions(current);
-    }
-    function activeSupervisors(supervisors) {
-      return [...supervisors.values()].filter((item) => item && item.active !== false && item.isActive !== false && !isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email));
-    }
-    function buildStats(data, period, weekNumber) {
-      const week = selectedWeekRange(period, weekNumber);
-      const allSupervisors = [...(data.supervisors || new Map()).values()];
-      const excludedIds = new Set(allSupervisors.filter((item) => isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email)).map((item) => item.id));
-      const supervisors = activeSupervisors(data.supervisors || new Map());
-      const byName = new Map(supervisors.map((item) => [fold(item.displayName || item.name || item.id), item]));
-      const byId = new Map(supervisors.map((item) => [item.id, item]));
-      const stats = new Map();
-      const ensure = (name, profile) => {
-        const key = profile?.id ? `id:${profile.id}` : `name:${fold(name)}`;
-        if (!stats.has(key)) stats.set(key, { id: profile?.id || '', name: norm(profile?.displayName || profile?.name || name) || 'Não informado', profile, planned: 0, actual: 0, goals: [], lastVisit: null, weekActual: 0 });
-        return stats.get(key);
-      };
-      supervisors.forEach((profile) => ensure(profile.displayName || profile.name || profile.id, profile));
-      const resolve = (row, name) => {
-        const id = row.supervisorId || row.supervisorID || row.uid || row.authUid;
-        if (id && byId.has(id)) return byId.get(id);
-        const normalized = fold(name);
-        const found = byName.get(normalized);
-        if (found) return found;
-        const tokens = normalized.split(' ').filter(Boolean);
-        if (tokens.length) {
-          const candidates = supervisors.filter((profile) => {
-            const profileName = fold(profile.displayName || profile.name || profile.id);
-            return profileName.startsWith(`${normalized} `) || normalized.startsWith(`${profileName} `) || (tokens.length > 1 && profileName.includes(`${tokens.slice(0, 2).join(' ')} `));
-          });
-          if (candidates.length === 1) return candidates[0];
-        }
-        return null;
-      };
-      const allowedRow = (row, name) => !isTestSupervisor(name, row.supervisorId, row.loginAlias) && !excludedIds.has(row.supervisorId || row.supervisorID || row.uid || row.authUid);
-      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado' })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item.row, item.name));
-      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item.row, item.name));
-      agenda.forEach(({ row, name }) => {
-        const stat = ensure(name, resolve(row, name));
-        stat.planned += 1;
-        const target = numericGoal(row);
-        if (target !== null) stat.goals.push(target);
+    function renderMonthPicker() {
+      $('pickerYear').textContent = pickerYear;
+      const grid = $('monthGrid');
+      grid.replaceChildren();
+      campaigns.forEach((campaign, index) => {
+        const value = `${pickerYear}-${String(index + 1).padStart(2, '0')}`;
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `month-option${value === selectedPeriod ? ' is-selected' : ''}`;
+        option.style.setProperty('--tile-primary', campaign.colors[0]);
+        option.style.setProperty('--tile-secondary', campaign.colors[1] || `color-mix(in srgb, ${campaign.colors[0]} 24%, white)`);
+        option.setAttribute('aria-label', `${campaign.month} de ${pickerYear}: ${campaign.subject}`);
+        option.setAttribute('aria-pressed', String(value === selectedPeriod));
+        const swatch = document.createElement('span');
+        swatch.className = 'month-swatch';
+        campaign.colors.forEach((color) => {
+          const dot = document.createElement('i');
+          dot.style.setProperty('--swatch', color);
+          swatch.appendChild(dot);
+        });
+        const name = document.createElement('strong'); name.textContent = campaign.month;
+        const detail = document.createElement('small'); detail.textContent = campaign.title;
+        const ribbon = $('monthPickerButton').querySelector('svg').cloneNode(true);
+        ribbon.setAttribute('aria-hidden', 'true');
+        option.append(swatch, ribbon, name, detail);
+        option.addEventListener('click', () => { setMonthPeriod(value); closeMonthPicker(); });
+        grid.appendChild(option);
       });
-      visits.forEach(({ row, name, date, status }) => {
-        if (status !== 'visited') return;
-        const stat = ensure(name, resolve(row, name));
+    }
+    function closeMonthPicker() {
+      $('monthPicker').hidden = true;
+      $('monthPickerButton').setAttribute('aria-expanded', 'false');
+    }
+    function buildStats(data, period) {
+      const [year, monthValue] = period.split('-').map(Number);
+      const month = monthValue - 1;
+      const profiles = [...(data.supervisors || new Map()).values()];
+      const profilesByName = new Map(profiles.map((item) => [fold(item.displayName || item.id), item]));
+      const excludedIds = new Set(profiles.filter((item) => isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email)).map((item) => item.id));
+      const allowedRow = (item) => !isTestSupervisor(item.name, item.row.supervisorId, item.row.loginAlias) && !excludedIds.has(item.row.supervisorId || item.row.supervisorID || item.row.uid || item.row.authUid);
+      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado', goal: numericGoal(row) })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item));
+      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item));
+      const stats = new Map();
+      const ensure = (name) => {
+        if (!stats.has(name)) stats.set(name, { name, planned: 0, actual: 0, goals: [], lastVisit: null });
+        return stats.get(name);
+      };
+      agenda.forEach((item) => {
+        const stat = ensure(item.name);
+        stat.planned += 1;
+        if (item.goal !== null) stat.goals.push(item.goal);
+      });
+      visits.forEach((item) => {
+        const stat = ensure(item.name);
+        if (item.status !== 'visited') return;
         stat.actual += 1;
-        if (date >= week.start && date <= week.end) stat.weekActual += 1;
-        if (!stat.lastVisit || date > stat.lastVisit) stat.lastVisit = date;
+        if (!stat.lastVisit || item.date > stat.lastVisit) stat.lastVisit = item.date;
       });
       let goalOverrides = {};
       try { goalOverrides = JSON.parse(localStorage.getItem(goalKey) || '{}'); } catch { /* ignora cache local inválido */ }
       const firebaseGoals = new Map((data.monthlyGoals || []).map((item) => [`${item.period}|${item.supervisorId}`, Number(item.monthlyGoal)]));
+      const now = new Date();
+      const days = new Date(year, month + 1, 0).getDate();
+      const past = year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth());
+      const future = year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth());
+      const elapsed = past ? days : future ? 0 : Math.min(now.getDate(), days);
       const rows = [...stats.values()].map((stat) => {
-        const configured = stat.id ? firebaseGoals.get(`${period}|${stat.id}`) : undefined;
-        const savedLocal = goalOverrides[`${period}|${stat.name}`];
-        const profileGoal = Number(stat.profile?.monthlyGoal);
+        const profile = profilesByName.get(fold(stat.name));
+        let configured = null;
+        if (profile) {
+          const saved = firebaseGoals.get(`${period}|${profile.id}`);
+          if (saved !== undefined) configured = saved;
+          else if (goalOverrides[`${period}|${stat.name}`] !== undefined) configured = Number(goalOverrides[`${period}|${stat.name}`]);
+          else {
+            const base = Number(profile.monthlyGoal);
+            if (Number.isFinite(base) && base >= 0) configured = base;
+          }
+        }
         const explicit = stat.goals.length ? Math.max(...stat.goals) : null;
-        const target = configured !== undefined ? configured : savedLocal !== undefined ? Number(savedLocal) : Number.isFinite(profileGoal) && profileGoal >= 0 ? profileGoal : explicit !== null ? explicit : stat.planned;
+        const target = configured !== null ? configured : explicit !== null ? explicit : stat.planned;
         const rate = target ? Math.round(stat.actual / target * 100) : (stat.actual ? 100 : 0);
-        const last = stat.lastVisit ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(stat.lastVisit) : 'Sem visita';
+        const projection = elapsed ? Math.round(stat.actual / elapsed * days) : 0;
+        const lastLabel = stat.lastVisit ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(stat.lastVisit) : 'Sem visita';
         let state = 'amber';
         let label = 'ATENÇÃO';
         if (target === 0) { state = 'gray'; label = 'SEM META'; }
-        else if (stat.actual >= target) { state = 'green'; label = 'ACIMA DA META'; }
-        else if (stat.weekActual >= weeklyGoal(target, period)) { state = 'blue'; label = 'NO RITMO'; }
-        return { ...stat, target, rate, weeklyTarget: weeklyGoal(target, period), lastLabel: last, state, label, weekNumber };
+        else if (stat.actual >= target) { state = 'green'; label = 'META ATINGIDA'; }
+        else if (projection >= target) { state = 'blue'; label = 'NO RITMO'; }
+        return { ...stat, target, rate, lastLabel, state, label };
       });
       rows.sort((a, b) => b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR'));
       return { rows };
     }
     function render(data) {
-      const period = $('monthFilter').value || monthKey(new Date());
-      const weekNumber = Number($('weekFilter').value) || defaultWeekNumber(period);
-      const { rows } = buildStats(data, period, weekNumber);
+      const period = selectedPeriod || monthKey(new Date());
+      const { rows } = buildStats(data, period);
       $('supervisorCount').textContent = rows.length;
-      const goalRows = rows.filter((item) => item.target > 0);
-      const average = goalRows.length ? Math.round(goalRows.reduce((sum, item) => sum + item.rate, 0) / goalRows.length) : 0;
-      $('averageRate').textContent = `${average}%`;
+      const totalGoal = rows.reduce((sum, item) => sum + item.target, 0);
+      const totalActual = rows.reduce((sum, item) => sum + item.actual, 0);
+      $('averageRate').textContent = `${totalGoal ? Math.round(totalActual / totalGoal * 100) : 0}%`;
       $('aboveTarget').textContent = `${rows.filter((item) => item.target > 0 && item.actual >= item.target).length} de ${rows.length}`;
-      $('updatedAt').textContent = `${usedLocalFallback ? 'Cópia local · ' : 'Dados consultados · '}${new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())} · ${rows.reduce((sum, item) => sum + item.actual, 0)} visitas realizadas`;
+      $('updatedAt').textContent = `${usedLocalFallback ? 'Cópia local · ' : 'Dados consultados · '}${new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())} · ${totalActual} visitas realizadas em ${campaigns[Number(period.slice(5)) - 1].month.toLowerCase()}`;
       const container = $('cards');
       container.replaceChildren();
       if (!rows.length) {
@@ -271,18 +296,34 @@
         const targets = document.createElement('div'); targets.className = 'targets';
         const targetLabel = document.createElement('span'); targetLabel.textContent = item.target === 0 ? 'Meta não definida' : `${item.actual} visita${item.actual === 1 ? '' : 's'} no mês`;
         const remaining = document.createElement('span'); remaining.textContent = item.target > item.actual ? `${item.target - item.actual} restantes` : item.target ? 'Meta cumprida' : '—'; targets.append(targetLabel, remaining);
-        const week = document.createElement('div'); week.className = 'week';
-        const weekLabel = document.createElement('span'); weekLabel.textContent = `SEMANA ${weekNumber} · META`;
-        const weekValue = document.createElement('strong'); weekValue.textContent = `${item.weekActual} / ${item.weeklyTarget}`; week.append(weekLabel, weekValue);
         const badge = document.createElement('div'); badge.className = `badge${item.state === 'green' ? '' : ` ${item.state}`}`; badge.textContent = item.label;
-        card.append(head, last, monthly, meter, targets, week, badge); container.appendChild(card);
+        card.append(head, last, monthly, meter, targets, badge); container.appendChild(card);
       });
     }
     async function load(refresh = false) {
       const button = $('refreshButton'); button.disabled = true; button.classList.add('is-loading');
       usedLocalFallback = false;
-      try { await requireAdmin(); cachedData = await loadGestorData({ refresh }); render(cachedData); $('dashboard').hidden = false; $('loginScreen').hidden = true; $('pageError').hidden = true; }
-      catch (error) { console.error('[Panorama TV] Falha ao consultar dados:', error); $('dashboard').hidden = true; $('loginScreen').hidden = false; $('pageError').hidden = true; $('loginMessage').textContent = authErrorMessage(error); }
+      try {
+        try { await requireAdmin(); }
+        catch (error) {
+          $('dashboard').hidden = true;
+          $('loginScreen').hidden = false;
+          $('pageError').hidden = true;
+          $('loginMessage').textContent = authErrorMessage(error);
+          return;
+        }
+        cachedData = await loadGestorData({ refresh });
+        render(cachedData);
+        $('dashboard').hidden = false;
+        $('loginScreen').hidden = true;
+        $('pageError').hidden = true;
+      } catch (error) {
+        console.error('[Panorama TV] Falha ao montar o painel:', error);
+        $('dashboard').hidden = true;
+        $('loginScreen').hidden = true;
+        $('pageError').hidden = false;
+        $('pageError').textContent = 'Não foi possível carregar o panorama. Recarregue a página; se persistir, consulte o erro no console.';
+      }
       finally { button.disabled = false; button.classList.remove('is-loading'); }
     }
     window.addEventListener('gestor-cache-fallback', () => { usedLocalFallback = true; });
@@ -293,10 +334,19 @@
       finally { button.disabled = false; }
     });
     $('refreshButton').addEventListener('click', () => load(true));
-    $('monthFilter').addEventListener('change', () => { const period = $('monthFilter').value; if (!period) return; setWeekOptions(period); if (cachedData) render(cachedData); });
-    $('weekFilter').addEventListener('change', () => { if (cachedData) render(cachedData); });
+    $('monthPickerButton').addEventListener('click', () => {
+      const picker = $('monthPicker');
+      picker.hidden = !picker.hidden;
+      $('monthPickerButton').setAttribute('aria-expanded', String(!picker.hidden));
+    });
+    $('previousMonth').addEventListener('click', () => changeMonth(-1));
+    $('nextMonth').addEventListener('click', () => changeMonth(1));
+    $('previousYear').addEventListener('click', () => { pickerYear -= 1; renderMonthPicker(); });
+    $('nextYear').addEventListener('click', () => { pickerYear += 1; renderMonthPicker(); });
+    document.addEventListener('click', (event) => { if (!$('monthControl').contains(event.target)) closeMonthPicker(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMonthPicker(); });
     $('logoutButton').addEventListener('click', async () => { await logoutAdmin(); $('dashboard').hidden = true; $('loginScreen').hidden = false; $('loginPassword').value = ''; });
-    initializePeriodControls();
+    setMonthPeriod(monthKey(new Date()));
     try { await load(false); } catch (error) { console.error('[Panorama TV] Erro de inicialização:', error); }
   </script>
 </body>
