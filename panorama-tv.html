@@ -9,7 +9,7 @@
   <style>
     :root{color-scheme:light;--ink:#111b50;--muted:#60759e;--blue:#3478f6;--line:#dbe7f5;--green:#0ab86a;--amber:#f5a623;--red:#ef4444;--canvas:#eff6ff;--white:#fff;--shadow:0 12px 32px rgba(34,74,130,.09)}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 7% 40%,#d6eafe 0,transparent 36%),radial-gradient(ellipse at 93% 7%,#dcecff 0,transparent 30%),var(--canvas);color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif}button,input{font:inherit}button{cursor:pointer}[hidden]{display:none!important}
-    .page{width:min(100%,2200px);min-height:100vh;margin:auto;padding:clamp(16px,2.1vw,38px)}.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 19px}.title{display:flex;align-items:center;gap:18px}.brand-icon{width:58px;height:58px;display:grid;place-items:center;border:1px solid #e1ebfb;border-radius:18px;background:#fff;box-shadow:var(--shadow);color:var(--blue);font-size:30px}.eyebrow{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#466da8;font-weight:850}.masthead h1{margin:0;font-size:clamp(28px,3.1vw,54px);line-height:1.07;letter-spacing:-.045em;font-weight:900}.subtitle{margin-top:5px;color:#7185ab;font-size:clamp(15px,1.65vw,25px);font-weight:650}.period{display:flex;align-items:center;gap:10px;flex:none;padding:13px 19px;border:1px solid #e0ebf8;border-radius:17px;background:rgba(255,255,255,.86);box-shadow:var(--shadow);font-size:clamp(14px,1.3vw,21px);font-weight:800;white-space:nowrap}.period svg{width:24px;height:24px;color:#5373a8}
+    .page{width:min(100%,2200px);min-height:100vh;margin:auto;padding:clamp(16px,2.1vw,38px)}.masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 19px}.title{display:flex;align-items:center;gap:18px}.brand-icon{width:58px;height:58px;display:grid;place-items:center;border:1px solid #e1ebfb;border-radius:18px;background:#fff;box-shadow:var(--shadow);color:var(--blue);font-size:30px}.eyebrow{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#466da8;font-weight:850}.masthead h1{margin:0;font-size:clamp(28px,3.1vw,54px);line-height:1.07;letter-spacing:-.045em;font-weight:900}.subtitle{margin-top:5px;color:#7185ab;font-size:clamp(15px,1.65vw,25px);font-weight:650}.period{display:flex;align-items:center;gap:9px;flex:none;padding:9px 12px;border:1px solid #e0ebf8;border-radius:17px;background:rgba(255,255,255,.9);box-shadow:var(--shadow);white-space:nowrap}.period svg{width:22px;height:22px;flex:none;color:#5373a8}.period input,.period select{min-height:35px;border:0;outline:0;background:transparent;color:#18325f;font-size:clamp(13px,1.05vw,17px);font-weight:850}.period input{width:155px}.period select{max-width:145px;padding:0 2px}
     .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:17px}.summary-card{min-height:91px;display:flex;align-items:center;gap:16px;padding:15px 20px;border:1px solid rgba(221,234,250,.96);border-radius:20px;background:rgba(255,255,255,.78);box-shadow:var(--shadow);backdrop-filter:blur(8px)}.summary-icon{width:51px;height:51px;flex:none;display:grid;place-items:center;border-radius:50%;background:#e1edff;color:#3478f6;font-size:24px;font-weight:900}.summary-card:nth-child(2) .summary-icon{background:#d9faee;color:#0ab86a}.summary-card:nth-child(3) .summary-icon{background:#d9faee;color:#0ab86a}.summary-copy strong{display:block;font-size:clamp(23px,2vw,34px);line-height:1;font-weight:900;letter-spacing:-.03em}.summary-copy span{display:block;margin-top:4px;color:#667ba2;font-size:clamp(12px,1vw,16px);font-weight:700}
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 12px;color:#7184a4;font-size:12px;font-weight:650}.fresh{display:flex;align-items:center;gap:7px}.fresh i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #d7f7e8}.actions{display:flex;align-items:center;gap:8px}.tool-btn{min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 12px;border:1px solid #cbdcf3;border-radius:10px;background:#fff;color:#486b9f;font-size:12px;font-weight:800}.tool-btn svg{width:15px;height:15px;fill:currentColor}.tool-btn:disabled{opacity:.6;cursor:wait}.tool-btn.is-loading svg{animation:spin .9s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
     .cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.card{position:relative;min-width:0;min-height:182px;padding:13px 14px 12px;border:1px solid rgba(255,255,255,.92);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(249,252,255,.84));box-shadow:0 8px 20px rgba(37,77,136,.08);overflow:hidden}.card.top-rank{border-color:#ffe8a7;box-shadow:0 0 0 2px rgba(255,205,67,.12),0 9px 25px rgba(64,88,125,.1)}.card-head{display:grid;grid-template-columns:39px 55px minmax(0,1fr);gap:8px;align-items:center;min-height:56px}.rank{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;background:#e2efff;color:#24559c;font-size:20px;font-weight:900}.rank.gold{background:#fff0bc;color:#ba8200}.rank.silver{background:#e4edf6;color:#7489a0}.rank.bronze{background:#ffeadb;color:#bd683a}.avatar{width:54px;height:54px;display:grid;place-items:center;overflow:hidden;border:2px solid #fff;border-radius:50%;background:linear-gradient(135deg,#d9e8ff,#f0f5ff);box-shadow:0 2px 9px rgba(42,79,135,.16);color:#315c9d;font-size:17px;font-weight:850}.avatar img{width:100%;height:100%;object-fit:cover}.person{min-width:0;font-size:clamp(11px,.81vw,15px);line-height:1.2;font-weight:850;overflow-wrap:anywhere}.monthly{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:10px 0 7px}.percent{font-size:clamp(23px,1.8vw,33px);line-height:1;font-weight:930;letter-spacing:-.045em}.count{padding-bottom:2px;color:#203869;font-size:clamp(12px,.95vw,16px);font-weight:850;white-space:nowrap}.meter{height:8px;border-radius:99px;background:#dce7f2;overflow:hidden}.meter span{display:block;height:100%;width:var(--fill);border-radius:inherit;background:var(--meter,#0ab86a)}.targets{display:flex;justify-content:space-between;gap:8px;margin-top:5px;color:#7487a6;font-size:10px;font-weight:650}.week{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:9px;padding-top:8px;border-top:1px solid #e8eef6;color:#526b91;font-size:10px;font-weight:750}.week strong{color:#1b3768;font-size:11px}.badge{display:flex;align-items:center;justify-content:center;gap:6px;min-height:27px;margin-top:8px;padding:4px 8px;border-radius:999px;background:#daf8e9;color:#078950;font-size:10px;font-weight:900;letter-spacing:.015em}.badge::before{content:"↑";width:17px;height:17px;display:grid;place-items:center;border-radius:50%;background:#08b96a;color:#fff;font-size:13px}.badge.blue{background:#e0efff;color:#1769d0}.badge.blue::before{content:"◷";background:#3789ec;font-size:10px}.badge.amber{background:#fff0cd;color:#b66a00}.badge.amber::before{content:"!";background:#e99a13}.badge.gray{background:#edf1f5;color:#66788f}.badge.gray::before{content:"—";background:#8494a9}.last{position:absolute;right:14px;top:14px;color:#8090a9;font-size:9px;font-weight:650}.empty{grid-column:1/-1;padding:42px;border:1px dashed #b9cee8;border-radius:20px;background:#ffffff9c;color:#5c7194;text-align:center;font-weight:700}.footnote{margin:12px 3px 0;color:#7586a3;font-size:10px;text-align:center}
@@ -22,7 +22,7 @@
   <main class="page" id="dashboard" hidden>
     <header class="masthead">
       <div class="title"><div class="brand-icon" aria-hidden="true">▥</div><div><div class="eyebrow">Portal URE Sorocaba</div><h1>Ranking de desempenho dos supervisores</h1><div class="subtitle">Panorama mensal • resultados atualizados do sistema</div></div></div>
-      <div class="period" aria-label="Mês de referência"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span id="periodLabel">Mês atual</span></div>
+      <div class="period" aria-label="Período do panorama"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><input id="monthFilter" type="month" aria-label="Selecionar mês do panorama"><select id="weekFilter" aria-label="Selecionar semana"></select></div>
     </header>
     <section class="summary" aria-label="Resumo do mês">
       <article class="summary-card"><div class="summary-icon" aria-hidden="true">♟</div><div class="summary-copy"><strong id="supervisorCount">—</strong><span>Supervisores ativos</span></div></article>
@@ -43,17 +43,17 @@
     const $ = (id) => document.getElementById(id);
     const fold = (value) => (value ?? '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ');
     const norm = (value) => (value ?? '').toString().trim();
+    const excludedTestUsers = ['ruivo', 'fernanda furian amorim', 'vinicius'];
     const photoMatches = [
-      { aliases: ['fernanda mirim'], file: 'caricatura_001.png' },
-      { aliases: ['kelly'], file: 'caricatura_002.png' },
-      { aliases: ['queila'], file: 'caricatura_003.png' },
-      { aliases: ['bruno'], file: 'caricatura_004.png' },
-      { aliases: ['mara ferro'], file: 'caricatura_005.png' },
+      { aliases: ['bruno takami fujiwara', 'bruno'], file: 'caricatura_001.png' },
+      { aliases: ['kelly lesia taraborelli veneri', 'kelly'], file: 'caricatura_002.png' },
+      { aliases: ['queila medeiros veiga', 'queila'], file: 'caricatura_003.png' },
+      { aliases: ['mara regina borges ferro', 'mara ferro'], file: 'caricatura_005.png' },
       { aliases: ['siliane'], file: 'caricatura_006.png' },
-      { aliases: ['mara calixto'], file: 'caricatura_007.png' },
+      { aliases: ['mara cristina da silva calixto', 'mara calixto'], file: 'caricatura_007.png' },
       { aliases: ['adriana rosa'], file: 'caricatura_008.png' },
       { aliases: ['divanilza'], file: 'caricatura_010.png' },
-      { aliases: ['fernanda amorim'], file: 'caricatura_011.png' },
+      { aliases: ['fernanda furian amorim'], file: 'caricatura_011.png' },
       { aliases: ['chanes'], file: 'caricatura_012.png' },
       { aliases: ['elaine'], file: 'caricatura_013.png' },
       { aliases: ['fabiana'], file: 'caricatura_014.png' },
@@ -64,10 +64,13 @@
       { aliases: ['ana paula'], file: 'caricatura_019.png' },
       { aliases: ['jose carlos'], file: 'caricatura_020.png' },
       { aliases: ['katia'], file: 'caricatura_021.png' },
-      { aliases: ['maria ines'], file: 'caricatura_022.png' }
+      { aliases: ['maria ines'], file: 'caricatura_022.png' },
+      { aliases: ['lilian nilda herculano freire', 'lilian'], file: 'lilian-nilda-herculano-freire.png' },
+      { aliases: ['marcelo rodrigues'], file: 'marcelo-rodrigues.png' }
     ];
     const goalKey = 'gestor-ese-metas-provisorias-v1';
     let usedLocalFallback = false;
+    let cachedData = null;
 
     function parseDate(value) {
       if (!value) return null;
@@ -84,7 +87,7 @@
     }
     function statusType(value) {
       const status = fold(value);
-      if (status.includes('realizada') || status.includes('visitado')) return 'visited';
+      if (status.includes('realizada') || status.includes('visitad')) return 'visited';
       if (status.includes('justific')) return 'justified';
       if (status.includes('adiada')) return 'postponed';
       if (status.includes('cancelada')) return 'cancelled';
@@ -107,28 +110,60 @@
     function initials(name) {
       return norm(name).split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('pt-BR') || '—';
     }
+    function isTestSupervisor(...values) {
+      const identity = fold(values.filter(Boolean).join(' '));
+      return excludedTestUsers.some((name) => identity.includes(name));
+    }
     function monthKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; }
     function weeksInMonth(period) {
       const [year, month] = period.split('-').map(Number);
       return Math.ceil((new Date(year, month - 1, 1).getDay() + new Date(year, month, 0).getDate()) / 7);
     }
     function weeklyGoal(monthly, period) { return Math.ceil(Math.max(0, Number(monthly) || 0) / weeksInMonth(period)); }
-    function selectedWeekRange(now) {
-      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      start.setDate(start.getDate() - start.getDay());
+    function selectedWeekRange(period, weekNumber) {
+      const [year, month] = period.split('-').map(Number);
+      const start = new Date(year, month - 1, 1);
+      start.setDate(start.getDate() - start.getDay() + (weekNumber - 1) * 7);
       const end = new Date(start);
       end.setDate(start.getDate() + 6);
       return { start, end };
     }
-    function activeSupervisors(supervisors) {
-      return [...supervisors.values()].filter((item) => item && item.active !== false && item.isActive !== false);
+    function currentWeekNumber(date) {
+      const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+      return Math.floor((date.getDate() - 1 + firstDay) / 7) + 1;
     }
-    function buildStats(data) {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = today.getMonth();
-      const period = monthKey(today);
-      const week = selectedWeekRange(today);
+    function defaultWeekNumber(period) {
+      const now = new Date();
+      const current = monthKey(now);
+      if (period === current) return currentWeekNumber(now);
+      return period < current ? weeksInMonth(period) : 1;
+    }
+    function setWeekOptions(period, selected = defaultWeekNumber(period)) {
+      const select = $('weekFilter');
+      const total = weeksInMonth(period);
+      select.replaceChildren();
+      for (let week = 1; week <= total; week += 1) {
+        const option = document.createElement('option');
+        option.value = String(week);
+        option.textContent = `Semana ${week}`;
+        option.selected = week === Math.min(Math.max(Number(selected) || 1, 1), total);
+        select.appendChild(option);
+      }
+    }
+    function initializePeriodControls() {
+      const current = monthKey(new Date());
+      $('monthFilter').value = current;
+      setWeekOptions(current);
+    }
+    function activeSupervisors(supervisors) {
+      return [...supervisors.values()].filter((item) => item && item.active !== false && item.isActive !== false && !isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email));
+    }
+    function buildStats(data, period, weekNumber) {
+      const [year, monthValue] = period.split('-').map(Number);
+      const month = monthValue - 1;
+      const week = selectedWeekRange(period, weekNumber);
+      const allSupervisors = [...(data.supervisors || new Map()).values()];
+      const excludedIds = new Set(allSupervisors.filter((item) => isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email)).map((item) => item.id));
       const supervisors = activeSupervisors(data.supervisors || new Map());
       const byName = new Map(supervisors.map((item) => [fold(item.displayName || item.name || item.id), item]));
       const byId = new Map(supervisors.map((item) => [item.id, item]));
@@ -155,8 +190,9 @@
         }
         return null;
       };
-      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado' })).filter((item) => item.date && item.date.getFullYear() === year && item.date.getMonth() === month);
-      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => item.date && item.date.getFullYear() === year && item.date.getMonth() === month);
+      const allowedRow = (row, name) => !isTestSupervisor(name, row.supervisorId, row.loginAlias) && !excludedIds.has(row.supervisorId || row.supervisorID || row.uid || row.authUid);
+      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado' })).filter((item) => item.date && item.date.getFullYear() === year && item.date.getMonth() === month && allowedRow(item.row, item.name));
+      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => item.date && item.date.getFullYear() === year && item.date.getMonth() === month && allowedRow(item.row, item.name));
       agenda.forEach(({ row, name }) => {
         const stat = ensure(name, resolve(row, name));
         stat.planned += 1;
@@ -186,14 +222,15 @@
         if (target === 0) { state = 'gray'; label = 'SEM META'; }
         else if (stat.actual >= target) { state = 'green'; label = 'ACIMA DA META'; }
         else if (stat.weekActual >= weeklyGoal(target, period)) { state = 'blue'; label = 'NO RITMO'; }
-        return { ...stat, target, rate, weeklyTarget: weeklyGoal(target, period), lastLabel: last, state, label };
+        return { ...stat, target, rate, weeklyTarget: weeklyGoal(target, period), lastLabel: last, state, label, weekNumber };
       });
       rows.sort((a, b) => b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR'));
-      return { rows, period, year, month, today };
+      return { rows, year, month };
     }
     function render(data) {
-      const { rows, period, year, month, today } = buildStats(data);
-      $('periodLabel').textContent = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(year, month, 1)).replace(/^./, (letter) => letter.toLocaleUpperCase('pt-BR'));
+      const period = $('monthFilter').value || monthKey(new Date());
+      const weekNumber = Number($('weekFilter').value) || defaultWeekNumber(period);
+      const { rows, year, month } = buildStats(data, period, weekNumber);
       $('supervisorCount').textContent = rows.length;
       const goalRows = rows.filter((item) => item.target > 0);
       const average = goalRows.length ? Math.round(goalRows.reduce((sum, item) => sum + item.rate, 0) / goalRows.length) : 0;
@@ -223,7 +260,7 @@
         const targetLabel = document.createElement('span'); targetLabel.textContent = item.target === 0 ? 'Meta não definida' : `${item.actual} visita${item.actual === 1 ? '' : 's'} no mês`;
         const remaining = document.createElement('span'); remaining.textContent = item.target > item.actual ? `${item.target - item.actual} restantes` : item.target ? 'Meta cumprida' : '—'; targets.append(targetLabel, remaining);
         const week = document.createElement('div'); week.className = 'week';
-        const weekLabel = document.createElement('span'); weekLabel.textContent = 'META DA SEMANA';
+        const weekLabel = document.createElement('span'); weekLabel.textContent = `SEMANA ${weekNumber} · META`;
         const weekValue = document.createElement('strong'); weekValue.textContent = `${item.weekActual} / ${item.weeklyTarget}`; week.append(weekLabel, weekValue);
         const badge = document.createElement('div'); badge.className = `badge${item.state === 'green' ? '' : ` ${item.state}`}`; badge.textContent = item.label;
         card.append(head, last, monthly, meter, targets, week, badge); container.appendChild(card);
@@ -232,7 +269,7 @@
     async function load(refresh = false) {
       const button = $('refreshButton'); button.disabled = true; button.classList.add('is-loading');
       usedLocalFallback = false;
-      try { await requireAdmin(); const data = await loadGestorData({ refresh }); render(data); $('dashboard').hidden = false; $('loginScreen').hidden = true; $('pageError').hidden = true; }
+      try { await requireAdmin(); cachedData = await loadGestorData({ refresh }); render(cachedData); $('dashboard').hidden = false; $('loginScreen').hidden = true; $('pageError').hidden = true; }
       catch (error) { console.error('[Panorama TV] Falha ao consultar dados:', error); $('dashboard').hidden = true; $('loginScreen').hidden = false; $('pageError').hidden = true; $('loginMessage').textContent = authErrorMessage(error); }
       finally { button.disabled = false; button.classList.remove('is-loading'); }
     }
@@ -244,7 +281,10 @@
       finally { button.disabled = false; }
     });
     $('refreshButton').addEventListener('click', () => load(true));
+    $('monthFilter').addEventListener('change', () => { const period = $('monthFilter').value; if (!period) return; setWeekOptions(period); if (cachedData) render(cachedData); });
+    $('weekFilter').addEventListener('change', () => { if (cachedData) render(cachedData); });
     $('logoutButton').addEventListener('click', async () => { await logoutAdmin(); $('dashboard').hidden = true; $('loginScreen').hidden = false; $('loginPassword').value = ''; });
+    initializePeriodControls();
     try { await load(false); } catch (error) { console.error('[Panorama TV] Erro de inicialização:', error); }
   </script>
 </body>
