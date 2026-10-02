@@ -80,11 +80,17 @@
       const text = norm(value);
       const brDate = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       if (brDate) return new Date(Number(brDate[3]), Number(brDate[2]) - 1, Number(brDate[1]));
+      // Datas de visita são dias de calendário; não converter o prefixo ISO
+      // por UTC, pois isso pode deslocar o dia/mês no fuso local da TV.
+      const isoDate = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|T)/);
+      if (isoDate) return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
       const date = new Date(text);
       return Number.isNaN(date.getTime()) ? null : date;
     }
     function visitDate(row) {
-      return parseDate(row['Data da Visita'] || row['Data Visita'] || row.Data || row['Data do Registro'] || row['Data Agendada']);
+      // Para o realizado, considerar a data efetiva da visita, não a data de
+      // gravação nem a data planejada (que podem pertencer a outro mês).
+      return parseDate(row['Data da Visita'] || row['Data Visita'] || row.Data);
     }
     function statusType(value) {
       const status = fold(value);
@@ -116,6 +122,13 @@
       return excludedTestUsers.some((name) => identity.includes(name));
     }
     function monthKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; }
+    function isInSelectedMonth(date, period) {
+      if (!date || !/^\d{4}-\d{2}$/.test(period)) return false;
+      const [year, month] = period.split('-').map(Number);
+      const start = new Date(year, month - 1, 1);
+      const endExclusive = new Date(year, month, 1);
+      return date >= start && date < endExclusive;
+    }
     function weeksInMonth(period) {
       const [year, month] = period.split('-').map(Number);
       return Math.ceil((new Date(year, month - 1, 1).getDay() + new Date(year, month, 0).getDate()) / 7);
@@ -160,8 +173,6 @@
       return [...supervisors.values()].filter((item) => item && item.active !== false && item.isActive !== false && !isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email));
     }
     function buildStats(data, period, weekNumber) {
-      const [year, monthValue] = period.split('-').map(Number);
-      const month = monthValue - 1;
       const week = selectedWeekRange(period, weekNumber);
       const allSupervisors = [...(data.supervisors || new Map()).values()];
       const excludedIds = new Set(allSupervisors.filter((item) => isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email)).map((item) => item.id));
@@ -192,8 +203,8 @@
         return null;
       };
       const allowedRow = (row, name) => !isTestSupervisor(name, row.supervisorId, row.loginAlias) && !excludedIds.has(row.supervisorId || row.supervisorID || row.uid || row.authUid);
-      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado' })).filter((item) => item.date && item.date.getFullYear() === year && item.date.getMonth() === month && allowedRow(item.row, item.name));
-      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => item.date && item.date.getFullYear() === year && item.date.getMonth() === month && allowedRow(item.row, item.name));
+      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado' })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item.row, item.name));
+      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item.row, item.name));
       agenda.forEach(({ row, name }) => {
         const stat = ensure(name, resolve(row, name));
         stat.planned += 1;
