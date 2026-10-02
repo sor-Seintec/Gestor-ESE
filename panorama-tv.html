@@ -237,12 +237,12 @@
         return { ...stat, target, rate, weeklyTarget: weeklyGoal(target, period), lastLabel: last, state, label, weekNumber };
       });
       rows.sort((a, b) => b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR'));
-      return { rows, year, month };
+      return { rows };
     }
     function render(data) {
       const period = $('monthFilter').value || monthKey(new Date());
       const weekNumber = Number($('weekFilter').value) || defaultWeekNumber(period);
-      const { rows, year, month } = buildStats(data, period, weekNumber);
+      const { rows } = buildStats(data, period, weekNumber);
       $('supervisorCount').textContent = rows.length;
       const goalRows = rows.filter((item) => item.target > 0);
       const average = goalRows.length ? Math.round(goalRows.reduce((sum, item) => sum + item.rate, 0) / goalRows.length) : 0;
