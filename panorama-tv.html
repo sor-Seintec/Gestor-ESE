@@ -15,6 +15,7 @@
     .cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.card{position:relative;min-width:0;min-height:182px;padding:13px 14px 12px;border:1px solid rgba(255,255,255,.92);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(249,252,255,.84));box-shadow:0 8px 20px rgba(37,77,136,.08);overflow:hidden}.card.top-rank{border-color:#ffe8a7;box-shadow:0 0 0 2px rgba(255,205,67,.12),0 9px 25px rgba(64,88,125,.1)}.card-head{display:grid;grid-template-columns:39px 55px minmax(0,1fr);gap:8px;align-items:center;min-height:56px}.rank{width:39px;height:39px;display:grid;place-items:center;border-radius:13px;background:#e2efff;color:#24559c;font-size:20px;font-weight:900}.rank.gold{background:#fff0bc;color:#ba8200}.rank.silver{background:#e4edf6;color:#7489a0}.rank.bronze{background:#ffeadb;color:#bd683a}.avatar{width:54px;height:54px;display:grid;place-items:center;overflow:hidden;border:2px solid #fff;border-radius:50%;background:linear-gradient(135deg,#d9e8ff,#f0f5ff);box-shadow:0 2px 9px rgba(42,79,135,.16);color:#315c9d;font-size:17px;font-weight:850}.avatar img{width:100%;height:100%;object-fit:cover}.person{min-width:0;font-size:clamp(11px,.81vw,15px);line-height:1.2;font-weight:850;overflow-wrap:anywhere}.monthly{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:10px 0 7px}.percent{font-size:clamp(23px,1.8vw,33px);line-height:1;font-weight:930;letter-spacing:-.045em}.count{padding-bottom:2px;color:#203869;font-size:clamp(12px,.95vw,16px);font-weight:850;white-space:nowrap}.meter{height:8px;border-radius:99px;background:#dce7f2;overflow:hidden}.meter span{display:block;height:100%;width:var(--fill);border-radius:inherit;background:var(--meter,#0ab86a)}.targets{display:flex;justify-content:space-between;gap:8px;margin-top:5px;color:#7487a6;font-size:10px;font-weight:650}.week{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:9px;padding-top:8px;border-top:1px solid #e8eef6;color:#526b91;font-size:10px;font-weight:750}.week strong{color:#1b3768;font-size:11px}.badge{display:flex;align-items:center;justify-content:center;gap:6px;min-height:27px;margin-top:8px;padding:4px 8px;border-radius:999px;background:#daf8e9;color:#078950;font-size:10px;font-weight:900;letter-spacing:.015em}.badge::before{content:"↑";width:17px;height:17px;display:grid;place-items:center;border-radius:50%;background:#08b96a;color:#fff;font-size:13px}.badge.blue{background:#e0efff;color:#1769d0}.badge.blue::before{content:"◷";background:#3789ec;font-size:10px}.badge.amber{background:#fff0cd;color:#b66a00}.badge.amber::before{content:"!";background:#e99a13}.badge.gray{background:#edf1f5;color:#66788f}.badge.gray::before{content:"—";background:#8494a9}.last{position:absolute;right:14px;top:14px;color:#8090a9;font-size:9px;font-weight:650}.empty{grid-column:1/-1;padding:42px;border:1px dashed #b9cee8;border-radius:20px;background:#ffffff9c;color:#5c7194;text-align:center;font-weight:700}.footnote{margin:12px 3px 0;color:#7586a3;font-size:10px;text-align:center}
     .login-screen{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:20px;background:rgba(18,43,83,.22);backdrop-filter:blur(6px)}.login-card{width:min(420px,100%);padding:30px;border:1px solid #dce8f6;border-radius:22px;background:#fff;box-shadow:0 25px 90px #23446b3b}.login-card h2{margin:0 0 4px;font-size:24px}.login-card p{margin:0 0 20px;color:#6e7f9d;font-size:13px}.login-card label{display:block;margin:13px 0 5px;color:#4f678e;font-size:12px;font-weight:800}.login-card input{width:100%;height:44px;padding:0 12px;border:1px solid #cfdeef;border-radius:10px;outline:none}.login-card input:focus{border-color:#4282ed;box-shadow:0 0 0 3px #4083ed1c}.login-card button{width:100%;height:44px;margin-top:17px;border:0;border-radius:10px;background:#3478f6;color:#fff;font-weight:850}.login-message{min-height:18px;margin-top:10px!important;color:#b42318!important;font-size:12px!important}.page-error{margin:10vh auto;padding:26px;border:1px solid #fecaca;border-radius:16px;background:#fff;color:#9c2525;max-width:760px;text-align:center;font-weight:750}
     @media(max-width:1450px){.cards{grid-template-columns:repeat(5,minmax(0,1fr))}.page{padding:20px}.card{min-height:178px}.masthead h1{font-size:clamp(27px,2.8vw,42px)}}@media(max-width:1120px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.summary-card{padding:13px}.card{min-height:178px}}@media(max-width:820px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}.masthead{align-items:flex-start}.period{padding:10px;font-size:13px}.title{gap:10px}.brand-icon{width:44px;height:44px;border-radius:14px;font-size:23px}.summary{gap:8px}.summary-card{gap:8px;padding:10px}.summary-icon{width:37px;height:37px;font-size:19px}}@media(max-width:560px){.page{padding:13px}.masthead{flex-direction:column}.period{align-self:flex-start}.summary{grid-template-columns:1fr}.summary-card{min-height:67px}.summary-icon{width:42px;height:42px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.card{padding:10px;min-height:166px;border-radius:15px}.card-head{grid-template-columns:32px 43px minmax(0,1fr);gap:6px}.rank{width:32px;height:32px;font-size:16px}.avatar{width:42px;height:42px}.person{font-size:11px}.last{top:7px;right:9px;font-size:8px}.percent{font-size:24px}.targets{font-size:9px}.week{font-size:9px}.week strong{font-size:10px}.badge{font-size:9px}}
+    .badge.red{background:#ffe6e6;color:#b92f37}.badge.red::before{content:"!";background:#e95258}
     .month-control{position:relative;display:flex;align-items:center;gap:8px;flex:none}.month-step{width:35px;height:48px;border:1px solid #d8e5f4;border-radius:13px;background:#fff;color:#345f99;font-size:29px;line-height:1;box-shadow:var(--shadow)}.month-step:hover,.month-step:focus-visible{border-color:#78a9ef;color:#174d98}.month-card{--campaign-primary:#eef3fb;--campaign-secondary:#dce9f8;display:flex;align-items:center;gap:12px;width:min(360px,40vw);min-height:88px;padding:11px 14px;border:1px solid var(--campaign-primary);border-radius:18px;background:linear-gradient(116deg,#fff 38%,var(--campaign-secondary));color:#142c59;text-align:left;box-shadow:var(--shadow)}.month-card:hover,.month-card:focus-visible{box-shadow:0 0 0 3px #8badde55,var(--shadow)}.month-art{display:grid;place-items:center;flex:none;width:57px;height:57px;border-radius:15px;background:var(--campaign-primary);color:#273660}.month-art svg{width:35px;height:35px}.month-copy{display:flex;flex-direction:column;min-width:0;line-height:1.2}.month-overline{font-size:9px;letter-spacing:.11em;font-weight:900;color:#52739f}.month-copy strong{margin:2px 0;font-size:21px;font-weight:900;letter-spacing:-.025em;text-transform:capitalize}.month-copy>span:last-of-type{font-size:11px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.month-copy small{margin-top:3px;font-size:10px;color:#597095;font-weight:700}.month-chevron{margin-left:auto;font-size:24px;color:#3b64a2}.month-picker{position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:min(520px,calc(100vw - 26px));padding:15px;border:1px solid #d9e5f4;border-radius:20px;background:#fff;box-shadow:0 24px 65px #253c6a38}.month-picker-head{display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:12px;color:#18315f;font-size:18px}.month-picker-head button{width:34px;height:34px;border:1px solid #dce7f5;border-radius:10px;background:#f5f9fe;color:#2865ae;font-size:23px}.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.month-option{--tile-primary:#d7e9ff;--tile-secondary:#eff6ff;display:flex;flex-direction:column;justify-content:space-between;gap:5px;min-height:118px;padding:10px;border:1px solid #dce6f4;border-radius:13px;background:linear-gradient(150deg,#fff 45%,var(--tile-secondary));text-align:left;color:#18315f}.month-option:hover,.month-option:focus-visible{border-color:#6f9fdc;transform:translateY(-2px)}.month-option.is-selected{outline:2px solid #3478f6;outline-offset:1px}.month-option svg{width:28px;height:28px;color:var(--tile-primary);filter:drop-shadow(0 1px 1px #46618444)}.month-option strong{font-size:13px}.month-option small{font-size:9px;line-height:1.25;color:#61799d}.month-swatch{display:flex;gap:3px}.month-swatch i{display:block;width:19px;height:8px;border:1px solid #b5c4d755;border-radius:99px;background:var(--swatch)}.month-picker p{margin:10px 2px 0;color:#687d9e;font-size:11px;line-height:1.35}
     @media(max-width:820px){.month-card{width:min(340px,45vw)}}@media(max-width:560px){.month-control{align-self:stretch}.month-card{width:100%;min-height:76px}.month-art{width:48px;height:48px}.month-copy strong{font-size:18px}.month-picker{right:-2px}.month-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.month-option{min-height:106px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
@@ -46,7 +47,7 @@
     </section>
     <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><button class="tool-btn" id="refreshButton" type="button" title="Consultar o Firebase agora"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 7.45 10.9h-2.16A6 6 0 1 1 17.4 9h-3.2l4.5 4.5L23 9h-3.5A8 8 0 0 0 12 4Zm-1 4v5l4 2.4 1-1.65-3-1.75V8Z"/></svg>Atualizar</button><button class="tool-btn" id="logoutButton" type="button">Sair</button></div></div>
     <section class="cards" id="cards" aria-live="polite"></section>
-    <p class="footnote">Cada cartão mostra somente as visitas do mês escolhido, do dia 1 ao último dia. Os dados não atualizam sozinhos; use Atualizar para buscar mudanças.</p>
+    <p class="footnote">Cada cartão mostra somente visitas realizadas do planejamento no mês escolhido, do dia 1 ao último dia. Os dados não atualizam sozinhos; use Atualizar para buscar mudanças.</p>
   </main>
   <section class="login-screen" id="loginScreen" hidden>
     <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
@@ -104,35 +105,7 @@
     let selectedPeriod = '';
     let pickerYear = new Date().getFullYear();
 
-    function parseDate(value) {
-      if (!value) return null;
-      if (typeof value?.toDate === 'function') return value.toDate();
-      const text = norm(value);
-      const brDate = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (brDate) return new Date(Number(brDate[3]), Number(brDate[2]) - 1, Number(brDate[1]));
-      const date = new Date(text);
-      return Number.isNaN(date.getTime()) ? null : date;
-    }
-    function visitDate(row) {
-      return parseDate(row['Data da Visita'] || row['Data Visita'] || row.Data || row['Data do Registro'] || row['Data Agendada']);
-    }
-    function statusType(value) {
-      const status = fold(value);
-      if (status.includes('realizada') || status.includes('visitado')) return 'visited';
-      if (status.includes('justific')) return 'justified';
-      if (status.includes('adiada')) return 'postponed';
-      if (status.includes('cancelada')) return 'cancelled';
-      return 'other';
-    }
-    function numericGoal(row) {
-      for (const key of ['Meta Mensal', 'Meta de Visitas', 'Meta Visitas', 'Quantidade Meta', 'Qtd Meta', 'Meta']) {
-        const raw = row[key];
-        if (raw === undefined || raw === null || norm(raw) === '') continue;
-        const value = Number(String(raw).replace(',', '.'));
-        if (Number.isFinite(value) && value >= 0) return value;
-      }
-      return null;
-    }
+    function safePercent(value, target) { return target > 0 ? Math.round(value / target * 1000) / 10 : 0; }
     function getPhoto(name) {
       const normalized = fold(name);
       const matches = photoMatches.filter((mapping) => mapping.aliases.some((alias) => normalized === fold(alias) || normalized.startsWith(`${fold(alias)} `) || normalized.includes(` ${fold(alias)} `) || normalized.endsWith(` ${fold(alias)}`)));
@@ -206,60 +179,54 @@
       $('monthPickerButton').setAttribute('aria-expanded', 'false');
     }
     function buildStats(data, period) {
-      const [year, monthValue] = period.split('-').map(Number);
-      const month = monthValue - 1;
       const profiles = [...(data.supervisors || new Map()).values()];
       const profilesByName = new Map(profiles.map((item) => [fold(item.displayName || item.id), item]));
       const excludedIds = new Set(profiles.filter((item) => isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email)).map((item) => item.id));
-      const allowedRow = (item) => !isTestSupervisor(item.name, item.row.supervisorId, item.row.loginAlias) && !excludedIds.has(item.row.supervisorId || item.row.supervisorID || item.row.uid || item.row.authUid);
-      const agenda = (data.agendaRows || []).map((row) => ({ row, date: parseDate(row['Data Agendada'] || row.Data || row['Data da Agenda']), name: norm(row.Supervisor || row.supervisor) || 'Não informado', goal: numericGoal(row) })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item));
-      const visits = (data.visitRows || []).map((row) => ({ row, date: visitDate(row), name: norm(row.Supervisor || row.supervisor) || 'Não informado', status: statusType(row.Status || row.status) })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item));
+      const allowedRow = (row, name) => {
+        const supervisorId = row._raw?.supervisorId || row.supervisorId || row.supervisorID || row.uid || row.authUid;
+        return !isTestSupervisor(name, supervisorId, row.loginAlias) && !excludedIds.has(supervisorId);
+      };
+      const plannedByName = new Map();
+      (data.agendaRows || []).forEach((row) => {
+        if (!isInSelectedMonth(new Date(row['Data Agendada']), period)) return;
+        const name = fold(row.Supervisor);
+        plannedByName.set(name, (plannedByName.get(name) || 0) + 1);
+      });
+      // Panorama Geral (DMC.html) usa plannedVisitRows, Data da Visita e status exato "Realizada".
+      const visits = (data.plannedVisitRows || []).map((row) => ({
+        row,
+        date: row['Data da Visita'] ? new Date(row['Data da Visita']) : null,
+        name: norm(row.Supervisor || row.supervisor) || 'Não informado'
+      })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item.row, item.name));
       const stats = new Map();
       const ensure = (name) => {
-        if (!stats.has(name)) stats.set(name, { name, planned: 0, actual: 0, goals: [], lastVisit: null });
+        if (!stats.has(name)) stats.set(name, { name, actual: 0, lastVisit: null, hasJustification: false });
         return stats.get(name);
       };
-      agenda.forEach((item) => {
-        const stat = ensure(item.name);
-        stat.planned += 1;
-        if (item.goal !== null) stat.goals.push(item.goal);
-      });
       visits.forEach((item) => {
         const stat = ensure(item.name);
-        if (item.status !== 'visited') return;
-        stat.actual += 1;
+        if (item.row.Status === 'Realizada') stat.actual += 1;
+        if (item.row.Status === 'Justificada' && norm(item.row.Justificativa || item.row.justificativa)) stat.hasJustification = true;
         if (!stat.lastVisit || item.date > stat.lastVisit) stat.lastVisit = item.date;
       });
       let goalOverrides = {};
       try { goalOverrides = JSON.parse(localStorage.getItem(goalKey) || '{}'); } catch { /* ignora cache local inválido */ }
       const firebaseGoals = new Map((data.monthlyGoals || []).map((item) => [`${item.period}|${item.supervisorId}`, Number(item.monthlyGoal)]));
-      const now = new Date();
-      const days = new Date(year, month + 1, 0).getDate();
-      const past = year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth());
-      const future = year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth());
-      const elapsed = past ? days : future ? 0 : Math.min(now.getDate(), days);
       const rows = [...stats.values()].map((stat) => {
         const profile = profilesByName.get(fold(stat.name));
-        let configured = null;
-        if (profile) {
-          const saved = firebaseGoals.get(`${period}|${profile.id}`);
-          if (saved !== undefined) configured = saved;
-          else if (goalOverrides[`${period}|${stat.name}`] !== undefined) configured = Number(goalOverrides[`${period}|${stat.name}`]);
-          else {
-            const base = Number(profile.monthlyGoal);
-            if (Number.isFinite(base) && base >= 0) configured = base;
-          }
-        }
-        const explicit = stat.goals.length ? Math.max(...stat.goals) : null;
-        const target = configured !== null ? configured : explicit !== null ? explicit : stat.planned;
-        const rate = target ? Math.round(stat.actual / target * 100) : (stat.actual ? 100 : 0);
-        const projection = elapsed ? Math.round(stat.actual / elapsed * days) : 0;
+        const saved = profile?.id ? firebaseGoals.get(`${period}|${profile.id}`) : undefined;
+        const legacy = goalOverrides[`${period}|${stat.name}`];
+        const planned = plannedByName.get(fold(stat.name)) || 0;
+        const monthly = saved !== undefined ? Number(saved) : legacy !== undefined ? Number(legacy) : Number(profile?.monthlyGoal ?? planned);
+        const target = Number.isFinite(monthly) ? monthly : 0;
+        const rate = safePercent(stat.actual, target);
         const lastLabel = stat.lastVisit ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(stat.lastVisit) : 'Sem visita';
-        let state = 'amber';
-        let label = 'ATENÇÃO';
+        let state = 'red';
+        let label = 'ABAIXO DA META';
         if (target === 0) { state = 'gray'; label = 'SEM META'; }
-        else if (stat.actual >= target) { state = 'green'; label = 'META ATINGIDA'; }
-        else if (projection >= target) { state = 'blue'; label = 'NO RITMO'; }
+        else if (rate >= 100) { state = 'green'; label = 'ACIMA DA META'; }
+        else if (stat.hasJustification) { state = 'blue'; label = 'JUSTIFICADO'; }
+        else if (rate >= 50) { state = 'amber'; label = 'EM ATENÇÃO'; }
         return { ...stat, target, rate, lastLabel, state, label };
       });
       rows.sort((a, b) => b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR'));
@@ -271,9 +238,9 @@
       $('supervisorCount').textContent = rows.length;
       const totalGoal = rows.reduce((sum, item) => sum + item.target, 0);
       const totalActual = rows.reduce((sum, item) => sum + item.actual, 0);
-      $('averageRate').textContent = `${totalGoal ? Math.round(totalActual / totalGoal * 100) : 0}%`;
+      $('averageRate').textContent = `${safePercent(totalActual, totalGoal).toLocaleString('pt-BR')}%`;
       $('aboveTarget').textContent = `${rows.filter((item) => item.target > 0 && item.actual >= item.target).length} de ${rows.length}`;
-      $('updatedAt').textContent = `${usedLocalFallback ? 'Cópia local · ' : 'Dados consultados · '}${new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())} · ${totalActual} visitas realizadas em ${campaigns[Number(period.slice(5)) - 1].month.toLowerCase()}`;
+      $('updatedAt').textContent = `${usedLocalFallback ? 'Cópia local · ' : 'Dados consultados · '}${new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())} · ${totalActual} visitas do planejamento realizadas em ${campaigns[Number(period.slice(5)) - 1].month.toLowerCase()}`;
       const container = $('cards');
       container.replaceChildren();
       if (!rows.length) {
@@ -291,7 +258,7 @@
         const monthly = document.createElement('div'); monthly.className = 'monthly';
         const percent = document.createElement('strong'); percent.className = 'percent'; percent.textContent = `${item.rate.toLocaleString('pt-BR')}%`;
         const count = document.createElement('strong'); count.className = 'count'; count.textContent = `${item.actual} / ${item.target}`; monthly.append(percent, count);
-        const meter = document.createElement('div'); meter.className = 'meter'; meter.style.setProperty('--meter', item.state === 'amber' ? '#f2a221' : item.state === 'blue' ? '#2784ed' : item.state === 'gray' ? '#98a6b8' : '#0ab86a');
+        const meter = document.createElement('div'); meter.className = 'meter'; meter.style.setProperty('--meter', item.state === 'amber' ? '#f2a221' : item.state === 'blue' ? '#2784ed' : item.state === 'gray' ? '#98a6b8' : item.state === 'red' ? '#e95258' : '#0ab86a');
         const fill = document.createElement('span'); fill.style.setProperty('--fill', `${Math.max(0, Math.min(item.rate, 100))}%`); meter.appendChild(fill);
         const targets = document.createElement('div'); targets.className = 'targets';
         const targetLabel = document.createElement('span'); targetLabel.textContent = item.target === 0 ? 'Meta não definida' : `${item.actual} visita${item.actual === 1 ? '' : 's'} no mês`;
