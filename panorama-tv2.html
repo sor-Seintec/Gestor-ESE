@@ -61,17 +61,98 @@
     @media(max-width:1199px){.masthead{grid-template-areas:'title month' 'stats stats';grid-template-columns:1fr 260px;padding:12px;gap:10px}.masthead .summary{min-height:115px}.masthead .summary-card:first-child{border-left:0}.masthead .title{padding:0}.gauge{max-width:130px}}
     @media(max-width:560px){.masthead{grid-template-areas:'title' 'stats' 'month';grid-template-columns:minmax(0,1fr)}.masthead .summary-card{padding:5px 7px}.metric-label{font-size:10px;white-space:normal;gap:4px}.metric-symbol{width:24px;height:24px}.masthead .summary-copy strong{font-size:27px;margin-left:0}.target-heading{flex-direction:column;align-items:flex-start}.target-heading strong{font-size:20px}.gauge-value{font-size:20px}.masthead .month-control{border-left:0;margin:0;padding:0}.masthead .month-card{min-height:45px}.masthead .brand-icon{width:42px;height:50px}}
     .gauge-value{top:34%}
-    @media(prefers-reduced-motion:reduce){.gauge-needle,.achievement-fill,.achievement-star{transition:none}}
+    /* Painel de progresso da escola: versão de dia e versão noturna pelo seletor de tema. */
+    .masthead{position:relative;grid-template-areas:"title summary";grid-template-columns:minmax(330px,1fr) minmax(720px,2.05fr);min-height:205px;padding:15px 18px 71px;gap:12px;overflow:visible}.masthead .title{align-self:center}.masthead .summary{grid-area:summary;grid-template-columns:.8fr .62fr 1.45fr;min-height:116px}.masthead .summary-card{min-height:116px}.masthead .summary-card:first-child{border-left:0}.masthead .month-control{position:absolute;right:18px;bottom:12px;border-left:0;margin:0;padding:0;z-index:4}.masthead .month-card{min-height:46px;width:260px}.masthead .month-step{width:28px;height:35px}.path-card{padding:8px 14px!important;overflow:hidden}.path-card .target-heading{align-items:center}.path-card .metric-label{font-size:13px}.path-card .target-heading strong{font-size:20px}.path-card .achievement-track{height:15px;margin:7px 0 2px}.path-card .achievement-star{width:25px;height:25px;font-size:18px}.achieved-names{display:block;min-height:13px;color:#466080;font-size:9px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.school-path{height:64px;margin-top:1px}.school-path svg{display:block;width:100%;height:100%;overflow:visible}.path-base,.path-light{fill:none;stroke-width:6;stroke-linecap:round}.path-base{stroke:#bbc5d1}.path-light{stroke:#19c87a;stroke-dasharray:400;stroke-dashoffset:400;filter:drop-shadow(0 0 3px #1ecf8277);transition:stroke-dashoffset .9s ease}.path-node circle{fill:#d4dae2;stroke:#aeb9c7;stroke-width:2;transition:fill .35s,stroke .35s,filter .35s}.path-node text{fill:#718096;font-size:7px;font-weight:900;text-anchor:middle}.path-node.is-lit circle{fill:#16c977;stroke:#e9fff5;filter:drop-shadow(0 0 4px #16c977aa)}.path-node.is-lit text{fill:#fff}.school-icon path{fill:none;stroke:#97a5b7;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;transition:stroke .35s,filter .35s}.school-path.is-complete .school-icon path{stroke:#16c977;filter:drop-shadow(0 0 4px #16c977aa)}.performance-status{align-self:center;margin-top:1px;padding:4px 9px;border-radius:999px;color:#8f2330;background:#ffe0e5;font-size:9px;font-weight:900;line-height:1.1;white-space:nowrap}.performance-status.state-amber{color:#8d5700;background:#fff0ca}.performance-status.state-blue{color:#145cbb;background:#dceeff}.performance-status.state-green{color:#087946;background:#d8f8e7}
+    body[data-theme="graphite"] .masthead,body[data-theme="black"] .masthead{border-color:#174e70;background:radial-gradient(circle at 65% 20%,#144c70 0,transparent 29%),linear-gradient(110deg,#061827,#0a2943 53%,#061b2d);box-shadow:0 9px 25px #0008;color:#eef9ff}body[data-theme="graphite"] .masthead h1,body[data-theme="black"] .masthead h1,body[data-theme="graphite"] .masthead .summary-copy strong,body[data-theme="black"] .masthead .summary-copy strong,body[data-theme="graphite"] .path-card .target-heading strong,body[data-theme="black"] .path-card .target-heading strong{color:#f6fbff}body[data-theme="graphite"] .masthead .summary-card,body[data-theme="black"] .masthead .summary-card{border-color:#1d5273;background:linear-gradient(120deg,#09253c88,#0d314888)}body[data-theme="graphite"] .masthead .summary-card:hover,body[data-theme="black"] .masthead .summary-card:hover{background:#154360aa}body[data-theme="graphite"] .masthead .metric-label,body[data-theme="black"] .masthead .metric-label,body[data-theme="graphite"] .masthead .gauge-caption,body[data-theme="black"] .masthead .gauge-caption,body[data-theme="graphite"] .achieved-names,body[data-theme="black"] .achieved-names{color:#c7e7ff}body[data-theme="graphite"] .masthead .metric-symbol,body[data-theme="black"] .masthead .metric-symbol{background:#113e5d;border-color:#2f739b;color:#65d5ff}body[data-theme="graphite"] .path-base,body[data-theme="black"] .path-base{stroke:#39536a}body[data-theme="graphite"] .path-node circle,body[data-theme="black"] .path-node circle{fill:#284257;stroke:#4a6880}body[data-theme="graphite"] .path-node text,body[data-theme="black"] .path-node text{fill:#adbed0}body[data-theme="graphite"] .school-icon path,body[data-theme="black"] .school-icon path{stroke:#7794a9}body[data-theme="graphite"] .performance-status.state-red,body[data-theme="black"] .performance-status.state-red{background:#5c1f2a;color:#ffd7dc}body[data-theme="graphite"] .performance-status.state-amber,body[data-theme="black"] .performance-status.state-amber{background:#5d4312;color:#ffe8ad}body[data-theme="graphite"] .performance-status.state-blue,body[data-theme="black"] .performance-status.state-blue{background:#123d69;color:#c9e6ff}body[data-theme="graphite"] .performance-status.state-green,body[data-theme="black"] .performance-status.state-green{background:#0d5239;color:#c9ffe5}
+    body[data-theme="graphite"] .gauge-value,body[data-theme="black"] .gauge-value{color:#f6fbff}
+    @media(max-width:1199px){.masthead{grid-template-areas:"title" "summary";grid-template-columns:1fr;padding-bottom:75px}.masthead .summary{grid-template-columns:1fr .8fr 1.4fr}.masthead .month-control{right:12px}.school-path{height:50px}}
+    @media(max-width:720px){.masthead{padding-bottom:68px}.masthead .summary{grid-template-columns:1fr}.masthead .summary-card{border-left:0!important;min-height:83px}.masthead .month-control{left:12px;right:12px}.masthead .month-card{width:auto;flex:1}.school-path{height:48px}.path-card .achievement-track{width:100%}}
+    /* Composição fiel à arte: pessoas, velocímetro e escola sobre paisagem panorâmica. */
+    .masthead{display:block;min-height:0;height:clamp(315px,24vw,410px);padding:0;margin-bottom:12px;overflow:visible;border:2px solid #39bdff;border-radius:27px;background:#08213c url('assets/panorama-tv2/escola-dia.png') center 54%/cover no-repeat;box-shadow:0 0 0 2px #92dcff66,0 0 24px #19adff88,0 14px 35px #051b3566;color:#fff}
+    body[data-theme="graphite"] .masthead,body[data-theme="black"] .masthead{background:#05162b url('assets/panorama-tv2/escola-noite.png') center center/cover no-repeat;border-color:#24bbff;box-shadow:0 0 0 2px #34bdff55,0 0 28px #04a8ff88,0 14px 36px #0009}
+    .masthead .title{position:absolute;z-index:2;left:2%;top:7%;width:29%;padding:0;align-items:center;gap:14px}.masthead .brand-icon{width:56px;height:62px;flex:none;border:1px solid #48ccff;border-radius:14px;background:#062c58cc;color:#55d7ff;box-shadow:0 0 13px #20caff, inset 0 0 12px #147fdc}.masthead .brand-icon svg{width:36px;height:39px}.masthead .eyebrow{font-size:clamp(9px,.85vw,14px);font-weight:600;color:#c5e2fa;letter-spacing:.04em}.masthead h1{font-size:clamp(18px,1.8vw,33px);line-height:1.07;white-space:nowrap;color:#fff;text-shadow:0 2px 6px #001c45}.masthead h1 em{font-style:normal;color:#2bd4ff}
+    .masthead .summary{display:contents}.masthead .summary-card{position:absolute;z-index:2;border-radius:20px;padding:0;min-height:0;background:transparent;box-shadow:none;backdrop-filter:none}.masthead .summary-card:hover{background:transparent}.masthead .people-card{left:2%;top:43%;width:29%;height:49%;border:1px solid #42bfff!important;background:#001c43a8!important;box-shadow:inset 0 0 25px #008fff44!important;overflow:hidden}.people-orbit{position:absolute;inset:0}.orbit-avatar{position:absolute;width:clamp(27px,2.65vw,47px);height:clamp(27px,2.65vw,47px);display:grid;place-items:center;overflow:hidden;border:2px solid #6ee4ff;border-radius:50%;background:#123d71;color:#fff;box-shadow:0 0 9px #00bbff,0 0 17px #0078e599;font-size:11px;font-weight:900}.orbit-avatar img{width:100%;height:100%;object-fit:cover}.orbit-avatar:nth-child(1){left:8%;top:39%}.orbit-avatar:nth-child(2){left:17%;top:9%}.orbit-avatar:nth-child(3){left:34%;top:2%}.orbit-avatar:nth-child(4){left:53%;top:3%}.orbit-avatar:nth-child(5){left:72%;top:9%}.orbit-avatar:nth-child(6){left:82%;top:39%}.orbit-avatar:nth-child(7){left:73%;top:70%}.orbit-avatar:nth-child(8){left:54%;top:77%}.orbit-avatar:nth-child(9){left:35%;top:77%}.orbit-avatar:nth-child(10){left:17%;top:70%}.orbit-avatar:nth-child(11){left:2%;top:66%}.orbit-avatar:nth-child(12){left:86%;top:67%}.people-total{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;align-items:center;align-self:center;width:34%;height:66%;border:2px solid #28caff;border-radius:50%;background:#00204edd;box-shadow:0 0 22px #00b8ff, inset 0 0 25px #087cd6;text-align:center;color:#fff}.people-total strong{font-size:clamp(34px,3.5vw,62px);line-height:1;color:#fff!important;text-shadow:0 0 12px #00baff}.people-total span{font-size:clamp(8px,.8vw,14px);white-space:nowrap}
+    .masthead .gauge-card{left:32%;top:3%;width:18%;height:88%;border:0!important;display:flex;align-items:center;justify-content:center;gap:0}.masthead .gauge{max-width:none;width:100%;align-self:auto;filter:drop-shadow(0 0 10px #06bdff)}.masthead .gauge svg{overflow:visible}.masthead .gauge-value{top:43%;color:#fff!important;font-size:clamp(29px,3vw,53px);text-shadow:0 0 10px #007cc5}.masthead .gauge-caption{margin-top:-3px;color:#eef9ff!important;font-size:clamp(9px,.85vw,16px)}.masthead .performance-status{margin-top:12px;padding:7px 12px;border:1px solid currentColor;box-shadow:0 0 10px currentColor;font-size:clamp(9px,.75vw,13px);white-space:normal;text-align:center}
+    .masthead .path-card{left:50%;top:2%;width:48%;height:77%;border:0!important;padding:0!important;overflow:visible}.path-card .target-heading{position:absolute;right:0;top:4%;width:52%;height:35%;padding:13px 16px;border:1px solid #7dddff;border-radius:20px;background:#06285cc9;box-shadow:0 0 16px #04aeff88,inset 0 0 22px #0f7de077;color:#fff}.path-card .metric-label{color:#fff!important;font-size:clamp(13px,1.15vw,22px);font-weight:800}.path-card .metric-symbol{display:none}.path-card .target-heading strong{color:#fff!important;font-size:clamp(14px,1.4vw,25px)}.path-card .achievement-track{position:absolute;right:2%;top:25%;width:48%;height:25px;margin:0;border:3px solid #4fafff;background:#143b6e;box-shadow:0 0 14px #03baff}.path-card .achievement-fill{background:linear-gradient(90deg,#0085ff,#18e0ff)}.path-card .achieved-names{position:absolute;right:2%;top:43%;width:48%;height:19px;color:#fff;font-size:clamp(9px,.65vw,12px);text-shadow:0 1px 4px #001c38}.path-card .school-path{position:absolute;left:2%;right:0;top:39%;height:58%;margin:0}.school-path svg{height:100%;width:100%;filter:drop-shadow(0 0 7px #001b33)}.path-base{stroke:#7d8d9a;stroke-width:3;stroke-dasharray:5 7;opacity:.9}.path-light{stroke:#13d9ff;stroke-width:5;filter:drop-shadow(0 0 6px #08ccff)}.path-node circle{fill:#172840;stroke:#aab5c2}.path-node.is-lit circle{fill:#0dcaff;stroke:#eaffff;filter:drop-shadow(0 0 7px #02d8ff)}.school-icon{display:none}.masthead .month-control{position:absolute;left:auto;right:2%;bottom:4%;z-index:5;width:25%;border:0}.masthead .month-card{width:auto;min-height:42px;box-shadow:0 0 12px #033d7f88}.masthead .month-step{height:33px;box-shadow:0 0 8px #033d7f88}
+    body[data-theme="white"] .masthead,body[data-theme="silver"] .masthead,body[data-theme="gray"] .masthead{color:#fff}body[data-theme="white"] .masthead h1,body[data-theme="silver"] .masthead h1,body[data-theme="gray"] .masthead h1{color:#fff}body[data-theme="white"] .masthead .people-card,body[data-theme="silver"] .masthead .people-card,body[data-theme="gray"] .masthead .people-card{background:#003e83a8!important}
+    @media(max-width:1200px){.masthead{height:330px}.masthead .title{width:36%}.masthead .people-card{width:36%;top:44%;height:46%}.masthead .gauge-card{left:39%;width:20%}.masthead .path-card{left:59%;width:39%}.path-card .target-heading{width:80%}.path-card .achievement-track,.path-card .achieved-names{width:73%}.masthead .month-control{width:33%}}
+    @media(max-width:760px){.masthead{height:520px;background-position:62% center!important}.masthead .title{left:4%;top:4%;width:90%}.masthead h1{font-size:20px}.masthead .people-card{left:4%;top:22%;width:53%;height:31%}.masthead .gauge-card{left:60%;top:20%;width:34%;height:38%}.masthead .path-card{left:4%;top:57%;width:92%;height:30%}.path-card .target-heading{right:0;top:0;width:54%;height:43%;padding:7px 10px}.path-card .achievement-track{right:2%;top:26%;width:50%;height:14px}.path-card .achieved-names{top:49%;width:49%}.path-card .school-path{left:0;top:33%;height:62%}.masthead .month-control{left:4%;right:4%;bottom:2%;width:92%}.masthead .month-card{min-width:0}.people-total strong{font-size:33px}.people-total span{font-size:8px}}
+    /* A arte diurna tem margens brancas no arquivo original; este recorte mostra apenas a paisagem. */
+    .masthead{background-position:center 40%}
+    .masthead .path-card{top:0;height:100%}
+    .path-card .target-heading{top:7%;height:28%}
+    .path-card .achievement-track{top:25%}
+    .path-card .achieved-names{top:38%;right:0;width:52%;padding:3px 7px;border-radius:8px;background:#052850a8;overflow-x:auto;overflow-y:hidden;text-overflow:clip;scrollbar-width:thin}
+    .path-card .school-path{left:0;top:31%;width:46%;height:69%;right:auto}
+    .path-base{stroke:#53637a;stroke-width:5;stroke-dasharray:none;opacity:.65;filter:drop-shadow(0 0 4px #9fb3c9)}
+    .path-light{stroke:#1ae5ff;stroke-width:6;filter:drop-shadow(0 0 6px #0cf7ff) drop-shadow(0 0 10px #0cf7ff)}
+    .path-node.is-lit circle{fill:#00ddff;stroke:#fff;filter:drop-shadow(0 0 8px #12deff)}
+    body[data-theme="graphite"] .masthead .summary-card,body[data-theme="black"] .masthead .summary-card{background:transparent;box-shadow:none}
+    body[data-theme="graphite"] .masthead .summary-card:hover,body[data-theme="black"] .masthead .summary-card:hover{background:transparent}
+    .path-card .achieved-names{scrollbar-width:none}
+    .path-card .achieved-names::-webkit-scrollbar{display:none}
+    /* Percurso ascendente em quatro trechos: vermelho, amarelo, azul e verde. */
+    .path-card .school-path{left:-5%;top:7%;width:46%;height:88%}
+    .school-path svg{overflow:visible}
+    .school-path .path-base{fill:none;stroke:#8998a9;stroke-width:8;stroke-dasharray:none;opacity:.72;filter:drop-shadow(0 0 3px #0b233c)}
+    .school-path .path-segment{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .8s ease;filter:drop-shadow(0 0 5px currentColor) drop-shadow(0 0 11px currentColor)}
+    .school-path .segment-red{stroke:#ff3654;color:#ff3654}
+    .school-path .segment-amber{stroke:#ffc533;color:#ffc533}
+    .school-path .segment-blue{stroke:#02c8ff;color:#02c8ff}
+    .school-path .segment-green{stroke:#29e97c;color:#29e97c}
+    .school-path .path-node[data-step="20"]{--step-color:#ff3654}
+    .school-path .path-node[data-step="40"]{--step-color:#ffc533}
+    .school-path .path-node[data-step="60"]{--step-color:#02c8ff}
+    .school-path .path-node[data-step="100"]{--step-color:#29e97c}
+    .school-path .path-node circle{fill:#25354a;stroke:#aab6c6;stroke-width:2}
+    .school-path .path-node.is-lit circle{fill:var(--step-color);stroke:#fff;filter:drop-shadow(0 0 8px var(--step-color))}
+    .school-path .path-node .node-star{fill:#fff;font-size:15px;text-anchor:middle;font-weight:900}
+    .school-path .path-node .node-pill{fill:#071c38e8;stroke:#8897a9;stroke-width:1.4}
+    .school-path .path-node.is-lit .node-pill{stroke:var(--step-color);filter:drop-shadow(0 0 5px var(--step-color))}
+    .school-path .path-node .node-label{fill:#fff;font-size:11px;text-anchor:middle;font-weight:900}
+    .masthead .gauge-caption{margin-top:8px}
+    .masthead .performance-status{margin-top:15px}
+    .masthead .month-control{bottom:9%}
+    @media(max-width:760px){.path-card .school-path{left:0;top:19%;width:55%;height:78%}.masthead .month-control{bottom:5%}}
+    @media(max-width:760px){.masthead{background-position:62% 40%!important}.masthead .path-card{top:57%;height:30%}.path-card .target-heading{top:0;height:43%}.path-card .achievement-track{top:26%}.path-card .achieved-names{top:49%}.path-card .school-path{top:33%;width:55%;height:62%}}
+    @media(prefers-reduced-motion:reduce){.gauge-needle,.achievement-fill,.achievement-star,.path-light{transition:none}}
+    /* A camada do caminho usa as mesmas coordenadas e o mesmo recorte da paisagem. */
+    .masthead > .school-path{position:absolute;inset:0;width:100%;height:100%;margin:0;overflow:hidden;border-radius:25px;pointer-events:none;z-index:1}
+    .masthead > .school-path svg{position:absolute;max-width:none;overflow:visible}
+    .masthead .gauge-needle path{fill:#6cffff;stroke:#fff;stroke-width:1;filter:drop-shadow(0 0 4px #00e5ff)}
+    .masthead .gauge-needle circle{fill:#0cc8e8;stroke:#fff;filter:drop-shadow(0 0 4px #00e5ff)}
+    .masthead .month-control{width:22%;max-width:340px}
+    .masthead .month-card{min-height:36px;padding:5px 9px;border:1px solid var(--campaign-primary);border-left-width:6px;background:linear-gradient(110deg,color-mix(in srgb,var(--campaign-primary) 35%,white),color-mix(in srgb,var(--campaign-end) 55%,white));box-shadow:0 0 12px color-mix(in srgb,var(--campaign-primary) 55%,transparent)}
+    .masthead .month-copy strong{font-size:12px}.masthead .month-copy>span:last-of-type{font-size:8px}
+    .masthead .people-card{border:0!important;background:transparent!important;box-shadow:none!important}
+    .masthead .people-card .people-static{width:100%;height:100%;object-fit:contain;display:block}
+    @media(max-width:760px){.masthead .month-control{width:92%;max-width:none}}
   </style>
 </head>
 <body data-theme="graphite">
   <main class="page" id="dashboard" hidden>
     <header class="masthead">
-      <div class="title"><div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 40 44" fill="currentColor"><rect x="2" y="28" width="9" height="14" rx="4"/><rect x="15" y="16" width="9" height="26" rx="4" opacity=".75"/><rect x="28" y="2" width="9" height="40" rx="4" opacity=".55"/></svg></div><div><div class="eyebrow">Portal URE Sorocaba · Panorama TV 2</div><h1>Ranking de desempenho dos supervisores</h1><div class="title-accent" aria-hidden="true"></div></div></div>
+      <div class="title"><div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 40 44" fill="currentColor"><rect x="2" y="28" width="9" height="14" rx="4"/><rect x="15" y="16" width="9" height="26" rx="4" opacity=".75"/><rect x="28" y="2" width="9" height="40" rx="4" opacity=".55"/></svg></div><div><div class="eyebrow">Desempenho em tempo real</div><h1>Ranking de desempenho<br><em>dos supervisores</em></h1></div></div>
       <section class="summary" aria-label="Resumo do mês">
-        <article class="summary-card" title="Supervisores ativos incluídos no ranking do mês"><div class="metric-label"><span class="metric-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><circle cx="4" cy="9" r="3"/><circle cx="20" cy="9" r="3"/><path d="M6 22v-5a6 6 0 0 1 12 0v5ZM0 20v-4a4 4 0 0 1 5-4v8Zm19 0v-8a4 4 0 0 1 5 4v4Z"/></svg></span>Supervisores ativos</div><div class="summary-copy"><strong id="supervisorCount">—</strong></div><svg class="metric-wave" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M1 16Q17 2 34 10T67 9T100 11T133 9T166 9T199 4" fill="none" stroke="currentColor" stroke-width="2"/></svg></article>
-        <article class="summary-card gauge-card" title="Visitas realizadas divididas pela meta total do mês. Escala do medidor: 0 a 100%."><div class="gauge"><svg viewBox="0 0 160 110" aria-hidden="true"><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#e7eef6" stroke-width="13" stroke-linecap="round"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#f43d51" stroke-width="13" pathLength="100" stroke-dasharray="24 76"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#ffd22d" stroke-width="13" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-25"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#06a9ef" stroke-width="13" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-49"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#20ce68" stroke-width="13" pathLength="100" stroke-dasharray="27 73" stroke-dashoffset="-73"/><g id="performanceNeedle" class="gauge-needle"><path d="M77 84 80 13 83 84Z" fill="#102b50"/><circle cx="80" cy="84" r="7" fill="#102b50" stroke="white" stroke-width="2"/></g></svg><strong id="averageRate" class="gauge-value">—</strong></div><span class="gauge-caption">Desempenho do mês</span></article>
-        <article class="summary-card" title="Supervisores que atingiram pelo menos 100% da meta mensal"><div class="target-heading"><span class="metric-label"><span class="metric-symbol" aria-hidden="true">◎</span>Acima da meta</span><strong id="aboveTarget">—</strong></div><div id="achievementTrack" class="achievement-track" role="progressbar" aria-label="Supervisores que atingiram a meta" aria-valuemin="0" aria-valuemax="100"><div class="achievement-fill"></div><span class="achievement-star" aria-hidden="true">★</span></div></article>
+        <article class="summary-card people-card"><img class="people-static" src="assets/panorama-tv2/supervisores-fixo.png" alt="Imagem fixa de 23 supervisores ativos"></article>
+        <article class="summary-card gauge-card" title="Visitas realizadas divididas pela meta total do mês. Escala do medidor: 0 a 100%."><div class="gauge"><svg viewBox="0 0 160 110" aria-hidden="true"><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#e7eef6" stroke-width="13" stroke-linecap="round"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#f43d51" stroke-width="13" pathLength="100" stroke-dasharray="24 76"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#ffd22d" stroke-width="13" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-25"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#06a9ef" stroke-width="13" pathLength="100" stroke-dasharray="23 77" stroke-dashoffset="-49"/><path d="M25 84 A64 64 0 1 1 135 84" fill="none" stroke="#20ce68" stroke-width="13" pathLength="100" stroke-dasharray="27 73" stroke-dashoffset="-73"/><g id="performanceNeedle" class="gauge-needle"><path d="M77 84 80 13 83 84Z" fill="#102b50"/><circle cx="80" cy="84" r="7" fill="#102b50" stroke="white" stroke-width="2"/></g></svg><strong id="averageRate" class="gauge-value">—</strong></div><span class="gauge-caption">Desempenho atual</span><div id="performanceStatus" class="performance-status state-red">Carregando desempenho...</div></article>
+        <article class="summary-card path-card" title="Percurso da escola: as etapas se acendem conforme a meta mensal é alcançada.">
+          <div class="target-heading"><span class="metric-label"><span class="metric-symbol" aria-hidden="true">◎</span><span id="achievementTitle">Meta atingida</span></span><strong id="aboveTarget">—</strong></div>
+          <div id="achievementTrack" class="achievement-track" role="progressbar" aria-label="Supervisores que atingiram a meta" aria-valuemin="0" aria-valuemax="100"><div class="achievement-fill"></div><span class="achievement-star" aria-hidden="true">★</span></div>
+          <div class="school-path" id="schoolPath" aria-label="Percurso até a escola">
+            <svg viewBox="0 0 340 300" preserveAspectRatio="none" role="img" aria-label="Caminho colorido do desempenho até a escola">
+              <path class="path-base" d="M60 280 C105 274 145 267 153 235 C159 211 122 204 132 179 C142 158 174 166 192 160 C220 152 211 119 190 108 C174 98 187 82 211 76 C238 68 270 68 282 26"/>
+              <path class="path-segment segment-red" data-from="0" data-to="25" pathLength="100" d="M60 280 C105 274 145 267 153 235"/>
+              <path class="path-segment segment-amber" data-from="25" data-to="50" pathLength="100" d="M153 235 C159 211 122 204 132 179 C142 158 174 166 192 160"/>
+              <path class="path-segment segment-blue" data-from="50" data-to="75" pathLength="100" d="M192 160 C220 152 211 119 190 108 C174 98 187 82 211 76"/>
+              <path class="path-segment segment-green" data-from="75" data-to="100" pathLength="100" d="M211 76 C238 68 270 68 282 26"/>
+              <g class="path-node" data-step="20" transform="translate(153 235)"><circle r="12"/><text class="node-star" y="5">★</text><rect class="node-pill" x="13" y="-11" width="49" height="22" rx="11"/><text class="node-label" x="37" y="4">20%</text></g>
+              <g class="path-node" data-step="40" transform="translate(192 160)"><circle r="12"/><text class="node-star" y="5">★</text><rect class="node-pill" x="13" y="-11" width="49" height="22" rx="11"/><text class="node-label" x="37" y="4">40%</text></g>
+              <g class="path-node" data-step="60" transform="translate(211 76)"><circle r="12"/><text class="node-star" y="5">★</text><rect class="node-pill" x="13" y="-11" width="49" height="22" rx="11"/><text class="node-label" x="37" y="4">60%</text></g>
+              <g class="path-node" data-step="100" transform="translate(282 26)"><circle r="12"/><text class="node-star" y="5">★</text><rect class="node-pill" x="13" y="-11" width="53" height="22" rx="11"/><text class="node-label" x="39" y="4">100%</text></g>
+            </svg>
+          </div>
+        </article>
       </section>
       <div class="month-control" id="monthControl">
         <button class="month-step" id="previousMonth" type="button" aria-label="Mês anterior">‹</button>
@@ -107,6 +188,7 @@
     function applyTheme(theme, persist = true) {
       const selected = availableThemes.includes(theme) ? theme : 'graphite';
       document.body.dataset.theme = selected;
+      alignSchoolRoad();
       document.querySelectorAll('[data-theme-option]').forEach((button) => {
         button.setAttribute('aria-pressed', String(button.dataset.themeOption === selected));
       });
@@ -115,6 +197,52 @@
       }
     }
     const excludedTestUsers = ['ruivo', 'vinicius'];
+    function alignSchoolRoad() {
+      const layer = document.getElementById?.('schoolPath');
+      if (!layer) return;
+      const header = document.querySelector('.masthead');
+      if (layer.parentElement !== header) header.appendChild(layer);
+      const night = ['graphite', 'black'].includes(document.body.dataset.theme);
+      const art = night ? {
+        width: 2152, height: 731,
+        road: 'M1400 609 C1430 599 1460 594 1480 579 C1530 539 1430 519 1340 492 C1250 465 1290 449 1370 430 C1450 411 1480 396 1430 373 C1410 358 1370 353 1365 340 L1393 329'
+      } : {
+        width: 1672, height: 941,
+        road: 'M1000 588 C1036 575 1061 571 1077 557 C1110 530 1060 520 1000 510 C943 500 958 485 1000 475 C1043 466 1106 455 1101 439 C1097 426 1065 421 1047 405 L1048 394'
+      };
+      const width = header.clientWidth, height = header.clientHeight;
+      if (!width || !height) return;
+      const scale = Math.max(width / art.width, height / art.height);
+      const style = getComputedStyle(header);
+      const positionX = parseFloat(style.backgroundPositionX) / 100;
+      const positionY = parseFloat(style.backgroundPositionY) / 100;
+      const svg = layer.querySelector('svg');
+      svg.setAttribute('viewBox', `0 0 ${art.width} ${art.height}`);
+      svg.style.width = `${art.width * scale}px`;
+      svg.style.height = `${art.height * scale}px`;
+      svg.style.left = `${(width - art.width * scale) * positionX}px`;
+      svg.style.top = `${(height - art.height * scale) * positionY}px`;
+      const road = layer.querySelector('.path-base');
+      road.setAttribute('d', art.road);
+      const length = road.getTotalLength();
+      layer.querySelectorAll('.path-segment').forEach((segment) => {
+        const start = Number(segment.dataset.from) / 100;
+        const end = Number(segment.dataset.to) / 100;
+        const points = Array.from({length: 61}, (_, index) => {
+          const point = road.getPointAtLength(length * (start + (end - start) * index / 60));
+          return `${index ? 'L' : 'M'}${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+        });
+        segment.setAttribute('d', points.join(' '));
+      });
+      const markerScale = .72 * Math.max(1, width / 1250) / scale;
+      layer.querySelectorAll('.path-node').forEach((node) => {
+        const point = road.getPointAtLength(length * Number(node.dataset.step) / 100);
+        node.setAttribute('transform', `translate(${point.x} ${point.y}) scale(${markerScale})`);
+        const rightSide = node.dataset.step === '20';
+        node.querySelector('.node-pill').setAttribute('x', rightSide ? '13' : node.dataset.step === '100' ? '-66' : '-62');
+        node.querySelector('.node-label').setAttribute('x', rightSide ? '37' : node.dataset.step === '100' ? '-39' : '-37');
+      });
+    }
     const photoMatches = [
       { aliases: ['bruno takami fujiwara', 'bruno'], file: 'caricatura_001.png' },
       { aliases: ['fernanda isaura medeiros mirim', 'fernanda mirim'], file: 'caricatura_002.png' },
@@ -191,6 +319,7 @@
       $('monthCampaign').textContent = campaign.title;
       $('monthRange').textContent = `Visitas de 1 a ${lastDay} de ${campaign.month.toLowerCase()}`;
       $('monthPickerButton').style.setProperty('--campaign-primary', campaign.colors[0]);
+      $('monthPickerButton').style.setProperty('--campaign-end', campaign.colors[1] || campaign.colors[0]);
       $('monthPickerButton').style.setProperty('--campaign-secondary', campaign.colors[1] || `color-mix(in srgb, ${campaign.colors[0]} 24%, white)`);
       pickerYear = year;
       renderMonthPicker();
@@ -304,17 +433,31 @@
     function render(data) {
       const period = selectedPeriod || monthKey(new Date());
       const { rows } = buildStats(data, period);
-      $('supervisorCount').textContent = rows.length;
       const totalGoal = rows.reduce((sum, item) => sum + item.target, 0);
       const totalActual = rows.reduce((sum, item) => sum + item.actual, 0);
       $('averageRate').textContent = `${safePercent(totalActual, totalGoal).toLocaleString('pt-BR')}%`;
-      $('aboveTarget').textContent = `${rows.filter((item) => item.target > 0 && item.actual >= item.target).length} de ${rows.length}`;
+      const achieved = rows.filter((item) => item.target > 0 && item.actual >= item.target);
+      $('achievementTitle').textContent = 'Meta atingida';
+      $('aboveTarget').textContent = `${achieved.length} de ${rows.length}`;
       const displayRate = Math.max(0, Math.min(100, safePercent(totalActual, totalGoal)));
       $('performanceNeedle').style.transform = `rotate(${-120 + displayRate * 2.4}deg)`;
-      const achievedRate = rows.length ? rows.filter((item) => item.target > 0 && item.actual >= item.target).length / rows.length * 100 : 0;
+      const achievedRate = rows.length ? achieved.length / rows.length * 100 : 0;
       $('achievementTrack').style.setProperty('--achieved', `${achievedRate}%`);
       $('achievementTrack').setAttribute('aria-valuenow', String(Math.round(achievedRate)));
       $('achievementTrack').setAttribute('aria-valuetext', $('aboveTarget').textContent);
+      const performanceStatus = $('performanceStatus');
+      const status = displayRate < 30 ? ['state-red', 'Abaixo da meta · precisamos avançar'] : displayRate < 60 ? ['state-amber', 'No caminho certo · continue avançando'] : displayRate < 100 ? ['state-blue', 'Quase lá · a meta está próxima'] : ['state-green', 'Meta alcançada · parabéns!'];
+      performanceStatus.className = `performance-status ${status[0]}`;
+      performanceStatus.textContent = status[1];
+      const schoolPath = $('schoolPath');
+      schoolPath.classList.toggle('is-complete', displayRate >= 100);
+      schoolPath.querySelectorAll('.path-segment').forEach((segment) => {
+        const from = Number(segment.dataset.from);
+        const to = Number(segment.dataset.to);
+        const lit = Math.max(0, Math.min(100, (displayRate - from) / (to - from) * 100));
+        segment.style.strokeDashoffset = String(100 - lit);
+      });
+      schoolPath.querySelectorAll('.path-node').forEach((node) => node.classList.toggle('is-lit', displayRate >= Number(node.dataset.step)));
       $('updatedAt').textContent = `${usedLocalFallback ? 'Cópia local · ' : 'Dados consultados · '}${new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())} · ${totalActual} visitas do planejamento realizadas em ${campaigns[Number(period.slice(5)) - 1].month.toLowerCase()}`;
       const container = $('cards');
       container.replaceChildren();
@@ -407,6 +550,7 @@
     let savedTheme = 'graphite';
     try { savedTheme = localStorage.getItem(themeStorageKey) || savedTheme; } catch { /* armazenamento indisponível */ }
     applyTheme(savedTheme, false);
+    new ResizeObserver(alignSchoolRoad).observe(document.querySelector('.masthead'));
     setMonthPeriod(monthKey(new Date()));
     try { await load(false); } catch (error) { console.error('[Panorama TV] Erro de inicialização:', error); }
   </script>
