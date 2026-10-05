@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#eff6ff">
   <meta name="description" content="Painel de desempenho mensal dos supervisores — Portal URE Sorocaba">
-  <title>Panorama dos Supervisores — Portal URE</title>
+  <title>Panorama TV 2 — Ranking dos Supervisores</title>
   <style>
     :root{color-scheme:light;--ink:#111b50;--muted:#60759e;--blue:#3478f6;--line:#dbe7f5;--green:#0ab86a;--amber:#f5a623;--red:#ef4444;--canvas:#eff6ff;--white:#fff;--shadow:0 12px 32px rgba(34,74,130,.09)}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 7% 40%,#d6eafe 0,transparent 36%),radial-gradient(ellipse at 93% 7%,#dcecff 0,transparent 30%),var(--canvas);color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif}button,input{font:inherit}button{cursor:pointer}[hidden]{display:none!important}
@@ -18,13 +18,23 @@
     .badge.red{background:#ffe6e6;color:#b92f37}.badge.red::before{content:"!";background:#e95258}
     .month-control{position:relative;display:flex;align-items:center;gap:8px;flex:none}.month-step{width:35px;height:48px;border:1px solid #d8e5f4;border-radius:13px;background:#fff;color:#345f99;font-size:29px;line-height:1;box-shadow:var(--shadow)}.month-step:hover,.month-step:focus-visible{border-color:#78a9ef;color:#174d98}.month-card{--campaign-primary:#eef3fb;--campaign-secondary:#dce9f8;display:flex;align-items:center;gap:12px;width:min(360px,40vw);min-height:88px;padding:11px 14px;border:1px solid var(--campaign-primary);border-radius:18px;background:linear-gradient(116deg,#fff 38%,var(--campaign-secondary));color:#142c59;text-align:left;box-shadow:var(--shadow)}.month-card:hover,.month-card:focus-visible{box-shadow:0 0 0 3px #8badde55,var(--shadow)}.month-art{display:grid;place-items:center;flex:none;width:57px;height:57px;border-radius:15px;background:var(--campaign-primary);color:#273660}.month-art svg{width:35px;height:35px}.month-copy{display:flex;flex-direction:column;min-width:0;line-height:1.2}.month-overline{font-size:9px;letter-spacing:.11em;font-weight:900;color:#52739f}.month-copy strong{margin:2px 0;font-size:21px;font-weight:900;letter-spacing:-.025em;text-transform:capitalize}.month-copy>span:last-of-type{font-size:11px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.month-copy small{margin-top:3px;font-size:10px;color:#597095;font-weight:700}.month-chevron{margin-left:auto;font-size:24px;color:#3b64a2}.month-picker{position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:min(520px,calc(100vw - 26px));padding:15px;border:1px solid #d9e5f4;border-radius:20px;background:#fff;box-shadow:0 24px 65px #253c6a38}.month-picker-head{display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:12px;color:#18315f;font-size:18px}.month-picker-head button{width:34px;height:34px;border:1px solid #dce7f5;border-radius:10px;background:#f5f9fe;color:#2865ae;font-size:23px}.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.month-option{--tile-primary:#d7e9ff;--tile-secondary:#eff6ff;display:flex;flex-direction:column;justify-content:space-between;gap:5px;min-height:118px;padding:10px;border:1px solid #dce6f4;border-radius:13px;background:linear-gradient(150deg,#fff 45%,var(--tile-secondary));text-align:left;color:#18315f}.month-option:hover,.month-option:focus-visible{border-color:#6f9fdc;transform:translateY(-2px)}.month-option.is-selected{outline:2px solid #3478f6;outline-offset:1px}.month-option svg{width:28px;height:28px;color:var(--tile-primary);filter:drop-shadow(0 1px 1px #46618444)}.month-option strong{font-size:13px}.month-option small{font-size:9px;line-height:1.25;color:#61799d}.month-swatch{display:flex;gap:3px}.month-swatch i{display:block;width:19px;height:8px;border:1px solid #b5c4d755;border-radius:99px;background:var(--swatch)}.month-picker p{margin:10px 2px 0;color:#687d9e;font-size:11px;line-height:1.35}
     @media(max-width:820px){.month-card{width:min(340px,45vw)}}@media(max-width:560px){.month-control{align-self:stretch}.month-card{width:100%;min-height:76px}.month-art{width:48px;height:48px}.month-copy strong{font-size:18px}.month-picker{right:-2px}.month-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.month-option{min-height:106px}}
+    /* A segunda versão muda somente a apresentação; dados, autenticação e filtro continuam os mesmos. */
+    body{background:radial-gradient(circle at 52% -12%,#143557 0,transparent 38%),linear-gradient(145deg,#071422,#091b2e 65%,#071522);color:#eef6ff}
+    .page{max-width:1920px;padding:clamp(14px,1.6vw,30px)}.masthead{margin-bottom:13px}.brand-icon{border-color:#274a6c;background:#102b45;color:#82caff;box-shadow:0 7px 24px #020d1f50}.eyebrow{color:#87afd7}.masthead h1{color:#f5faff;font-size:clamp(26px,2.5vw,44px)}.subtitle{color:#92acc8;font-size:clamp(13px,1.15vw,19px)}
+    .summary{gap:10px;margin-bottom:12px}.summary-card{min-height:72px;padding:11px 16px;border-color:#24415f;background:linear-gradient(140deg,#10273d,#102a43);box-shadow:0 8px 22px #020e1e55}.summary-copy strong{color:#f6faff;font-size:clamp(22px,1.8vw,31px)}.summary-copy span{color:#a2bad4}.summary-icon{width:43px;height:43px;background:#173d66;color:#63afff}.summary-card:nth-child(2) .summary-icon,.summary-card:nth-child(3) .summary-icon{background:#103f39;color:#4ee0a1}
+    .toolbar{color:#a3b8d1}.fresh i{box-shadow:0 0 0 4px #0b4f3f}.tool-btn{border-color:#2b5277;background:#102b46;color:#e9f5ff}.tool-btn:hover,.tool-btn:focus-visible{background:#1d4265}
+    .month-step{border-color:#2a4d70;background:#102b46;color:#a7d6ff;box-shadow:0 7px 20px #02102266}.month-card{border-color:#37618a;background:linear-gradient(115deg,#0e2a47,#204464);color:#f8fbff;box-shadow:0 8px 24px #03101f73}.month-art{background:#295476;color:#d7ecff}.month-overline{color:#aad2f5}.month-copy small{color:#c3daf0}.month-chevron{color:#c6e3ff}.month-picker{border-color:#315678;background:#0c2136;box-shadow:0 25px 60px #0009}.month-picker-head{color:#e9f6ff}.month-picker-head button{border-color:#3a6081;background:#14314d;color:#c7e7ff}.month-option{border-color:#284b6b;background:linear-gradient(145deg,#102941,#163450);color:#eef7ff}.month-option:hover,.month-option:focus-visible{border-color:#73b4f1}.month-option small,.month-picker p{color:#b7ccdf}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.rank-column{display:flex;flex-direction:column;gap:5px;min-width:0}.rank-header,.rank-row{display:grid;grid-template-columns:32px 32px minmax(95px,1fr) minmax(75px,1.18fr) 44px 67px;gap:7px;align-items:center}.rank-header{min-height:27px;padding:4px 10px;border:1px solid #102c45;border-radius:9px;background:#071827;color:#b8cbe0;font-size:12px;font-weight:800}.rank-header .heading-person{grid-column:2 / 4}.rank-header .heading-progress{grid-column:4 / 6}.rank-header .heading-rate{grid-column:6;text-align:center}.rank-row{min-height:45px;padding:4px 10px;border:1px solid #1b344d;border-radius:11px;background:linear-gradient(95deg,#11273d,#0d2034);box-shadow:0 2px 8px #020d1a55}.rank-row.top-gold{border-color:#e7b937;box-shadow:0 0 0 1px #e7b93755,0 0 19px #e7b93744}.rank-row.top-silver{border-color:#9cb5ce;box-shadow:0 0 0 1px #9cb5ce44,0 0 15px #9cb5ce33}.rank-row.top-bronze{border-color:#d5804b;box-shadow:0 0 0 1px #d5804b55,0 0 15px #d5804b33}.rank-number{width:30px;height:30px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--rank-accent) 60%,transparent);border-radius:50%;background:color-mix(in srgb,var(--rank-accent) 25%,#102439);color:var(--rank-accent);font-size:13px;font-weight:900}.top-gold .rank-number,.top-silver .rank-number,.top-bronze .rank-number{font-size:16px;text-shadow:0 1px 5px #0007}.rank-avatar{width:32px;height:32px;display:grid;place-items:center;overflow:hidden;border:2px solid #4e7190;border-radius:50%;background:#284763;color:#e7f4ff;font-size:11px;font-weight:900}.rank-avatar img{display:block;width:100%;height:100%;object-fit:cover}.rank-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f2f8ff;font-size:clamp(11px,.78vw,15px);font-weight:800}.rank-bar{height:11px;border-radius:999px;background:#2b4259;overflow:hidden}.rank-bar span{display:block;width:var(--fill);height:100%;border-radius:inherit;background:var(--progress-accent);box-shadow:0 0 8px color-mix(in srgb,var(--progress-accent) 65%,transparent)}.rank-total{text-align:right;white-space:nowrap;color:#cfdef1;font-size:12px;font-variant-numeric:tabular-nums}.rank-rate{justify-self:end;min-width:62px;padding:5px 6px;border:1px solid color-mix(in srgb,var(--progress-accent) 70%,#193a56);border-radius:999px;background:color-mix(in srgb,var(--progress-accent) 34%,#122a41);color:#fff;text-align:center;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums}.rank-row.no-goal .rank-rate{font-size:9px}.empty{border-color:#315475;background:#112a42;color:#b9d1e8}.footnote{color:#8ea9c4}
+    @media(max-width:1150px){.rank-header,.rank-row{grid-template-columns:30px 30px minmax(78px,1fr) minmax(58px,1fr) 40px 62px;gap:5px;padding-left:7px;padding-right:7px}.rank-name{font-size:11px}.rank-total{font-size:11px}}
+    @media(max-width:850px){.cards{grid-template-columns:1fr}.rank-header,.rank-row{grid-template-columns:34px 34px minmax(120px,1fr) minmax(100px,1.2fr) 48px 68px;gap:8px;padding-left:10px;padding-right:10px}.rank-name{font-size:13px}}
+    @media(max-width:560px){.rank-header,.rank-row{grid-template-columns:29px 29px minmax(74px,1fr) minmax(52px,.8fr) 38px 53px;gap:4px;padding-left:6px;padding-right:6px}.rank-header{font-size:10px}.rank-name{font-size:10px}.rank-number,.rank-avatar{width:27px;height:27px}.rank-total{font-size:9px}.rank-rate{min-width:51px;padding:4px 2px;font-size:9px}.rank-row.no-goal .rank-rate{font-size:8px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
   </style>
 </head>
 <body>
   <main class="page" id="dashboard" hidden>
     <header class="masthead">
-      <div class="title"><div class="brand-icon" aria-hidden="true">▥</div><div><div class="eyebrow">Portal URE Sorocaba</div><h1>Ranking de desempenho dos supervisores</h1><div class="subtitle">Panorama mensal • resultados atualizados do sistema</div></div></div>
+      <div class="title"><div class="brand-icon" aria-hidden="true">▥</div><div><div class="eyebrow">Portal URE Sorocaba · Panorama TV 2</div><h1>Ranking de desempenho dos supervisores</h1><div class="subtitle">Panorama mensal • resultados atualizados do sistema</div></div></div>
       <div class="month-control" id="monthControl">
         <button class="month-step" id="previousMonth" type="button" aria-label="Mês anterior">‹</button>
         <button class="month-card" id="monthPickerButton" type="button" aria-label="Escolher mês" aria-expanded="false" aria-controls="monthPicker">
@@ -50,7 +60,7 @@
     <p class="footnote">Todos os supervisores ativos aparecem, inclusive com zero visita. Cada cartão conta somente visitas realizadas do planejamento no mês escolhido. Use Atualizar para buscar mudanças.</p>
   </main>
   <section class="login-screen" id="loginScreen" hidden>
-    <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
+    <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV 2</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
   </section>
   <div class="page-error" id="pageError" hidden></div>
   <script type="module">
@@ -240,6 +250,11 @@
       rows.sort((a, b) => b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR'));
       return { rows };
     }
+    function rankPalette(index, item) {
+      const medalColor = index === 0 ? '#f4c63b' : index === 1 ? '#b8c9db' : index === 2 ? '#e7955a' : index < 12 ? '#27cc78' : '#48a5ff';
+      const progressColor = item.target === 0 ? '#91a4ba' : item.rate < 30 ? '#f05261' : medalColor;
+      return { numberColor: index < 3 ? medalColor : progressColor, progressColor };
+    }
     function render(data) {
       const period = selectedPeriod || monthKey(new Date());
       const { rows } = buildStats(data, period);
@@ -254,25 +269,39 @@
       if (!rows.length) {
         const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = `Não há registros de supervisores para ${period}.`; container.appendChild(empty); return;
       }
-      rows.forEach((item, index) => {
-        const card = document.createElement('article'); card.className = `card${index === 0 ? ' top-rank' : ''}`;
-        const rank = document.createElement('div'); rank.className = `rank${index === 0 ? ' gold' : index === 1 ? ' silver' : index === 2 ? ' bronze' : ''}`; rank.textContent = `${index + 1}º`;
-        const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = initials(item.name);
-        const photo = getPhoto(item.name);
-        if (photo) { const image = document.createElement('img'); image.src = photo; image.alt = ''; image.loading = 'lazy'; image.onerror = () => image.remove(); avatar.replaceChildren(image); }
-        const person = document.createElement('div'); person.className = 'person'; person.textContent = item.name;
-        const head = document.createElement('div'); head.className = 'card-head'; head.append(rank, avatar, person);
-        const last = document.createElement('div'); last.className = 'last'; last.textContent = `Última: ${item.lastLabel}`;
-        const monthly = document.createElement('div'); monthly.className = 'monthly';
-        const percent = document.createElement('strong'); percent.className = 'percent'; percent.textContent = `${item.rate.toLocaleString('pt-BR')}%`;
-        const count = document.createElement('strong'); count.className = 'count'; count.textContent = `${item.actual} / ${item.target}`; monthly.append(percent, count);
-        const meter = document.createElement('div'); meter.className = 'meter'; meter.style.setProperty('--meter', item.state === 'amber' ? '#f2a221' : item.state === 'blue' ? '#2784ed' : item.state === 'gray' ? '#98a6b8' : item.state === 'red' ? '#e95258' : '#0ab86a');
-        const fill = document.createElement('span'); fill.style.setProperty('--fill', `${Math.max(0, Math.min(item.rate, 100))}%`); meter.appendChild(fill);
-        const targets = document.createElement('div'); targets.className = 'targets';
-        const targetLabel = document.createElement('span'); targetLabel.textContent = item.target === 0 ? 'Meta não definida' : `${item.actual} visita${item.actual === 1 ? '' : 's'} no mês`;
-        const remaining = document.createElement('span'); remaining.textContent = item.target > item.actual ? `${item.target - item.actual} restantes` : item.target ? 'Meta cumprida' : '—'; targets.append(targetLabel, remaining);
-        const badge = document.createElement('div'); badge.className = `badge${item.state === 'green' ? '' : ` ${item.state}`}`; badge.textContent = item.label;
-        card.append(head, last, monthly, meter, targets, badge); container.appendChild(card);
+      const half = Math.ceil(rows.length / 2);
+      [rows.slice(0, half), rows.slice(half)].forEach((group, columnIndex) => {
+        if (!group.length) return;
+        const column = document.createElement('div'); column.className = 'rank-column';
+        const header = document.createElement('div'); header.className = 'rank-header';
+        const numberHeading = document.createElement('span'); numberHeading.textContent = '#';
+        const personHeading = document.createElement('span'); personHeading.className = 'heading-person'; personHeading.textContent = 'Pessoa';
+        const progressHeading = document.createElement('span'); progressHeading.className = 'heading-progress'; progressHeading.textContent = 'Progresso';
+        const rateHeading = document.createElement('span'); rateHeading.className = 'heading-rate'; rateHeading.textContent = '%';
+        header.append(numberHeading, personHeading, progressHeading, rateHeading);
+        column.appendChild(header);
+        group.forEach((item, offset) => {
+          const index = columnIndex * half + offset;
+          const { numberColor, progressColor } = rankPalette(index, item);
+          const row = document.createElement('article');
+          row.className = `rank-row${index === 0 ? ' top-gold' : index === 1 ? ' top-silver' : index === 2 ? ' top-bronze' : ''}${item.target === 0 ? ' no-goal' : ''}`;
+          row.style.setProperty('--rank-accent', numberColor);
+          row.style.setProperty('--progress-accent', progressColor);
+          row.title = `${item.name} · ${item.actual} de ${item.target} visitas · ${item.rate.toLocaleString('pt-BR')}% · Última: ${item.lastLabel}`;
+          row.setAttribute('aria-label', `${index + 1}º lugar: ${item.name}; ${item.actual} de ${item.target} visitas; ${item.target === 0 ? 'sem meta definida' : `${item.rate.toLocaleString('pt-BR')}% da meta`}; última visita: ${item.lastLabel}`);
+          const number = document.createElement('span'); number.className = 'rank-number'; number.textContent = `${index + 1}º`;
+          const avatar = document.createElement('span'); avatar.className = 'rank-avatar'; avatar.textContent = initials(item.name);
+          const photo = getPhoto(item.name);
+          if (photo) { const image = document.createElement('img'); image.src = photo; image.alt = ''; image.loading = 'lazy'; image.onerror = () => image.remove(); avatar.replaceChildren(image); }
+          const name = document.createElement('span'); name.className = 'rank-name'; name.textContent = item.name; name.title = item.name;
+          const bar = document.createElement('span'); bar.className = 'rank-bar';
+          const fill = document.createElement('span'); fill.style.setProperty('--fill', `${Math.max(0, Math.min(item.rate, 100))}%`); bar.appendChild(fill);
+          const count = document.createElement('span'); count.className = 'rank-total'; count.textContent = `${item.actual}/${item.target}`;
+          const rate = document.createElement('span'); rate.className = 'rank-rate'; rate.textContent = item.target === 0 ? 'Sem meta' : `${item.rate.toLocaleString('pt-BR')}%`;
+          row.append(number, avatar, name, bar, count, rate);
+          column.appendChild(row);
+        });
+        container.appendChild(column);
       });
     }
     async function load(refresh = false) {
