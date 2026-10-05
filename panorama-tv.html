@@ -18,6 +18,8 @@
     .badge.red{background:#ffe6e6;color:#b92f37}.badge.red::before{content:"!";background:#e95258}
     .month-control{position:relative;display:flex;align-items:center;gap:8px;flex:none}.month-step{width:35px;height:48px;border:1px solid #d8e5f4;border-radius:13px;background:#fff;color:#345f99;font-size:29px;line-height:1;box-shadow:var(--shadow)}.month-step:hover,.month-step:focus-visible{border-color:#78a9ef;color:#174d98}.month-card{--campaign-primary:#eef3fb;--campaign-secondary:#dce9f8;display:flex;align-items:center;gap:12px;width:min(360px,40vw);min-height:88px;padding:11px 14px;border:1px solid var(--campaign-primary);border-radius:18px;background:linear-gradient(116deg,#fff 38%,var(--campaign-secondary));color:#142c59;text-align:left;box-shadow:var(--shadow)}.month-card:hover,.month-card:focus-visible{box-shadow:0 0 0 3px #8badde55,var(--shadow)}.month-art{display:grid;place-items:center;flex:none;width:57px;height:57px;border-radius:15px;background:var(--campaign-primary);color:#273660}.month-art svg{width:35px;height:35px}.month-copy{display:flex;flex-direction:column;min-width:0;line-height:1.2}.month-overline{font-size:9px;letter-spacing:.11em;font-weight:900;color:#52739f}.month-copy strong{margin:2px 0;font-size:21px;font-weight:900;letter-spacing:-.025em;text-transform:capitalize}.month-copy>span:last-of-type{font-size:11px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.month-copy small{margin-top:3px;font-size:10px;color:#597095;font-weight:700}.month-chevron{margin-left:auto;font-size:24px;color:#3b64a2}.month-picker{position:absolute;z-index:30;right:0;top:calc(100% + 10px);width:min(520px,calc(100vw - 26px));padding:15px;border:1px solid #d9e5f4;border-radius:20px;background:#fff;box-shadow:0 24px 65px #253c6a38}.month-picker-head{display:flex;align-items:center;justify-content:center;gap:28px;margin-bottom:12px;color:#18315f;font-size:18px}.month-picker-head button{width:34px;height:34px;border:1px solid #dce7f5;border-radius:10px;background:#f5f9fe;color:#2865ae;font-size:23px}.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.month-option{--tile-primary:#d7e9ff;--tile-secondary:#eff6ff;display:flex;flex-direction:column;justify-content:space-between;gap:5px;min-height:118px;padding:10px;border:1px solid #dce6f4;border-radius:13px;background:linear-gradient(150deg,#fff 45%,var(--tile-secondary));text-align:left;color:#18315f}.month-option:hover,.month-option:focus-visible{border-color:#6f9fdc;transform:translateY(-2px)}.month-option.is-selected{outline:2px solid #3478f6;outline-offset:1px}.month-option svg{width:28px;height:28px;color:var(--tile-primary);filter:drop-shadow(0 1px 1px #46618444)}.month-option strong{font-size:13px}.month-option small{font-size:9px;line-height:1.25;color:#61799d}.month-swatch{display:flex;gap:3px}.month-swatch i{display:block;width:19px;height:8px;border:1px solid #b5c4d755;border-radius:99px;background:var(--swatch)}.month-picker p{margin:10px 2px 0;color:#687d9e;font-size:11px;line-height:1.35}
     @media(max-width:820px){.month-card{width:min(340px,45vw)}}@media(max-width:560px){.month-control{align-self:stretch}.month-card{width:100%;min-height:76px}.month-art{width:48px;height:48px}.month-copy strong{font-size:18px}.month-picker{right:-2px}.month-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.month-option{min-height:106px}}
+    .month-card{width:min(395px,42vw)}.month-art{width:76px;height:63px;border-radius:11px;background:#fff9}.month-art img{display:block;width:100%;height:100%;object-fit:contain}.month-picker{width:min(610px,calc(100vw - 26px))}.month-option{min-height:145px;padding:8px;align-items:center;text-align:center;justify-content:flex-start}.month-option img{display:block;width:100%;height:83px;object-fit:contain}.month-option strong{font-size:12px}.month-option small{font-size:9px}.month-option .month-swatch{margin-top:auto}
+    @media(max-width:820px){.month-card{width:min(355px,47vw)}}@media(max-width:560px){.month-card{width:100%}.month-art{width:60px;height:51px}.month-option{min-height:116px;padding:5px}.month-option img{height:63px}.month-option small{display:none}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
   </style>
 </head>
@@ -28,7 +30,7 @@
       <div class="month-control" id="monthControl">
         <button class="month-step" id="previousMonth" type="button" aria-label="Mês anterior">‹</button>
         <button class="month-card" id="monthPickerButton" type="button" aria-label="Escolher mês" aria-expanded="false" aria-controls="monthPicker">
-          <span class="month-art" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 7c-8 0-13 6-10 13 2 5 7 9 10 13 3-4 8-8 10-13 3-7-2-13-10-13Z" stroke="currentColor" stroke-width="3.2"/><path d="M18 27 10 42h8l6-9m6-6 8 15h-8l-6-9" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/></svg></span>
+          <span class="month-art" aria-hidden="true"><img id="selectedMonthImage" alt=""></span>
           <span class="month-copy"><span class="month-overline">PANORAMA MENSAL</span><strong id="monthTitle">Selecione o mês</strong><span id="monthCampaign"></span><small id="monthRange"></small></span>
           <span class="month-chevron" aria-hidden="true">⌄</span>
         </button>
@@ -100,6 +102,7 @@
       { month: 'Novembro', colors: ['#6d9ee8', '#d8ad52'], title: 'Novembro Azul e Dourado', subject: 'Câncer de próstata · Câncer infanto-juvenil' },
       { month: 'Dezembro', colors: ['#e95859', '#f5a348'], title: 'Dezembro Vermelho e Laranja', subject: 'HIV/AIDS · Câncer de pele' }
     ];
+    campaigns.forEach((campaign) => { campaign.image = `assets/meses/${fold(campaign.month)}.png`; });
     let usedLocalFallback = false;
     let cachedData = null;
     let selectedPeriod = '';
@@ -134,6 +137,7 @@
       $('monthPickerButton').setAttribute('aria-label', `Escolher mês; atual: ${campaign.month} de ${year}`);
       $('monthCampaign').textContent = campaign.title;
       $('monthRange').textContent = `Visitas de 1 a ${lastDay} de ${campaign.month.toLowerCase()}`;
+      $('selectedMonthImage').src = campaign.image;
       $('monthPickerButton').style.setProperty('--campaign-primary', campaign.colors[0]);
       $('monthPickerButton').style.setProperty('--campaign-secondary', campaign.colors[1] || `color-mix(in srgb, ${campaign.colors[0]} 24%, white)`);
       pickerYear = year;
@@ -167,9 +171,8 @@
         });
         const name = document.createElement('strong'); name.textContent = campaign.month;
         const detail = document.createElement('small'); detail.textContent = campaign.title;
-        const ribbon = $('monthPickerButton').querySelector('svg').cloneNode(true);
-        ribbon.setAttribute('aria-hidden', 'true');
-        option.append(swatch, ribbon, name, detail);
+        const artwork = document.createElement('img'); artwork.src = campaign.image; artwork.alt = ''; artwork.loading = 'lazy';
+        option.append(artwork, name, detail, swatch);
         option.addEventListener('click', () => { setMonthPeriod(value); closeMonthPicker(); });
         grid.appendChild(option);
       });
@@ -181,7 +184,8 @@
     function buildStats(data, period) {
       const profiles = [...(data.supervisors || new Map()).values()];
       const activeProfiles = profiles.filter((item) => item.active !== false && item.isActive !== false && !isTestSupervisor(item.id, item.displayName, item.name, item.loginAlias, item.email));
-      const profilesByName = new Map(activeProfiles.map((item) => [fold(item.displayName || item.id), item]));
+      const profilesByName = new Map(activeProfiles.map((item) => [fold(item.displayName || item.name || item.id), item]));
+      const profilesById = new Map(activeProfiles.map((item) => [String(item.id), item]));
       const activeIds = new Set(activeProfiles.map((item) => item.id));
       const allowedRow = (row, name) => {
         const supervisorId = row._raw?.supervisorId || row.supervisorId || row.supervisorID || row.uid || row.authUid;
@@ -201,13 +205,17 @@
         name: norm(row.Supervisor || row.supervisor) || 'Não informado'
       })).filter((item) => isInSelectedMonth(item.date, period) && allowedRow(item.row, item.name));
       const stats = new Map();
-      const ensure = (name) => {
-        if (!stats.has(name)) stats.set(name, { name, actual: 0, lastVisit: null, hasJustification: false });
-        return stats.get(name);
+      const ensure = (name, row) => {
+        const supervisorId = row?._raw?.supervisorId || row?.supervisorId || row?.supervisorID || row?.uid || row?.authUid;
+        const profile = profilesByName.get(fold(name)) || (supervisorId ? profilesById.get(String(supervisorId)) : undefined);
+        const canonicalName = profile?.displayName || profile?.name || profile?.id || name;
+        const key = fold(canonicalName);
+        if (!stats.has(key)) stats.set(key, { name: canonicalName, actual: 0, lastVisit: null, hasJustification: false });
+        return stats.get(key);
       };
-      activeProfiles.forEach((profile) => ensure(profile.displayName || profile.name || profile.id));
+      profilesByName.forEach((profile) => ensure(profile.displayName || profile.name || profile.id));
       visits.forEach((item) => {
-        const stat = ensure(item.name);
+        const stat = ensure(item.name, item.row);
         if (item.row.Status === 'Realizada') stat.actual += 1;
         if (item.row.Status === 'Justificada' && norm(item.row.Justificativa || item.row.justificativa)) stat.hasJustification = true;
         if (!stat.lastVisit || item.date > stat.lastVisit) stat.lastVisit = item.date;
