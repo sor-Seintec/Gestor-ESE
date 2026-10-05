@@ -28,10 +28,26 @@
     @media(max-width:1150px){.rank-header,.rank-row{grid-template-columns:30px 30px minmax(78px,1fr) minmax(58px,1fr) 40px 62px;gap:5px;padding-left:7px;padding-right:7px}.rank-name{font-size:11px}.rank-total{font-size:11px}}
     @media(max-width:850px){.cards{grid-template-columns:1fr}.rank-header,.rank-row{grid-template-columns:34px 34px minmax(120px,1fr) minmax(100px,1.2fr) 48px 68px;gap:8px;padding-left:10px;padding-right:10px}.rank-name{font-size:13px}}
     @media(max-width:560px){.rank-header,.rank-row{grid-template-columns:29px 29px minmax(74px,1fr) minmax(52px,.8fr) 38px 53px;gap:4px;padding-left:6px;padding-right:6px}.rank-header{font-size:10px}.rank-name{font-size:10px}.rank-number,.rank-avatar{width:27px;height:27px}.rank-total{font-size:9px}.rank-rate{min-width:51px;padding:4px 2px;font-size:9px}.rank-row.no-goal .rank-rate{font-size:8px}}
+    /* Topo compacto para priorizar as linhas do ranking na TV. */
+    .page{padding:clamp(10px,1vw,18px)}.masthead{gap:12px;margin-bottom:6px}.title{gap:9px}.brand-icon{width:35px;height:35px;border-radius:10px;font-size:19px}.eyebrow{font-size:9px}.masthead h1{font-size:clamp(20px,1.6vw,31px);line-height:1.05}.subtitle{display:none}
+    .month-control{gap:4px}.month-step{width:28px;height:35px;border-radius:9px;font-size:21px}.month-card{width:min(285px,28vw);min-height:47px;padding:5px 8px;gap:8px;border-radius:11px}.month-art{width:34px;height:34px;border-radius:8px}.month-art svg{width:22px;height:22px}.month-overline,.month-copy small{display:none}.month-copy strong{margin:0;font-size:15px}.month-copy>span:last-of-type{font-size:9px}.month-chevron{font-size:18px}
+    .summary{gap:7px;margin-bottom:4px}.summary-card{min-height:43px;padding:5px 10px;gap:8px;border-radius:11px}.summary-icon{width:29px;height:29px;font-size:14px}.summary-copy{display:flex;align-items:baseline;gap:7px;min-width:0}.summary-copy strong{font-size:19px;white-space:nowrap}.summary-copy span{min-width:0;margin:0;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .toolbar{min-height:24px;margin:0 1px 5px;font-size:10px}.toolbar .fresh{min-width:0}.fresh i{width:6px;height:6px;box-shadow:0 0 0 3px #0b4f3f}.fresh span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tool-btn{min-height:25px;width:27px;padding:0;border-color:transparent;background:transparent;color:#89aac9}.tool-btn svg{width:15px;height:15px}.tool-btn:hover,.tool-btn:focus-visible{border-color:#2b5277;background:#153651;color:#fff}
+    /* Cinco tons neutros: somente a interface muda; cores de desempenho permanecem. */
+    body[data-theme="white"]{--theme-bg:#f8fafc;--theme-panel:#fff;--theme-soft:#edf1f5;--theme-row:#fff;--theme-header:#e9eef3;--theme-ink:#162334;--theme-muted:#536579;--theme-line:#d5dee8;--theme-track:#d7e0e9;--theme-pill:#162334;--theme-shadow:#18283b18}
+    body[data-theme="silver"]{--theme-bg:#e4e8ec;--theme-panel:#f4f6f8;--theme-soft:#e4e8ed;--theme-row:#f6f8fa;--theme-header:#d7dfe6;--theme-ink:#1b2938;--theme-muted:#566779;--theme-line:#c3cdd7;--theme-track:#cbd5df;--theme-pill:#1b2938;--theme-shadow:#1b293820}
+    body[data-theme="gray"]{--theme-bg:#858e98;--theme-panel:#c8ced5;--theme-soft:#b5bec7;--theme-row:#d3d8de;--theme-header:#adb8c2;--theme-ink:#172534;--theme-muted:#354a5e;--theme-line:#8996a3;--theme-track:#aab6c1;--theme-pill:#172534;--theme-shadow:#18253233}
+    body[data-theme="graphite"]{--theme-bg:#30363e;--theme-panel:#3a424c;--theme-soft:#46515d;--theme-row:#363f49;--theme-header:#272f38;--theme-ink:#f4f6f8;--theme-muted:#c0cbd5;--theme-line:#596675;--theme-track:#566473;--theme-pill:#fff;--theme-shadow:#090d1290}
+    body[data-theme="black"]{--theme-bg:#08090b;--theme-panel:#191b20;--theme-soft:#25282e;--theme-row:#15181d;--theme-header:#0c0e12;--theme-ink:#f7f8fa;--theme-muted:#afb8c2;--theme-line:#383e47;--theme-track:#343b45;--theme-pill:#fff;--theme-shadow:#000a}
+    body{background:var(--theme-bg);color:var(--theme-ink)}.brand-icon,.month-step,.month-card,.month-art,.summary-card,.month-picker,.month-picker-head button,.month-option,.login-card{border-color:var(--theme-line);background:var(--theme-panel);color:var(--theme-ink);box-shadow:0 3px 12px var(--theme-shadow)}.brand-icon,.month-art,.summary-icon,.summary-card:nth-child(2) .summary-icon,.summary-card:nth-child(3) .summary-icon{background:var(--theme-soft);color:var(--theme-ink)}.eyebrow,.month-overline,.month-chevron,.month-copy small,.toolbar,.footnote,.summary-copy span,.month-option small,.month-picker p,.login-card p,.login-card label{color:var(--theme-muted)}.masthead h1,.summary-copy strong,.month-picker-head,.month-picker-head button,.rank-name,.rank-total{color:var(--theme-ink)}.month-option{background:var(--theme-panel)}.month-picker{background:var(--theme-panel)}.month-card{background:var(--theme-panel)}.month-step{background:var(--theme-panel)}.month-option.is-selected{outline-color:var(--theme-ink)}.rank-header{border-color:var(--theme-line);background:var(--theme-header);color:var(--theme-muted)}.rank-row{border-color:var(--theme-line);background:var(--theme-row);box-shadow:0 2px 8px var(--theme-shadow)}.rank-avatar{border-color:var(--theme-line);background:var(--theme-soft);color:var(--theme-ink)}.rank-number{background:color-mix(in srgb,var(--rank-accent) 18%,var(--theme-panel))}.rank-bar{background:var(--theme-track)}.rank-rate{background:color-mix(in srgb,var(--progress-accent) 28%,var(--theme-panel));color:var(--theme-pill)}.tool-btn{color:var(--theme-muted)}.tool-btn:hover,.tool-btn:focus-visible{border-color:var(--theme-line);background:var(--theme-soft);color:var(--theme-ink)}.empty{border-color:var(--theme-line);background:var(--theme-panel);color:var(--theme-muted)}.login-card input{border-color:var(--theme-line);background:var(--theme-soft);color:var(--theme-ink)}
+    .theme-picker{display:flex;align-items:center;gap:0;flex:none;padding:2px;border:1px solid var(--theme-line);border-radius:6px;background:var(--theme-panel)}.theme-swatch{position:relative;width:19px;height:17px;padding:0;border:0;background:var(--swatch)}.theme-swatch:first-child{border-radius:3px 0 0 3px}.theme-swatch:last-child{border-radius:0 3px 3px 0}.theme-swatch[aria-pressed="true"]{outline:2px solid var(--theme-ink);outline-offset:-2px;z-index:1}.theme-swatch:focus-visible{outline:2px solid #47a5f5;outline-offset:2px;z-index:2}.actions{gap:7px}
+    body[data-theme="white"] .rank-number,body[data-theme="silver"] .rank-number,body[data-theme="gray"] .rank-number{color:color-mix(in srgb,var(--rank-accent) 65%,#152232)}
+    @media(max-width:1000px){.masthead{flex-wrap:wrap}.month-control{margin-left:auto}}
+    @media(max-width:560px){.month-control{width:100%;margin:0}.month-card{width:auto;flex:1}.summary{grid-template-columns:repeat(3,minmax(0,1fr))}.summary-card{padding:5px 6px}.summary-icon{display:none}.summary-copy{display:block}.summary-copy strong{font-size:17px}.summary-copy span{display:block;margin-top:2px;font-size:9px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
   </style>
 </head>
-<body>
+<body data-theme="graphite">
   <main class="page" id="dashboard" hidden>
     <header class="masthead">
       <div class="title"><div class="brand-icon" aria-hidden="true">▥</div><div><div class="eyebrow">Portal URE Sorocaba · Panorama TV 2</div><h1>Ranking de desempenho dos supervisores</h1><div class="subtitle">Panorama mensal • resultados atualizados do sistema</div></div></div>
@@ -55,7 +71,7 @@
       <article class="summary-card"><div class="summary-icon" aria-hidden="true">◉</div><div class="summary-copy"><strong id="averageRate">—</strong><span>Desempenho do mês</span></div></article>
       <article class="summary-card"><div class="summary-icon" aria-hidden="true">◎</div><div class="summary-copy"><strong id="aboveTarget">—</strong><span>Acima da meta</span></div></article>
     </section>
-    <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><button class="tool-btn" id="refreshButton" type="button" title="Consultar o Firebase agora"><svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 7.45 10.9h-2.16A6 6 0 1 1 17.4 9h-3.2l4.5 4.5L23 9h-3.5A8 8 0 0 0 12 4Zm-1 4v5l4 2.4 1-1.65-3-1.75V8Z"/></svg>Atualizar</button><button class="tool-btn" id="logoutButton" type="button">Sair</button></div></div>
+    <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><div class="theme-picker" role="group" aria-label="Tema de cores"><button class="theme-swatch" type="button" data-theme-option="white" style="--swatch:#f8fafc" aria-label="Tema branco" title="Branco"></button><button class="theme-swatch" type="button" data-theme-option="silver" style="--swatch:#dce1e6" aria-label="Tema cinza claro" title="Cinza claro"></button><button class="theme-swatch" type="button" data-theme-option="gray" style="--swatch:#89939e" aria-label="Tema cinza" title="Cinza"></button><button class="theme-swatch" type="button" data-theme-option="graphite" style="--swatch:#39414b" aria-label="Tema grafite" title="Grafite"></button><button class="theme-swatch" type="button" data-theme-option="black" style="--swatch:#090b0f" aria-label="Tema preto" title="Preto"></button></div><button class="tool-btn" id="refreshButton" type="button" title="Atualizar dados" aria-label="Atualizar dados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 1 0 7.45 10.9h-2.16A6 6 0 1 1 17.4 9h-3.2l4.5 4.5L23 9h-3.5A8 8 0 0 0 12 4Zm-1 4v5l4 2.4 1-1.65-3-1.75V8Z"/></svg></button></div></div>
     <section class="cards" id="cards" aria-live="polite"></section>
     <p class="footnote">Todos os supervisores ativos aparecem, inclusive com zero visita. Cada cartão conta somente visitas realizadas do planejamento no mês escolhido. Use Atualizar para buscar mudanças.</p>
   </main>
@@ -64,11 +80,23 @@
   </section>
   <div class="page-error" id="pageError" hidden></div>
   <script type="module">
-    import { auth, authErrorMessage, loadGestorData, loginAdmin, logoutAdmin, requireAdmin } from './firebase-gestor.js';
+    import { authErrorMessage, loadGestorData, loginAdmin, requireAdmin } from './firebase-gestor.js';
 
     const $ = (id) => document.getElementById(id);
     const fold = (value) => (value ?? '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ');
     const norm = (value) => (value ?? '').toString().trim();
+    const themeStorageKey = 'panorama-tv2-theme-v1';
+    const availableThemes = ['white', 'silver', 'gray', 'graphite', 'black'];
+    function applyTheme(theme, persist = true) {
+      const selected = availableThemes.includes(theme) ? theme : 'graphite';
+      document.body.dataset.theme = selected;
+      document.querySelectorAll('[data-theme-option]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.themeOption === selected));
+      });
+      if (persist) {
+        try { localStorage.setItem(themeStorageKey, selected); } catch { /* preferência opcional */ }
+      }
+    }
     const excludedTestUsers = ['ruivo', 'vinicius'];
     const photoMatches = [
       { aliases: ['bruno takami fujiwara', 'bruno'], file: 'caricatura_001.png' },
@@ -338,6 +366,9 @@
       finally { button.disabled = false; }
     });
     $('refreshButton').addEventListener('click', () => load(true));
+    document.querySelectorAll('[data-theme-option]').forEach((button) => {
+      button.addEventListener('click', () => applyTheme(button.dataset.themeOption));
+    });
     $('monthPickerButton').addEventListener('click', () => {
       const picker = $('monthPicker');
       picker.hidden = !picker.hidden;
@@ -349,7 +380,9 @@
     $('nextYear').addEventListener('click', () => { pickerYear += 1; renderMonthPicker(); });
     document.addEventListener('click', (event) => { if (!$('monthControl').contains(event.target)) closeMonthPicker(); });
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeMonthPicker(); });
-    $('logoutButton').addEventListener('click', async () => { await logoutAdmin(); $('dashboard').hidden = true; $('loginScreen').hidden = false; $('loginPassword').value = ''; });
+    let savedTheme = 'graphite';
+    try { savedTheme = localStorage.getItem(themeStorageKey) || savedTheme; } catch { /* armazenamento indisponível */ }
+    applyTheme(savedTheme, false);
     setMonthPeriod(monthKey(new Date()));
     try { await load(false); } catch (error) { console.error('[Panorama TV] Erro de inicialização:', error); }
   </script>
