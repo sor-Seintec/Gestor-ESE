@@ -204,7 +204,7 @@
     </header>
     <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><div class="theme-picker" role="group" aria-label="Tema de cores"><button class="theme-swatch" type="button" data-theme-option="white" style="--swatch:#f8fafc" aria-label="Tema branco" title="Branco"></button><button class="theme-swatch" type="button" data-theme-option="silver" style="--swatch:#dce1e6" aria-label="Tema cinza claro" title="Cinza claro"></button><button class="theme-swatch" type="button" data-theme-option="gray" style="--swatch:#89939e" aria-label="Tema cinza" title="Cinza"></button><button class="theme-swatch" type="button" data-theme-option="graphite" style="--swatch:#39414b" aria-label="Tema grafite" title="Grafite"></button><button class="theme-swatch" type="button" data-theme-option="black" style="--swatch:#090b0f" aria-label="Tema preto" title="Preto"></button></div><button class="tool-btn" id="refreshButton" type="button" title="Atualizar dados" aria-label="Atualizar dados" data-cloud-sync-ready="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.7M20 4v7h-7"/></svg></button></div></div>
     <section class="cards" id="cards" aria-live="polite"></section>
-    <p class="footnote">Todos os supervisores ativos aparecem, inclusive com zero visita. Cada cartão conta somente visitas realizadas do planejamento no mês escolhido. Use Atualizar para buscar mudanças.</p>
+    <p class="footnote">Todos os supervisores ativos aparecem. O ranking começa na primeira visita realizada; sem visitas, o cartão mostra 0/0 e não recebe posição. Os três primeiros a atingir a meta ficam no topo. Use Atualizar para buscar mudanças.</p>
   </main>
   <section class="login-screen" id="loginScreen" hidden>
     <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV 2</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
@@ -423,13 +423,16 @@
         const profile = profilesByName.get(fold(name)) || (supervisorId ? profilesById.get(String(supervisorId)) : undefined);
         const canonicalName = profile?.displayName || profile?.name || profile?.id || name;
         const key = fold(canonicalName);
-        if (!stats.has(key)) stats.set(key, { name: canonicalName, actual: 0, lastVisit: null, hasJustification: false });
+        if (!stats.has(key)) stats.set(key, { name: canonicalName, actual: 0, realizedDates: [], lastVisit: null, hasJustification: false });
         return stats.get(key);
       };
       profilesByName.forEach((profile) => ensure(profile.displayName || profile.name || profile.id));
       visits.forEach((item) => {
         const stat = ensure(item.name, item.row);
-        if (item.row.Status === 'Realizada') stat.actual += 1;
+        if (item.row.Status === 'Realizada') {
+          stat.actual += 1;
+          stat.realizedDates.push(item.date.getTime());
+        }
         if (item.row.Status === 'Justificada' && norm(item.row.Justificativa || item.row.justificativa)) stat.hasJustification = true;
         if (!stat.lastVisit || item.date > stat.lastVisit) stat.lastVisit = item.date;
       });
@@ -451,15 +454,33 @@
         else if (rate >= 100) { state = 'green'; label = 'ACIMA DA META'; }
         else if (stat.hasJustification) { state = 'blue'; label = 'JUSTIFICADO'; }
         else if (rate >= 50) { state = 'amber'; label = 'EM ATENÇÃO'; }
-        return { ...stat, target, rate, lastLabel, state, label };
+        const reachedAt = target > 0 && stat.actual >= target
+          ? [...stat.realizedDates].sort((a, b) => a - b)[Math.ceil(target) - 1]
+          : null;
+        return { ...stat, target, rate, lastLabel, state, label, reachedAt };
       });
-      rows.sort((a, b) => b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR'));
+      const firstAchievers = rows.filter((item) => item.reachedAt !== null)
+        .sort((a, b) => a.reachedAt - b.reachedAt || a.name.localeCompare(b.name, 'pt-BR'))
+        .slice(0, 3);
+      const firstAchieverPositions = new Map(firstAchievers.map((item, index) => [item.name, index]));
+      rows.sort((a, b) => {
+        const firstA = firstAchieverPositions.get(a.name);
+        const firstB = firstAchieverPositions.get(b.name);
+        if (firstA !== undefined || firstB !== undefined) {
+          if (firstA === undefined) return 1;
+          if (firstB === undefined) return -1;
+          return firstA - firstB;
+        }
+        const eligibleA = a.actual > 0 && a.target > 0;
+        const eligibleB = b.actual > 0 && b.target > 0;
+        if (eligibleA !== eligibleB) return eligibleA ? -1 : 1;
+        return b.rate - a.rate || b.actual - a.actual || a.name.localeCompare(b.name, 'pt-BR');
+      });
       return { rows };
     }
-    function rankPalette(index, item) {
-      const medalColor = index === 0 ? '#f4c63b' : index === 1 ? '#b8c9db' : index === 2 ? '#e7955a' : index < 12 ? '#27cc78' : '#48a5ff';
-      const progressColor = item.target === 0 ? '#91a4ba' : item.rate < 30 ? '#f05261' : medalColor;
-      return { numberColor: index < 3 ? medalColor : progressColor, progressColor };
+    function rankPalette(item) {
+      const progressColor = item.target === 0 ? '#91a4ba' : item.rate <= 30 ? '#f05261' : item.rate < 70 ? '#f4c63b' : '#27cc78';
+      return { numberColor: '#6ea7e8', progressColor };
     }
     function render(data) {
       const period = selectedPeriod || monthKey(new Date());
@@ -512,22 +533,23 @@
         column.appendChild(header);
         group.forEach((item, offset) => {
           const index = columnIndex * half + offset;
-          const { numberColor, progressColor } = rankPalette(index, item);
+          const { numberColor, progressColor } = rankPalette(item);
+          const hasRank = item.actual > 0 && item.target > 0;
           const row = document.createElement('article');
-          row.className = `rank-row${index === 0 ? ' top-gold' : index === 1 ? ' top-silver' : index === 2 ? ' top-bronze' : ''}${item.target === 0 ? ' no-goal' : ''}`;
+          row.className = `rank-row${item.target === 0 ? ' no-goal' : ''}`;
           row.style.setProperty('--rank-accent', numberColor);
           row.style.setProperty('--progress-accent', progressColor);
-          row.title = `${item.name} · ${item.actual} de ${item.target} visitas · ${item.rate.toLocaleString('pt-BR')}% · Última: ${item.lastLabel}`;
-          row.setAttribute('aria-label', `${index + 1}º lugar: ${item.name}; ${item.actual} de ${item.target} visitas; ${item.target === 0 ? 'sem meta definida' : `${item.rate.toLocaleString('pt-BR')}% da meta`}; última visita: ${item.lastLabel}`);
-          const number = document.createElement('span'); number.className = 'rank-number'; number.textContent = `${index + 1}º`;
+          row.title = hasRank ? `${item.name} · ${item.actual} de ${item.target} visitas · ${item.rate.toLocaleString('pt-BR')}% · Última: ${item.lastLabel}` : `${item.name} · Fora do ranking até registrar uma visita com meta definida`;
+          row.setAttribute('aria-label', hasRank ? `Posição ${index + 1}: ${item.name}; ${item.actual} de ${item.target} visitas; ${item.rate.toLocaleString('pt-BR')}% da meta; última visita: ${item.lastLabel}` : `${item.name}; sem posição no ranking; 0 de 0 exibido`);
+          const number = document.createElement('span'); number.className = 'rank-number'; number.textContent = hasRank ? String(index + 1) : '—';
           const avatar = document.createElement('span'); avatar.className = 'rank-avatar'; avatar.textContent = initials(item.name);
           const photo = getPhoto(item.name);
           if (photo) { const image = document.createElement('img'); image.src = photo; image.alt = ''; image.loading = 'lazy'; image.onerror = () => image.remove(); avatar.replaceChildren(image); }
           const name = document.createElement('span'); name.className = 'rank-name'; name.textContent = item.name; name.title = item.name;
           const bar = document.createElement('span'); bar.className = 'rank-bar';
           const fill = document.createElement('span'); fill.style.setProperty('--fill', `${Math.max(0, Math.min(item.rate, 100))}%`); bar.appendChild(fill);
-          const count = document.createElement('span'); count.className = 'rank-total'; count.textContent = `${item.actual}/${item.target}`;
-          const rate = document.createElement('span'); rate.className = 'rank-rate'; rate.textContent = item.target === 0 ? 'Sem meta' : `${item.rate.toLocaleString('pt-BR')}%`;
+          const count = document.createElement('span'); count.className = 'rank-total'; count.textContent = hasRank ? `${item.actual}/${item.target}` : '0/0';
+          const rate = document.createElement('span'); rate.className = 'rank-rate'; rate.textContent = hasRank ? `${item.rate.toLocaleString('pt-BR')}%` : '—';
           row.append(number, avatar, name, bar, count, rate);
           column.appendChild(row);
         });
