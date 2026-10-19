@@ -11,6 +11,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  getDocsFromServer,
   getFirestore,
   query,
   runTransaction,
@@ -273,37 +274,71 @@ export async function saveMonthlyGoals(period, goals = []) {
   }
   if (!Array.isArray(goals) || !goals.length) return;
 
-  const batch = writeBatch(db);
-  goals.forEach(({ supervisorId, monthlyGoal }) => {
+  const ids = new Set();
+  const changes = goals.map(({ supervisorId, monthlyGoal, expectedMonthlyGoal }) => {
     const id = (supervisorId || '').toString().trim();
     const value = Number(monthlyGoal);
     if (!id) throw Object.assign(new Error('SUPERVISOR_REQUIRED'), { code: 'data/supervisor-required' });
     if (!Number.isInteger(value) || value < 0 || value > 999) {
       throw Object.assign(new Error('INVALID_MONTHLY_GOAL'), { code: 'data/invalid-monthly-goal' });
     }
-    batch.set(doc(db, 'monthlyGoals', `${period}_${id}`), {
-      period,
-      supervisorId: id,
-      monthlyGoal: value,
-      schemaVersion: 1,
-      updatedAt: serverTimestamp(),
-      updatedByUid: session.user.uid
-    }, { merge: true });
+    if (ids.has(id)) throw new Error('Supervisor repetido na lista de metas.');
+    ids.add(id);
+    if (expectedMonthlyGoal !== null && (!Number.isInteger(expectedMonthlyGoal) || expectedMonthlyGoal < 0 || expectedMonthlyGoal > 999)) {
+      throw new Error('Atualize a tela de metas antes de salvar.');
+    }
+    return { id, value, expectedMonthlyGoal, ref: doc(db, 'monthlyGoals', `${period}_${id}`) };
   });
-  await batch.commit();
+  await runTransaction(db, async transaction => {
+    // Todas as leituras ocorrem antes das escritas; um conflito cancela o conjunto.
+    const snapshots = await Promise.all(changes.map(change => transaction.get(change.ref)));
+    changes.forEach((change, index) => {
+      const snapshot = snapshots[index];
+      const current = snapshot.exists() ? Number(snapshot.data().monthlyGoal) : null;
+      if (current !== change.expectedMonthlyGoal && current !== change.value) {
+        throw Object.assign(new Error('Uma meta foi alterada em outra tela. Reabra o ajuste para carregar os valores atuais.'), { code: 'data/goal-conflict' });
+      }
+    });
+    changes.forEach(change => transaction.set(change.ref, {
+      period, supervisorId: change.id, monthlyGoal: change.value, schemaVersion: 1,
+      updatedAt: serverTimestamp(), updatedByUid: session.user.uid
+    }, { merge: true }));
+  });
   invalidateDataCache({ discard: true });
 }
 
-export async function resetMonthlyGoals(period, supervisorIds = []) {
+export async function loadMonthlyGoalSettings(period) {
+  await requireAdmin();
+  if (!validGoalPeriod(period)) throw new Error('Período de meta inválido.');
+  // Edição sempre parte do servidor: cache indisponível não vira meta zero.
+  const [supervisors, goals] = await Promise.all([
+    getDocsFromServer(collection(db, 'supervisors')),
+    getDocsFromServer(query(collection(db, 'monthlyGoals'), where('period', '==', period)))
+  ]);
+  return {
+    supervisors: new Map(supervisors.docs.map(item => [item.id, { ...item.data(), id: item.id }])),
+    monthlyGoals: goals.docs.map(item => ({ ...item.data(), id: item.id }))
+  };
+}
+
+export async function resetMonthlyGoals(period, supervisorIds = [], expectedGoals = {}) {
   await requireAdmin();
   if (!validGoalPeriod(period)) {
     throw Object.assign(new Error('INVALID_GOAL_PERIOD'), { code: 'data/invalid-goal-period' });
   }
   const ids = [...new Set(supervisorIds.map((value) => (value || '').toString().trim()).filter(Boolean))];
   if (!ids.length) return;
-  const batch = writeBatch(db);
-  ids.forEach((supervisorId) => batch.delete(doc(db, 'monthlyGoals', `${period}_${supervisorId}`)));
-  await batch.commit();
+  await runTransaction(db, async transaction => {
+    const refs = ids.map(id => doc(db, 'monthlyGoals', `${period}_${id}`));
+    const snapshots = await Promise.all(refs.map(ref => transaction.get(ref)));
+    snapshots.forEach((snapshot, index) => {
+      const current = snapshot.exists() ? Number(snapshot.data().monthlyGoal) : null;
+      if (!Object.prototype.hasOwnProperty.call(expectedGoals, ids[index]) || current !== expectedGoals[ids[index]]) {
+        throw Object.assign(new Error('As metas foram alteradas. Reabra o ajuste antes de restaurar as referências.'), { code: 'data/goal-conflict' });
+      }
+    });
+    snapshots.forEach((snapshot, index) => { if (snapshot.exists()) transaction.delete(refs[index]); });
+  });
   invalidateDataCache({ discard: true });
 }
 
@@ -950,7 +985,7 @@ async function loadIncrementalGestorData(current) {
     changedCollection('agenda', sinceMs),
     changedCollection('visits', sinceMs),
     changedCollection('goalJustifications', sinceMs, { optional: true }),
-    changedCollection('monthlyGoals', sinceMs, { optional: true }),
+    getDocsFromServer(collection(db, 'monthlyGoals')),
     changedCollection('visitCorrectionRequests', sinceMs, { optional: true })
   ]);
 
@@ -961,7 +996,7 @@ async function loadIncrementalGestorData(current) {
     agenda: mergeSnapshotIntoList(current.agenda, agendaSnapshot),
     visits: mergeSnapshotIntoList(current.allVisits || current.visits, visitSnapshot),
     goalJustifications: mergeSnapshotIntoList(current.goalJustifications, justificationSnapshot),
-    monthlyGoals: mergeSnapshotIntoList(current.monthlyGoals, monthlyGoalSnapshot),
+    monthlyGoals: monthlyGoalSnapshot.docs.map(item => ({ id: item.id, ...item.data() })),
     visitCorrectionRequests: mergeSnapshotIntoList(current.visitCorrectionRequests, correctionSnapshot)
   });
 }
@@ -978,13 +1013,21 @@ async function optionalCollection(name) {
 export async function loadGestorData({ refresh = false } = {}) {
   await requireAdmin();
   const fallback = sharedDataCache();
-  if (refresh) dataPromise = undefined;
+  if (refresh) invalidateDataCache({ discard: true });
   const shared = sharedDataCache();
   const sharedGeneration = shared?.generation || 0;
   if (dataGeneration !== sharedGeneration) {
     dataPromise = undefined;
     dataGeneration = sharedGeneration;
   }
+  const requestUid = auth.currentUser?.uid;
+  const isCurrent = () => requestUid === auth.currentUser?.uid && (sharedDataCache()?.generation || 0) === sharedGeneration;
+  const finish = data => {
+    if (requestUid !== auth.currentUser?.uid) throw new Error('A sessão foi alterada. Entre novamente.');
+    if (!isCurrent()) return loadGestorData();
+    storeSharedData(data);
+    return data;
+  };
   if (!dataPromise && !refresh && shared?.data && shared.uid === auth.currentUser?.uid && shared.expiresAt > Date.now()) {
     dataPromise = Promise.resolve(shared.data);
   }
@@ -993,8 +1036,7 @@ export async function loadGestorData({ refresh = false } = {}) {
       if (refresh && fallback?.data) {
         try {
           const incrementalData = await loadIncrementalGestorData(fallback.data);
-          storeSharedData(incrementalData);
-          return incrementalData;
+          return finish(incrementalData);
         } catch (error) {
           console.warn('Sincronização incremental indisponível; realizando carga completa.', error);
         }
@@ -1006,7 +1048,7 @@ export async function loadGestorData({ refresh = false } = {}) {
         getDocs(collection(db, 'agenda')),
         getDocs(collection(db, 'visits')),
         optionalCollection('goalJustifications'),
-        optionalCollection('monthlyGoals'),
+        getDocsFromServer(collection(db, 'monthlyGoals')),
         optionalCollection('visitCorrectionRequests')
       ]);
 
@@ -1019,13 +1061,15 @@ export async function loadGestorData({ refresh = false } = {}) {
       const monthlyGoals = monthlyGoalSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const visitCorrectionRequests = correctionSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       const data = composeGestorData({ users, supervisors, schools, agenda, visits, goalJustifications, monthlyGoals, visitCorrectionRequests });
-      storeSharedData(data);
-      return data;
+      return finish(data);
     })();
   }
   try {
     return await dataPromise;
   } catch (error) {
+    // Uma resposta antiga não pode invalidar nem restaurar o cache de uma gravação nova.
+    if (requestUid !== auth.currentUser?.uid) throw error;
+    if (!isCurrent()) return loadGestorData();
     invalidateDataCache({ discard: true });
     if (fallback?.data && fallback.uid === auth.currentUser?.uid) {
       storeSharedData(fallback.data);

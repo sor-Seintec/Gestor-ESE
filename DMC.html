@@ -149,6 +149,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     let dadosNuvemGlobais = [];
     let metasNuvemGlobais = {};
     let metasMensaisGlobais = new Map();
+    let dmcGoalEditor = null, dmcGoalLoad = 0, dmcGoalSaving = false;
     let planejamentoGlobal = [];
     const LEGACY_GOAL_KEY = 'gestor-ese-metas-provisorias-v1';
     const fold = value => (value || '').toString().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -494,48 +495,86 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         }
     });
 
-    function preencherFormularioMeta() {
+    async function preencherFormularioMeta() {
+        if (dmcGoalSaving) return;
+        const version = ++dmcGoalLoad;
         const nome = document.getElementById('adminSelectSup').value;
         const meta = metaDoSupervisor(nome);
-        document.getElementById('adminMetaMensal').value = nome ? meta.mensal : '';
-        document.getElementById('adminMetaSemanal').value = nome ? meta.semanal : '';
+        const period = periodoDaMeta();
+        dmcGoalEditor = null;
+        document.getElementById('btnSalvarMeta').disabled = true;
+        document.getElementById('adminMetaMensal').disabled = true;
+        document.getElementById('adminMetaMensal').value = '';
+        document.getElementById('adminMetaSemanal').value = '';
+        if (!nome || !meta.id) return;
+        try {
+            const settings = await window.loadDmcGoalSettings(period);
+            if (version !== dmcGoalLoad) return;
+            const saved = settings.monthlyGoals.find(item => item.supervisorId === meta.id);
+            const key = `${period}|${meta.id}`;
+            if (saved) metasMensaisGlobais.set(key, Number(saved.monthlyGoal));
+            else metasMensaisGlobais.delete(key);
+            const profile = settings.supervisors.get(meta.id);
+            if (!profile) throw new Error('Supervisor não encontrado. Atualize o painel.');
+            metasNuvemGlobais[fold(nome)] = { id: meta.id, mensal: profile.monthlyGoal };
+            const current = metaDoSupervisor(nome);
+            dmcGoalEditor = { period, id: meta.id, nome, expectedMonthlyGoal: saved ? Number(saved.monthlyGoal) : null };
+            document.getElementById('adminMetaMensal').value = current.mensal;
+            document.getElementById('adminMetaSemanal').value = weeklyGoal(current.mensal, period);
+            document.getElementById('btnSalvarMeta').disabled = false;
+            document.getElementById('adminMetaMensal').disabled = false;
+        } catch (error) {
+            if (version === dmcGoalLoad) alert('Não foi possível carregar a meta atual. Verifique a conexão e selecione novamente o supervisor.');
+        }
     }
 
     document.getElementById('adminSelectSup').addEventListener('change', preencherFormularioMeta);
     document.getElementById('adminMetaMensal').addEventListener('input', event => {
         const mensal = Math.max(0, Number(event.target.value) || 0);
-        document.getElementById('adminMetaSemanal').value = weeklyGoal(mensal, periodoDaMeta());
+        document.getElementById('adminMetaSemanal').value = weeklyGoal(mensal, dmcGoalEditor?.period || periodoDaMeta());
     });
 
     document.getElementById('formMetas').addEventListener('submit', async function(e) {
         e.preventDefault();
+        if (dmcGoalSaving || !dmcGoalEditor) return;
         const nome = document.getElementById('adminSelectSup').value;
         const meta = metaDoSupervisor(nome);
-        const mensal = Math.max(0, Math.round(Number(document.getElementById('adminMetaMensal').value) || 0));
+        const monthlyInput = document.getElementById('adminMetaMensal');
+        if (!monthlyInput.reportValidity()) return;
+        const mensal = Number(monthlyInput.value);
         if (!nome || !meta.id) { alert('Selecione um supervisor válido.'); return; }
+        const baseline = dmcGoalEditor;
+        if (baseline.nome !== nome || baseline.period !== periodoDaMeta()) { alert('O período ou supervisor mudou. Selecione novamente o supervisor.'); return; }
         const button = document.getElementById('btnSalvarMeta');
+        dmcGoalSaving = true;
+        document.getElementById('adminSelectSup').disabled = true;
+        document.getElementById('adminMetaMensal').disabled = true;
         button.disabled = true;
         button.textContent = 'Salvando...';
         try {
-            await window.saveDmcMonthlyGoals(periodoDaMeta(), [{ supervisorId: meta.id, monthlyGoal: mensal }]);
+            await window.saveDmcMonthlyGoals(baseline.period, [{ supervisorId: baseline.id, monthlyGoal: mensal, expectedMonthlyGoal: baseline.expectedMonthlyGoal }]);
             const antigas = metasAnteriores();
-            delete antigas[`${periodoDaMeta()}|${nome}`];
-            localStorage.setItem(LEGACY_GOAL_KEY, JSON.stringify(antigas));
+            delete antigas[`${baseline.period}|${nome}`];
+            try { localStorage.setItem(LEGACY_GOAL_KEY, JSON.stringify(antigas)); } catch (_) { /* meta já salva */ }
+            dmcGoalEditor = null;
             adminModal.classList.remove('open');
             await carregarPanoramaFirebase(true);
         } catch (error) {
             console.error(error);
-            alert('Não foi possível salvar a meta no Firebase. Verifique se as regras foram publicadas.');
+            alert(error.code === 'data/goal-conflict' ? error.message : 'Não foi possível salvar a meta no Firebase. Verifique a conexão e as permissões.');
         } finally {
             button.disabled = false;
+            dmcGoalSaving = false;
+            document.getElementById('adminSelectSup').disabled = false;
+            document.getElementById('adminMetaMensal').disabled = false;
             button.textContent = 'Salvar Nova Meta';
         }
     });
 
 </script>
 <script type="module">
-  import{auth,loadGestorData,requireAdmin,saveMonthlyGoals}from'./firebase-gestor.js';
-  window.getGestorFirebaseData=loadGestorData;window.saveDmcMonthlyGoals=saveMonthlyGoals;
+  import{auth,loadGestorData,loadMonthlyGoalSettings,requireAdmin,saveMonthlyGoals}from'./firebase-gestor.js';
+  window.getGestorFirebaseData=loadGestorData;window.loadDmcGoalSettings=loadMonthlyGoalSettings;window.saveDmcMonthlyGoals=saveMonthlyGoals;
   document.getElementById('refreshButton').addEventListener('click',async()=>{const button=document.getElementById('refreshButton');button.disabled=true;button.classList.add('is-syncing');try{await window.carregarPanoramaFirebase(true)}finally{button.disabled=false;button.classList.remove('is-syncing')}});
   try{await requireAdmin();await window.carregarPanoramaFirebase()}catch(error){if(!auth.currentUser)location.href='index.html';else{console.error(error);document.getElementById('tabela-body').innerHTML='<tr><td colspan="7" style="color:red;text-align:center">Esta conta não possui acesso ao Gestor-ESE.</td></tr>'}}
 </script>
