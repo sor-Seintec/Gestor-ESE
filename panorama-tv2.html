@@ -204,7 +204,7 @@
     </header>
     <div class="toolbar"><span class="fresh"><i></i><span id="updatedAt">Carregando os dados...</span></span><div class="actions"><div class="theme-picker" role="group" aria-label="Tema de cores"><button class="theme-swatch" type="button" data-theme-option="white" style="--swatch:#f8fafc" aria-label="Tema branco" title="Branco"></button><button class="theme-swatch" type="button" data-theme-option="silver" style="--swatch:#dce1e6" aria-label="Tema cinza claro" title="Cinza claro"></button><button class="theme-swatch" type="button" data-theme-option="gray" style="--swatch:#89939e" aria-label="Tema cinza" title="Cinza"></button><button class="theme-swatch" type="button" data-theme-option="graphite" style="--swatch:#39414b" aria-label="Tema grafite" title="Grafite"></button><button class="theme-swatch" type="button" data-theme-option="black" style="--swatch:#090b0f" aria-label="Tema preto" title="Preto"></button></div><button class="tool-btn" id="refreshButton" type="button" title="Atualizar dados" aria-label="Atualizar dados" data-cloud-sync-ready="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.7M20 4v7h-7"/></svg></button></div></div>
     <section class="cards" id="cards" aria-live="polite"></section>
-    <p class="footnote">Todos os supervisores ativos aparecem. O ranking começa na primeira visita realizada; sem visitas, o cartão mostra 0/0 e não recebe posição. Os três primeiros a atingir a meta ficam no topo. Use Atualizar para buscar mudanças.</p>
+    <p class="footnote">Todos os supervisores ativos aparecem. O ranking começa na primeira visita realizada; sem visitas, o cartão mostra 0/0 e não recebe posição. Os três primeiros a atingir a meta ficam no topo. Atualização automática diária às 9h (Brasília), enquanto o painel estiver aberto. O botão Atualizar continua disponível.</p>
   </main>
   <section class="login-screen" id="loginScreen" hidden>
     <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV 2</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
@@ -556,7 +556,55 @@
         container.appendChild(column);
       });
     }
+    const dailyRefreshHour = 9;
+    const automaticRetryMs = 5 * 60 * 1000;
+    const dailyClockFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+    });
+    let loadingData = false;
+    let lastDailyRefreshDay = '';
+    let nextAutomaticRetryAt = 0;
+    let dailyRefreshTimer;
+
+    function dailyRefreshClock(now = new Date()) {
+      const parts = Object.fromEntries(dailyClockFormatter.formatToParts(now).map(part => [part.type, part.value]));
+      return {
+        day: `${parts.year}-${parts.month}-${parts.day}`,
+        elapsedMs: ((Number(parts.hour) * 60 + Number(parts.minute)) * 60 + Number(parts.second)) * 1000 + now.getMilliseconds()
+      };
+    }
+    function dailyRefreshDue(now = new Date()) {
+      const clock = dailyRefreshClock(now);
+      return clock.elapsedMs >= dailyRefreshHour * 3600000 && lastDailyRefreshDay !== clock.day;
+    }
+    function armDailyRefresh() {
+      clearTimeout(dailyRefreshTimer);
+      const now = new Date(), clock = dailyRefreshClock(now), target = dailyRefreshHour * 3600000;
+      // Recalcula o horário civil; não usa um intervalo fixo de 24 horas desde a abertura.
+      const delay = clock.elapsedMs < target
+        ? target - clock.elapsedMs
+        : lastDailyRefreshDay === clock.day
+          ? 86400000 - clock.elapsedMs + target
+          : Math.max(30000, nextAutomaticRetryAt - now.getTime());
+      dailyRefreshTimer = setTimeout(checkDailyRefresh, delay);
+    }
+    async function checkDailyRefresh() {
+      try {
+        if (dailyRefreshDue() && !loadingData && $('loginScreen').hidden
+          && navigator.onLine !== false && Date.now() >= nextAutomaticRetryAt) {
+          // Uma falha não conclui o agendamento. Tenta novamente sem sobrecarregar o Firebase.
+          nextAutomaticRetryAt = Date.now() + automaticRetryMs;
+          await load(true);
+        }
+      } finally { armDailyRefresh(); }
+    }
+
     async function load(refresh = false) {
+      if (loadingData) return false;
+      loadingData = true;
+      const startedAt = new Date();
+      if (refresh && dailyRefreshDue(startedAt)) nextAutomaticRetryAt = startedAt.getTime() + automaticRetryMs;
       const button = $('refreshButton'); button.disabled = true; button.classList.add('is-loading');
       usedLocalFallback = false;
       try {
@@ -566,30 +614,42 @@
           $('loginScreen').hidden = false;
           $('pageError').hidden = true;
           $('loginMessage').textContent = authErrorMessage(error);
-          return;
+          return false;
         }
         cachedData = await loadGestorData({ refresh });
         render(cachedData);
         $('dashboard').hidden = false;
         $('loginScreen').hidden = true;
         $('pageError').hidden = true;
+        if (refresh && !usedLocalFallback) {
+          const clock = dailyRefreshClock(startedAt);
+          if (clock.elapsedMs >= dailyRefreshHour * 3600000) lastDailyRefreshDay = clock.day;
+          nextAutomaticRetryAt = 0;
+        }
+        return !usedLocalFallback;
       } catch (error) {
         console.error('[Panorama TV] Falha ao montar o painel:', error);
         $('dashboard').hidden = true;
         $('loginScreen').hidden = true;
         $('pageError').hidden = false;
         $('pageError').textContent = 'Não foi possível carregar o panorama. Recarregue a página; se persistir, consulte o erro no console.';
+        return false;
       }
-      finally { button.disabled = false; button.classList.remove('is-loading'); }
+      finally { loadingData = false; button.disabled = false; button.classList.remove('is-loading'); }
     }
     window.addEventListener('gestor-cache-fallback', () => { usedLocalFallback = true; });
     $('loginForm').addEventListener('submit', async (event) => {
       event.preventDefault(); const button = $('loginForm').querySelector('button'); button.disabled = true; $('loginMessage').textContent = '';
-      try { await loginAdmin($('loginEmail').value.trim(), $('loginPassword').value); $('loginPassword').value = ''; await load(false); }
+      try { await loginAdmin($('loginEmail').value.trim(), $('loginPassword').value); $('loginPassword').value = ''; await load(dailyRefreshDue()); await checkDailyRefresh(); }
       catch (error) { $('loginMessage').textContent = authErrorMessage(error); }
       finally { button.disabled = false; }
     });
-    $('refreshButton').addEventListener('click', () => load(true));
+    $('refreshButton').title = 'Atualizar dados · automático diariamente às 9h (Brasília)';
+    $('refreshButton').addEventListener('click', async () => { await load(true); armDailyRefresh(); });
+    window.addEventListener('focus', checkDailyRefresh);
+    window.addEventListener('pageshow', checkDailyRefresh);
+    window.addEventListener('online', () => { nextAutomaticRetryAt = 0; checkDailyRefresh(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkDailyRefresh(); });
     document.querySelectorAll('[data-theme-option]').forEach((button) => {
       button.addEventListener('click', () => applyTheme(button.dataset.themeOption));
     });
@@ -609,7 +669,8 @@
     applyTheme(savedTheme, false);
     new ResizeObserver(alignSchoolRoad).observe(document.querySelector('.masthead'));
     setMonthPeriod(monthKey(new Date()));
-    try { await load(false); } catch (error) { console.error('[Panorama TV] Erro de inicialização:', error); }
+    try { await load(dailyRefreshDue()); } catch (error) { console.error('[Panorama TV] Erro de inicialização:', error); }
+    await checkDailyRefresh();
   </script>
 </body>
 </html>
