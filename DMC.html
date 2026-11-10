@@ -125,7 +125,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
       </tr></thead>
       <tbody id="tabela-body"><tr><td colspan="7" class="loading">Sincronizando com a Nuvem... <i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
     </table>
-    <div class="note"><i class="fa-solid fa-circle-info"></i> A meta mensal segue o ajuste salvo em Metas; sem ajuste, usa a referência do cadastro ou do planejamento. A meta semanal divide esse valor pelas semanas do mês (domingo a sábado, incluindo semanas parciais), arredondando para cima por supervisor.</div>
+    <div class="note"><i class="fa-solid fa-circle-info"></i> A meta mensal continua nos meses seguintes até uma nova alteração; correções em meses anteriores valem somente para o mês corrigido. A meta semanal divide esse valor pelas semanas do mês (domingo a sábado, incluindo semanas parciais), arredondando para cima por supervisor.</div>
   </section>
 </div>
 
@@ -169,15 +169,15 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
     function metaDoSupervisor(nome) {
         const cadastro = metasNuvemGlobais[fold(nome)] || {};
         const periodo = periodoDaMeta();
-        const salva = cadastro.id ? metasMensaisGlobais.get(`${periodo}|${cadastro.id}`) : undefined;
+        const resolvida = cadastro.id ? resolveMonthlyGoal(periodo, cadastro.id, metasMensaisGlobais) : null;
         const anterior = metasAnteriores()[`${periodo}|${nome}`];
         const planejadas = planejamentoGlobal.filter(row => {
             const date = new Date(row['Data Agendada']);
             const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
             return key === periodo && fold(row.Supervisor) === fold(nome);
         }).length;
-        const mensal = salva !== undefined
-            ? Number(salva)
+        const mensal = resolvida
+            ? resolvida.value
             : anterior !== undefined
               ? Number(anterior)
               : Number(cadastro.mensal ?? planejadas);
@@ -246,7 +246,7 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         }]));
         dadosNuvemGlobais = dadosVistorias;
         metasNuvemGlobais = metasNuvem;
-        metasMensaisGlobais = new Map((payload.monthlyGoals || []).map(item => [`${item.period}|${item.supervisorId}`, Number(item.monthlyGoal)]));
+        metasMensaisGlobais = new Map((payload.monthlyGoals || []).map(item => [`${item.period}|${item.supervisorId}`, item]));
         
         const anosSet = new Set([new Date().getFullYear()]);
         const supSet = new Set();
@@ -510,10 +510,8 @@ tr:last-child td{border-bottom:none}.supervisor-col{display:flex;align-items:cen
         try {
             const settings = await window.loadDmcGoalSettings(period);
             if (version !== dmcGoalLoad) return;
-            const saved = settings.monthlyGoals.find(item => item.supervisorId === meta.id);
-            const key = `${period}|${meta.id}`;
-            if (saved) metasMensaisGlobais.set(key, Number(saved.monthlyGoal));
-            else metasMensaisGlobais.delete(key);
+            const saved = settings.monthlyGoals.find(item => item.period === period && item.supervisorId === meta.id);
+            metasMensaisGlobais = new Map(settings.monthlyGoals.map(item => [`${item.period}|${item.supervisorId}`, item]));
             const profile = settings.supervisors.get(meta.id);
             if (!profile) throw new Error('Supervisor não encontrado. Atualize o painel.');
             metasNuvemGlobais[fold(nome)] = { id: meta.id, mensal: profile.monthlyGoal };

@@ -49,7 +49,7 @@
       <div class="analytic-grid"><article class="panel"><header class="panel-head"><div><h2>Ranking de atingimento</h2><p>Comparação proporcional das metas.</p></div></header><div class="ranking" id="rankingList"></div></article><article class="panel"><header class="panel-head"><div><h2>Metas × realidade</h2><p id="tableNote">Detalhamento por supervisor.</p></div></header><div class="table-wrap"><table><thead><tr><th>Supervisor</th><th class="num">Meta</th><th class="num">Planejadas</th><th class="num">Realizadas</th><th class="num">Justificadas</th><th class="num">Adiadas</th><th class="num">Canceladas</th><th class="num">Lacuna</th><th class="num">Projeção</th><th>Progresso</th><th>Situação</th><th>Fonte da meta</th></tr></thead><tbody id="goalTableBody"></tbody></table></div></article></div>
     </section>
   </main>
-  <div class="modal" id="goalModal" hidden><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle"><header class="modal-head"><div><h2 id="goalModalTitle">Ajustar metas mensais</h2><p class="top-note">As metas são salvas no Firebase por mês e supervisor. A meta semanal divide a meta mensal pelas semanas do calendário (domingo a sábado, incluindo semanas parciais), arredondando para cima.</p></div><button class="close" data-close="goalModal" type="button" aria-label="Fechar">×</button></header><div class="modal-body"><div class="goal-list" id="goalList"></div></div><footer class="modal-actions"><button class="button button-secondary" id="resetGoals" type="button">Restaurar referência</button><button class="button button-primary" id="saveGoals" type="button">Salvar metas</button></footer></section></div>
+  <div class="modal" id="goalModal" hidden><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle"><header class="modal-head"><div><h2 id="goalModalTitle">Ajustar metas mensais</h2><p class="top-note">A meta salva no mês atual continua nos próximos meses até outra alteração. Correções de meses anteriores valem somente para o mês corrigido. A meta semanal divide a mensal pelas semanas do calendário, arredondando para cima.</p></div><button class="close" data-close="goalModal" type="button" aria-label="Fechar">×</button></header><div class="modal-body"><div class="goal-list" id="goalList"></div></div><footer class="modal-actions"><button class="button button-secondary" id="resetGoals" type="button">Restaurar referência</button><button class="button button-primary" id="saveGoals" type="button">Salvar metas</button></footer></section></div>
   <div class="modal" id="eventModal" hidden><section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle"><header class="modal-head"><h2 id="eventModalTitle">Detalhes do calendário</h2><button class="close" data-close="eventModal" type="button" aria-label="Fechar">×</button></header><div class="modal-body" id="eventModalBody"></div></section></div>
   <script>
     const GOAL_KEY='gestor-ese-metas-provisorias-v1';
@@ -72,8 +72,8 @@
     function goalConfiguration(period,name,supervisorId=''){
       const supervisor=supervisorsById.get(supervisorId)||supervisorsByName.get(fold(name));
       if(!supervisor)return null;
-      const saved=monthlyGoalsByKey.get(period+'|'+supervisor.id);
-      if(saved!==undefined)return{target:saved,source:'Firebase',supervisorId:supervisor.id};
+      const resolved=resolveMonthlyGoal(period,supervisor.id,monthlyGoalsByKey);
+      if(resolved)return{target:resolved.value,source:resolved.source,supervisorId:supervisor.id};
       const legacy=goalOverrides[period+'|'+name];
       if(legacy!==undefined)return{target:Number(legacy),source:'Ajuste anterior',supervisorId:supervisor.id};
       const base=supervisor.monthlyGoal;
@@ -105,8 +105,7 @@
     function applyGoalSettings(settings,period){
       supervisorsById=settings.supervisors;
       supervisorsByName=new Map([...settings.supervisors.values()].map(item=>[fold(item.displayName||item.id),item]));
-      [...monthlyGoalsByKey.keys()].filter(key=>key.startsWith(period+'|')).forEach(key=>monthlyGoalsByKey.delete(key));
-      settings.monthlyGoals.forEach(item=>monthlyGoalsByKey.set(item.period+'|'+item.supervisorId,Number(item.monthlyGoal)));
+      monthlyGoalsByKey=new Map(settings.monthlyGoals.map(item=>[item.period+'|'+item.supervisorId,item]));
     }
     function goalControls(disabled){['monthFilter','refreshButton','configureGoals'].forEach(id=>$(id).disabled=disabled)}
     function goalFormControls(disabled){document.querySelectorAll('#goalList input, #goalList button, #saveGoals, #resetGoals').forEach(control=>control.disabled=disabled)}
@@ -120,7 +119,7 @@
         applyGoalSettings(settings,period.key);normalizeData();fillSupervisors();processData();
         const list=$('goalList');list.replaceChildren();
         const rows=periodStats.filter(item=>supervisorsById.get(item.supervisorId)?.active!==false&&supervisorsById.has(item.supervisorId)).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
-        goalEditor={period:period.key,baseline:Object.fromEntries(rows.map(item=>[item.supervisorId,monthlyGoalsByKey.get(period.key+'|'+item.supervisorId)??null]))};
+        goalEditor={period:period.key,baseline:Object.fromEntries(rows.map(item=>[item.supervisorId,goalRecordValue(monthlyGoalsByKey.get(period.key+'|'+item.supervisorId))??null]))};
         const bulk=document.createElement('div');bulk.className='goal-row';
         const bulkLabel=document.createElement('label');bulkLabel.textContent='Meta para todos os '+rows.length+' supervisores ativos';
         const bulkValue=document.createElement('input');bulkValue.type='number';bulkValue.min='0';bulkValue.max='999';bulkValue.step='1';bulkValue.value='12';bulkValue.setAttribute('aria-label','Meta mensal para todos');
@@ -148,7 +147,7 @@
         const [data,settings]=await Promise.all([window.getGestorFirebaseData({refresh:forceRefresh}),window.loadMetaGoalSettings(period)]);
         if(version!==dataLoadVersion)return;
         agendaRaw=data.agendaRows;visitsRaw=data.visitRows;
-        monthlyGoalsByKey=new Map((data.monthlyGoals||[]).map(item=>[item.period+'|'+item.supervisorId,Number(item.monthlyGoal)]));
+        monthlyGoalsByKey=new Map((data.monthlyGoals||[]).map(item=>[item.period+'|'+item.supervisorId,item]));
         applyGoalSettings(settings,period);normalizeData();fillSupervisors();processData();
         if(autoOpenGoals&&!autoOpened){autoOpened=true;await openGoalModal()}
       }catch(reason){if(version!==dataLoadVersion)return;console.error(reason);error.textContent='Não foi possível consultar as metas atuais no Firebase. Clique em Atualizar para tentar novamente.';error.classList.add('is-visible')}
@@ -172,6 +171,7 @@
     async function restoreGoals(){
       if(goalBusy||!goalEditor)return;
       const period=goalEditor.period,baseline=goalEditor.baseline,ids=Object.keys(baseline);
+      if(period<currentGoalPeriod()){alert('Para preservar os meses posteriores, corrija os valores deste mês sem restaurar as referências.');return}
       if(!ids.length||!confirm('Restaurar as referências de '+ids.length+' supervisores em '+period+'? Os ajustes mensais salvos serão removidos.'))return;
       goalBusy=true;goalFormControls(true);
       try{

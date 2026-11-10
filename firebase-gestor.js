@@ -267,6 +267,11 @@ function validGoalPeriod(period) {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test((period || '').toString());
 }
 
+function currentGoalPeriodInBrazil() {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  return `${parts.find(part => part.type === 'year').value}-${parts.find(part => part.type === 'month').value}`;
+}
+
 export async function saveMonthlyGoals(period, goals = []) {
   const session = await requireAdmin();
   if (!validGoalPeriod(period)) {
@@ -299,10 +304,21 @@ export async function saveMonthlyGoals(period, goals = []) {
         throw Object.assign(new Error('Uma meta foi alterada em outra tela. Reabra o ajuste para carregar os valores atuais.'), { code: 'data/goal-conflict' });
       }
     });
-    changes.forEach(change => transaction.set(change.ref, {
-      period, supervisorId: change.id, monthlyGoal: change.value, schemaVersion: 1,
-      updatedAt: serverTimestamp(), updatedByUid: session.user.uid
-    }, { merge: true }));
+    const currentPeriod = currentGoalPeriodInBrazil();
+    changes.forEach((change, index) => {
+      const snapshot = snapshots[index];
+      const previous = snapshot.exists() ? snapshot.data() : null;
+      const correction = period < currentPeriod;
+      const historicalOnly = correction && (!previous || previous.historicalOnly === true);
+      const carryForwardValue = correction && previous && previous.historicalOnly !== true
+        ? Number(previous.carryForwardValue ?? previous.monthlyGoal)
+        : change.value;
+      transaction.set(change.ref, {
+        period, supervisorId: change.id, monthlyGoal: change.value, schemaVersion: 1,
+        historicalOnly, carryForwardValue,
+        updatedAt: serverTimestamp(), updatedByUid: session.user.uid
+      }, { merge: true });
+    });
   });
   invalidateDataCache({ discard: true });
 }
@@ -313,7 +329,7 @@ export async function loadMonthlyGoalSettings(period) {
   // Edição sempre parte do servidor: cache indisponível não vira meta zero.
   const [supervisors, goals] = await Promise.all([
     getDocsFromServer(collection(db, 'supervisors')),
-    getDocsFromServer(query(collection(db, 'monthlyGoals'), where('period', '==', period)))
+    getDocsFromServer(collection(db, 'monthlyGoals'))
   ]);
   return {
     supervisors: new Map(supervisors.docs.map(item => [item.id, { ...item.data(), id: item.id }])),
@@ -326,6 +342,8 @@ export async function resetMonthlyGoals(period, supervisorIds = [], expectedGoal
   if (!validGoalPeriod(period)) {
     throw Object.assign(new Error('INVALID_GOAL_PERIOD'), { code: 'data/invalid-goal-period' });
   }
+  const currentPeriod = currentGoalPeriodInBrazil();
+  if (period < currentPeriod) throw new Error('Meses fechados não podem ter suas metas restauradas. Corrija os valores individualmente.');
   const ids = [...new Set(supervisorIds.map((value) => (value || '').toString().trim()).filter(Boolean))];
   if (!ids.length) return;
   await runTransaction(db, async transaction => {

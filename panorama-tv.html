@@ -53,6 +53,7 @@
     <form class="login-card" id="loginForm"><div class="eyebrow">Acesso administrativo</div><h2>Panorama na TV</h2><p>Entre com o acesso administrativo do Gestor-ESE. Esta tela é somente para consulta.</p><label for="loginEmail">Usuário ou e-mail</label><input id="loginEmail" autocomplete="username" required><label for="loginPassword">Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required><button type="submit">Entrar e carregar panorama</button><p class="login-message" id="loginMessage" role="alert"></p></form>
   </section>
   <div class="page-error" id="pageError" hidden></div>
+  <script src="./goal-rules.js"></script>
   <script type="module">
     import { auth, authErrorMessage, loadGestorData, loginAdmin, logoutAdmin, requireAdmin } from './firebase-gestor.js';
 
@@ -219,13 +220,13 @@
       });
       let goalOverrides = {};
       try { goalOverrides = JSON.parse(localStorage.getItem(goalKey) || '{}'); } catch { /* ignora cache local inválido */ }
-      const firebaseGoals = new Map((data.monthlyGoals || []).map((item) => [`${item.period}|${item.supervisorId}`, Number(item.monthlyGoal)]));
+      const firebaseGoals = new Map((data.monthlyGoals || []).map((item) => [`${item.period}|${item.supervisorId}`, item]));
       const rows = [...stats.values()].map((stat) => {
         const profile = profilesByName.get(fold(stat.name));
-        const saved = profile?.id ? firebaseGoals.get(`${period}|${profile.id}`) : undefined;
+        const resolved = profile?.id ? resolveMonthlyGoal(period, profile.id, firebaseGoals) : null;
         const legacy = goalOverrides[`${period}|${stat.name}`];
         const planned = plannedByName.get(fold(stat.name)) || 0;
-        const monthly = saved !== undefined ? Number(saved) : legacy !== undefined ? Number(legacy) : Number(profile?.monthlyGoal ?? planned);
+        const monthly = resolved ? resolved.value : legacy !== undefined ? Number(legacy) : Number(profile?.monthlyGoal ?? planned);
         const target = Number.isFinite(monthly) ? monthly : 0;
         const rate = safePercent(stat.actual, target);
         const lastLabel = stat.lastVisit ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(stat.lastVisit) : 'Sem visita';
